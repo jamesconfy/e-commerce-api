@@ -7,6 +7,7 @@ import (
 	"e-commerce/internal/models/userModels"
 	"e-commerce/internal/service/cryptoService"
 	"e-commerce/internal/service/emailService"
+	loggerService "e-commerce/internal/service/loggerService"
 	"e-commerce/internal/service/tokenService"
 	validationService "e-commerce/internal/service/validatorService"
 	"fmt"
@@ -31,6 +32,7 @@ type userSrv struct {
 	crypto    cryptoService.CryptoSrv
 	token     tokenService.TokenSrv
 	email     emailService.EmailService
+	loggerSrv loggerService.LogSrv
 }
 
 // Register User godoc
@@ -48,6 +50,7 @@ type userSrv struct {
 func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateUserRes, *errorModels.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
+		u.loggerSrv.Error(fmt.Sprintf("Error when validating create user req: %s", req))
 		return nil, errorModels.NewValidatingError(err)
 	}
 
@@ -250,8 +253,8 @@ func (u *userSrv) ChangePassword(userId string, req *userModels.ChangePasswordRe
 	return nil
 }
 
-func NewUserSrv(repo userRepo.UserRepo, validator validationService.ValidationSrv, crypto cryptoService.CryptoSrv, token tokenService.TokenSrv, email emailService.EmailService) UserService {
-	return &userSrv{repo: repo, validator: validator, crypto: crypto, token: token, email: email}
+func NewUserSrv(repo userRepo.UserRepo, validator validationService.ValidationSrv, crypto cryptoService.CryptoSrv, token tokenService.TokenSrv, email emailService.EmailService, loggerSrv loggerService.LogSrv) UserService {
+	return &userSrv{repo: repo, validator: validator, crypto: crypto, token: token, email: email, loggerSrv: loggerSrv}
 }
 
 // Auxillary Function

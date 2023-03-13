@@ -8,11 +8,10 @@ type ValidationSrv interface {
 
 type validationStruct struct{}
 
-func NewValidationStruct() ValidationSrv {
+func NewValidationService() ValidationSrv {
 	return &validationStruct{}
 }
 
 func (v *validationStruct) Validate(a any) error {
-	validate := validator.New()
-	return validate.Struct(a)
+	return validator.New().Struct(a)
 }

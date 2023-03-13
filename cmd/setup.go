@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -27,45 +28,47 @@ import (
 )
 
 func Setup() {
-	config, err := utils.LoadConfig("./")
-	if err != nil {
-		log.Println("Error loading configurations: ", err)
-	}
+	// config, err := utils.LoadConfig("./")
+	// if err != nil {
+	// 	log.Println("Error loading configurations: ", err)
+	// }
+	// utils.MyConfig.ADDR
 
-	addr := config.ADDR
+	addr := utils.AppConfig.ADDR
 	if addr == "" {
 		addr = "8000"
 	}
 
-	dsn := config.DATA_SOURCE_NAME
+	dsn := utils.AppConfig.DATA_SOURCE_NAME
 	if dsn == "" {
 		log.Println("DSN cannot be empty")
 	}
+	fmt.Println(dsn)
 
-	secret := config.SECRET_KEY_TOKEN
+	secret := utils.AppConfig.SECRET_KEY_TOKEN
 	if secret == "" {
 		log.Println("Please provide a secret key token")
 	}
 
-	host := config.HOST
-	if host == "" {
-		log.Println("Please provide an email host name")
-	}
+	// host := utils.AppConfig.HOST
+	// if host == "" {
+	// 	log.Println("Please provide an email host name")
+	// }
 
-	port := config.PORT
-	if port == "" {
-		log.Println("Please provide an email port")
-	}
+	// port := utils.AppConfig.PORT
+	// if port == "" {
+	// 	log.Println("Please provide an email port")
+	// }
 
-	passwd := config.PASSWD
-	if passwd == "" {
-		log.Println("Please provide an email password")
-	}
+	// passwd := utils.AppConfig.PASSWD
+	// if passwd == "" {
+	// 	log.Println("Please provide an email password")
+	// }
 
-	email := config.EMAIL
-	if email == "" {
-		log.Println("Please provide an email address")
-	}
+	// email := utils.AppConfig.EMAIL
+	// if email == "" {
+	// 	log.Println("Please provide an email address")
+	// }
 
 	connection, err := mysql.NewMySQLServer(dsn)
 	if err != nil {
@@ -91,13 +94,13 @@ func Setup() {
 	userRepo := userRepo.NewMySqlUserRepo(conn)
 
 	// Email Service
-	emailSrv := emailService.NewEmailSrv(email, passwd, host, port)
+	emailSrv := emailService.NewEmailSrv("email", "passwd", "host", "port")
 
 	// Token Service
 	tokenSrv := tokenService.NewTokenSrv(secret)
 
 	// Validation Service
-	validatorSrv := validationService.NewValidationStruct()
+	validatorSrv := validationService.NewValidationService()
 
 	// Cryptography Service
 	cryptoSrv := cryptoService.NewCryptoSrv()
@@ -109,7 +112,7 @@ func Setup() {
 	homeSrv := homeService.NewHomeSrv(loggerSrv)
 
 	// User Service
-	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv)
+	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv)
 
 	// Routes
 	routes.HomeRoute(v1, homeSrv)

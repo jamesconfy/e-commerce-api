@@ -1,4 +1,4 @@
-package loggerservice
+package loggerService
 
 import (
 	"fmt"

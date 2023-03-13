@@ -11,10 +11,10 @@ func UserRoute(router *gin.RouterGroup, userSrv userService.UserService) {
 	handler := userHandler.NewUserHandler(userSrv)
 	user := router.Group("/users")
 	{
-		user.POST("", handler.CreateUser)
+		user.POST("/signup", handler.CreateUser)
 		user.POST("/login", handler.LoginUser)
-		user.POST("/reset-password", handler.ResetPassword)
-		user.POST("/reset-password/validate-token", handler.ValidateToken)
-		user.PATCH("/reset-password/change-password", handler.ChangePassword)
+		// user.POST("/reset-password", handler.ResetPassword)
+		// user.POST("/reset-password/validate-token", handler.ValidateToken)
+		// user.PATCH("/reset-password/change-password", handler.ChangePassword)
 	}
 }
