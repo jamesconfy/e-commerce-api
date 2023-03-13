@@ -1,63 +1,77 @@
 package loggerservice
 
 import (
-	loggermodel "e-commerce/internal/models/loggerModels"
-	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
-	logs "github.com/jeanphorn/log4go"
+	log "github.com/sirupsen/logrus"
 )
 
 type LogSrv interface {
-	Info(arg0 any, args ...any)
-	Debug(arg0 any, args ...any)
-	Warning(arg0 any, args ...any)
-	Error(arg0 any, args ...any)
-	Fatal(arg0 any, args ...any)
-	Audit(record *loggermodel.AuditLog)
+	Info(message string)
+	Debug(message string)
+	Warning(message string)
+	Error(message string)
+	Fatal(message string)
 }
 
 type logSrv struct {
-	logger *logs.Filter
+	logger *log.Logger
 }
 
-func (l logSrv) Info(arg0 any, args ...any) {
-	l.logger.Log(logs.INFO, getSource(), fmt.Sprintf(arg0.(string), args...))
+func (l logSrv) Info(message string) {
+	l.logger.Log(log.InfoLevel, getSource(), fmt.Sprintf(" %s", message))
 }
 
-func (l logSrv) Debug(arg0 any, args ...any) {
-	l.logger.Log(logs.DEBUG, getSource(), fmt.Sprintf(arg0.(string), args...))
+func (l logSrv) Debug(message string) {
+	l.logger.Log(log.DebugLevel, getSource(), fmt.Sprintf(" %s", message))
 }
 
-func (l logSrv) Warning(arg0 any, args ...any) {
-	l.logger.Log(logs.WARNING, getSource(), fmt.Sprintf(arg0.(string), args...))
+func (l logSrv) Warning(message string) {
+	l.logger.Log(log.WarnLevel, getSource(), fmt.Sprintf(" %s", message))
 }
 
-func (l logSrv) Error(arg0 any, args ...any) {
-	l.logger.Log(logs.ERROR, getSource(), fmt.Sprintf(arg0.(string), args...))
+func (l logSrv) Error(message string) {
+	l.logger.Log(log.ErrorLevel, getSource(), fmt.Sprintf(" %s", message))
 }
 
-func (l logSrv) Fatal(arg0 any, args ...any) {
-	l.logger.Log(logs.CRITICAL, getSource(), fmt.Sprintf(arg0.(string), args...))
-	l.logger.Close()
-	os.Exit(1)
+func (l logSrv) Fatal(message string) {
+	l.logger.Log(log.FatalLevel, getSource(), fmt.Sprintf(" %s", message))
 }
 
-func (l logSrv) Audit(record *loggermodel.AuditLog) {
-	js, _ := json.Marshal(record)
-	l.logger.Log(logs.INFO, getSource(), string(js))
-}
+// func (l logSrv) Audit(record *loggermodel.AuditLog) {
+// 	js, _ := json.Marshal(record)
+// 	l.logger.Log(log.InfoLevel, getSource(), string(js))
+// }
 
 func NewLogger() LogSrv {
-	return &logSrv{logger: logs.LOGGER("fileLogs")}
+	logger := log.New()
+	// Log as JSON instead of the default ASCII formatter.
+	log.SetFormatter(&log.JSONFormatter{})
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	// log.SetOutput(os.Stdout)
+	file, err := os.OpenFile("./logs/logrus.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err == nil {
+		logger.Out = file
+	} else {
+		log.Info("Failed to log to file, using default stderr")
+	}
+
+	// Only log the warning severity or above.
+	log.SetLevel(log.WarnLevel)
+
+	return &logSrv{logger: logger}
 }
 
 // Auxillary Functions
 func getSource() (source string) {
-	if pc, _, line, ok := runtime.Caller(2); ok {
-		source = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), line)
+	if pc, _, _, ok := runtime.Caller(2); ok {
+		str := strings.Split(runtime.FuncForPC(pc).Name(), ".")
+		source = fmt.Sprintf("%s():", str[len(str)-1])
 	}
 	return
 }

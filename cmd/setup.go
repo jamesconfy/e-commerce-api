@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"io"
 	"log"
+	"os"
 
 	"e-commerce/cmd/middleware"
 	"e-commerce/cmd/routes"
 	"e-commerce/internal/Repository/userRepo"
 	mysql "e-commerce/internal/database"
+	"e-commerce/internal/logger"
 	"e-commerce/internal/service/cryptoService"
 	"e-commerce/internal/service/emailService"
 	"e-commerce/internal/service/homeService"
@@ -71,6 +74,9 @@ func Setup() {
 	}
 	defer connection.Close()
 	conn := connection.GetConn()
+
+	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.NewLogger())
+	gin.DisableConsoleColor()
 
 	router := gin.New()
 	v1 := router.Group("/api/v1")
