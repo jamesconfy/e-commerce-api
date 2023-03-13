@@ -1,18 +1,16 @@
 package cmd
 
 import (
-	"io"
 	"log"
-	"os"
 
 	"e-commerce/cmd/middleware"
 	"e-commerce/cmd/routes"
 	"e-commerce/internal/Repository/userRepo"
 	mysql "e-commerce/internal/database"
-	"e-commerce/internal/logger"
 	"e-commerce/internal/service/cryptoService"
 	"e-commerce/internal/service/emailService"
 	"e-commerce/internal/service/homeService"
+	loggerservice "e-commerce/internal/service/loggerService"
 	"e-commerce/internal/service/tokenService"
 	"e-commerce/internal/service/userService"
 	validationService "e-commerce/internal/service/validatorService"
@@ -74,9 +72,6 @@ func Setup() {
 	defer connection.Close()
 	conn := connection.GetConn()
 
-	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.NewLogger())
-	gin.DisableConsoleColor()
-
 	router := gin.New()
 	v1 := router.Group("/api/v1")
 	v1.Use(gin.Logger())
@@ -98,8 +93,11 @@ func Setup() {
 	// Cryptography Service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
+	// Logger Service
+	loggerSrv := loggerservice.NewLogger()
+
 	// Home Service
-	homeSrv := homeService.NewHomeSrv()
+	homeSrv := homeService.NewHomeSrv(loggerSrv)
 
 	// User Service
 	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv)
