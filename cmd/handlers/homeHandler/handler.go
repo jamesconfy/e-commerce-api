@@ -3,7 +3,7 @@ package homeHandler
 import (
 	"net/http"
 
-	"benny-foodie/internal/service/homeService"
+	"e-commerce/internal/service/homeService"
 
 	"github.com/gin-gonic/gin"
 )

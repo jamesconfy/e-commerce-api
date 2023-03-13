@@ -1,7 +1,7 @@
 package routes
 
 import (
-	err "benny-foodie/cmd/handlers/errorHandler"
+	err "e-commerce/cmd/handlers/errorHandler"
 
 	"github.com/gin-gonic/gin"
 )

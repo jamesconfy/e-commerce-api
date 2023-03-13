@@ -2,12 +2,12 @@
  - using env:	export GIN_MODE=release
  - using code:	gin.SetMode(gin.ReleaseMode)
 
-[GIN-debug] GET    /api/v1/                  --> benny-foodie/cmd/handlers/homeHandler.(*homeHandler).Home-fm (3 handlers)
-[GIN-debug] POST   /api/v1/users             --> benny-foodie/cmd/handlers/userHandler.(*userHandler).CreateUser-fm (3 handlers)
-[GIN-debug] POST   /api/v1/users/login       --> benny-foodie/cmd/handlers/userHandler.(*userHandler).LoginUser-fm (3 handlers)
-[GIN-debug] POST   /api/v1/users/reset-password --> benny-foodie/cmd/handlers/userHandler.(*userHandler).ResetPassword-fm (3 handlers)
-[GIN-debug] POST   /api/v1/users/reset-password/validate-token --> benny-foodie/cmd/handlers/userHandler.(*userHandler).ValidateToken-fm (3 handlers)
-[GIN-debug] PATCH  /api/v1/users/reset-password/change-password --> benny-foodie/cmd/handlers/userHandler.(*userHandler).ChangePassword-fm (3 handlers)
+[GIN-debug] GET    /api/v1/                  --> e-commerce/cmd/handlers/homeHandler.(*homeHandler).Home-fm (3 handlers)
+[GIN-debug] POST   /api/v1/users             --> e-commerce/cmd/handlers/userHandler.(*userHandler).CreateUser-fm (3 handlers)
+[GIN-debug] POST   /api/v1/users/login       --> e-commerce/cmd/handlers/userHandler.(*userHandler).LoginUser-fm (3 handlers)
+[GIN-debug] POST   /api/v1/users/reset-password --> e-commerce/cmd/handlers/userHandler.(*userHandler).ResetPassword-fm (3 handlers)
+[GIN-debug] POST   /api/v1/users/reset-password/validate-token --> e-commerce/cmd/handlers/userHandler.(*userHandler).ValidateToken-fm (3 handlers)
+[GIN-debug] PATCH  /api/v1/users/reset-password/change-password --> e-commerce/cmd/handlers/userHandler.(*userHandler).ChangePassword-fm (3 handlers)
 [GIN-debug] GET    /api/v1/swagger/*any      --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (3 handlers)
 [GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
 Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.

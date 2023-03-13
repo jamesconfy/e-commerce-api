@@ -1,9 +1,9 @@
 package userRepo
 
 import (
-	"benny-foodie/internal/models/userModels"
 	"context"
 	"database/sql"
+	"e-commerce/internal/models/userModels"
 	"fmt"
 	"time"
 )

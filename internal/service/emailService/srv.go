@@ -1,7 +1,7 @@
 package emailService
 
 import (
-	"benny-foodie/internal/models/emailModels"
+	"e-commerce/internal/models/emailModels"
 	"fmt"
 	"net/smtp"
 )

@@ -1,14 +1,14 @@
 package userService
 
 import (
-	"benny-foodie/internal/Repository/userRepo"
-	"benny-foodie/internal/models/emailModels"
-	"benny-foodie/internal/models/errorModels"
-	"benny-foodie/internal/models/userModels"
-	"benny-foodie/internal/service/cryptoService"
-	"benny-foodie/internal/service/emailService"
-	"benny-foodie/internal/service/tokenService"
-	validationService "benny-foodie/internal/service/validatorService"
+	"e-commerce/internal/Repository/userRepo"
+	"e-commerce/internal/models/emailModels"
+	"e-commerce/internal/models/errorModels"
+	"e-commerce/internal/models/userModels"
+	"e-commerce/internal/service/cryptoService"
+	"e-commerce/internal/service/emailService"
+	"e-commerce/internal/service/tokenService"
+	validationService "e-commerce/internal/service/validatorService"
 	"fmt"
 	"log"
 	"math/rand"

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"benny-foodie/cmd/handlers/homeHandler"
-	"benny-foodie/internal/service/homeService"
+	"e-commerce/cmd/handlers/homeHandler"
+	"e-commerce/internal/service/homeService"
 
 	"github.com/gin-gonic/gin"
 )

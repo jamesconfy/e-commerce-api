@@ -1,4 +1,4 @@
-module benny-foodie
+module e-commerce
 
 go 1.19
 

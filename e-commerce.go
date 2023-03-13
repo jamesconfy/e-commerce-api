@@ -1,6 +1,6 @@
 package main
 
-import "benny-foodie/cmd"
+import "e-commerce/cmd"
 
 func main() {
 	// @title           Benny-Foods

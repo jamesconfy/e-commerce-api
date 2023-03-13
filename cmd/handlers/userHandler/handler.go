@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"benny-foodie/internal/models/responseModels"
-	"benny-foodie/internal/models/userModels"
-	"benny-foodie/internal/service/userService"
+	"e-commerce/internal/models/responseModels"
+	"e-commerce/internal/models/userModels"
+	"e-commerce/internal/service/userService"
 
 	"github.com/gin-gonic/gin"
 )

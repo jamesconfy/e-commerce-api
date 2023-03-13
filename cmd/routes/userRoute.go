@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"benny-foodie/cmd/handlers/userHandler"
-	"benny-foodie/internal/service/userService"
+	"e-commerce/cmd/handlers/userHandler"
+	"e-commerce/internal/service/userService"
 
 	"github.com/gin-gonic/gin"
 )
