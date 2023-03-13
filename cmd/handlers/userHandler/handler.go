@@ -11,6 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type UserHandler interface {
+	CreateUser(c *gin.Context)
+	LoginUser(c *gin.Context)
+	ResetPassword(c *gin.Context)
+	ValidateToken(c *gin.Context)
+	ChangePassword(c *gin.Context)
+}
+
 type userHandler struct {
 	userSrv userService.UserService
 }
@@ -128,6 +136,6 @@ func (h *userHandler) ChangePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Password changed successfully", nil, nil))
 }
 
-func NewUserHandler(userSrv userService.UserService) *userHandler {
+func NewUserHandler(userSrv userService.UserService) UserHandler {
 	return &userHandler{userSrv: userSrv}
 }

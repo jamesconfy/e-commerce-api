@@ -1,6 +1,7 @@
 package tokenService
 
 import (
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -60,6 +61,10 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 			return []byte(t.SecretKey), nil
 		},
 	)
+
+	if token == nil {
+		return nil, errors.New("check the provided token")
+	}
 
 	claims, ok := token.Claims.(*Token)
 	if !ok {

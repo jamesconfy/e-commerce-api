@@ -1,13 +1,19 @@
 package routes
 
 import (
+	producthandler "e-commerce/cmd/handlers/productHandler"
+	"e-commerce/internal/service/tokenService"
+
 	"github.com/gin-gonic/gin"
 )
 
-func ProductRoutes(v1 *gin.RouterGroup) {
+func ProductRoutes(v1 *gin.RouterGroup, tokenSrv tokenService.TokenSrv) {
+	handler := producthandler.NewProductHandler()
+	//jwtMiddleWare := middleware.NewJWTMiddleWare(tokenSrv)
+
 	product := v1.Group("/products")
-	// product.Use(middleware.ValidateToken)
+	//product.Use(jwtMiddleWare.ValidateJWT())
 	{
-		product.POST("")
+		product.GET("", handler.Product)
 	}
 }

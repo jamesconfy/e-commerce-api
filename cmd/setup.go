@@ -117,6 +117,7 @@ func Setup() {
 	// Routes
 	routes.HomeRoute(v1, homeSrv)
 	routes.UserRoute(v1, userSrv)
+	routes.ProductRoutes(v1, tokenSrv)
 	routes.ErrorRoute(router)
 
 	// Documentation
