@@ -1,0 +1,22 @@
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /api/v1/                  --> benny-foodie/cmd/handlers/homeHandler.(*homeHandler).Home-fm (3 handlers)
+[GIN-debug] POST   /api/v1/users             --> benny-foodie/cmd/handlers/userHandler.(*userHandler).CreateUser-fm (3 handlers)
+[GIN-debug] POST   /api/v1/users/login       --> benny-foodie/cmd/handlers/userHandler.(*userHandler).LoginUser-fm (3 handlers)
+[GIN-debug] POST   /api/v1/users/reset-password --> benny-foodie/cmd/handlers/userHandler.(*userHandler).ResetPassword-fm (3 handlers)
+[GIN-debug] POST   /api/v1/users/reset-password/validate-token --> benny-foodie/cmd/handlers/userHandler.(*userHandler).ValidateToken-fm (3 handlers)
+[GIN-debug] PATCH  /api/v1/users/reset-password/change-password --> benny-foodie/cmd/handlers/userHandler.(*userHandler).ChangePassword-fm (3 handlers)
+[GIN-debug] GET    /api/v1/swagger/*any      --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (3 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN] 2023/02/22 - 17:45:36 | 200 |  3.021968343s |             ::1 | POST     "/api/v1/users/reset-password"
+GIN] 2023/02/20 - 12:56:51 | 200 |     176.348µs |             ::1 | GET      "/api/v1/swagger/swagger-ui.css"
+[GIN] 2023/02/20 - 12:56:51 | 200 |     297.911µs |             ::1 | GET      "/api/v1/swagger/swagger-ui-standalone-preset.js"
+[GIN] 2023/02/20 - 12:56:51 | 200 |    4.528261ms |             ::1 | GET      "/api/v1/swagger/swagger-ui-bundle.js"
+[GIN] 2023/02/20 - 12:56:51 | 200 |     558.863µs |             ::1 | GET      "/api/v1/swagger/doc.json"
+[GIN] 2023/02/20 - 12:56:51 | 200 |       72.83µs |             ::1 | GET      "/api/v1/swagger/favicon-32x32.png"
+on"
+[GIN] 2023/02/20 - 12:56:21 |[97;42m 200 [0m|      31.773µs |             ::1 |[97;44m GET     [0m "/api/v1/swagger/favicon-32x32.png"

@@ -1,0 +1,115 @@
+package cmd
+
+import (
+	"io"
+	"log"
+	"os"
+
+	"benny-foodie/cmd/middleware"
+	"benny-foodie/cmd/routes"
+	"benny-foodie/internal/Repository/userRepo"
+	mysql "benny-foodie/internal/database"
+	"benny-foodie/internal/logger"
+	"benny-foodie/internal/service/cryptoService"
+	"benny-foodie/internal/service/emailService"
+	"benny-foodie/internal/service/homeService"
+	"benny-foodie/internal/service/tokenService"
+	"benny-foodie/internal/service/userService"
+	validationService "benny-foodie/internal/service/validatorService"
+	"benny-foodie/utils"
+
+	_ "benny-foodie/docs"
+
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+)
+
+func Setup() {
+	config, err := utils.LoadConfig("./")
+	if err != nil {
+		log.Println("Error loading configurations: ", err)
+	}
+
+	addr := config.ADDR
+	if addr == "" {
+		addr = "8000"
+	}
+
+	dsn := config.DATA_SOURCE_NAME
+	if dsn == "" {
+		log.Println("DSN cannot be empty")
+	}
+
+	secret := config.SECRET_KEY_TOKEN
+	if secret == "" {
+		log.Println("Please provide a secret key token")
+	}
+
+	host := config.HOST
+	if host == "" {
+		log.Println("Please provide an email host name")
+	}
+
+	port := config.PORT
+	if port == "" {
+		log.Println("Please provide an email port")
+	}
+
+	passwd := config.PASSWD
+	if passwd == "" {
+		log.Println("Please provide an email password")
+	}
+
+	email := config.EMAIL
+	if email == "" {
+		log.Println("Please provide an email address")
+	}
+
+	connection, err := mysql.NewMySQLServer(dsn)
+	if err != nil {
+		log.Println("Error Connecting to DB: ", err)
+		return
+	}
+	defer connection.Close()
+	conn := connection.GetConn()
+
+	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.NewLogger())
+	gin.DisableConsoleColor()
+
+	router := gin.New()
+	v1 := router.Group("/api/v1")
+	v1.Use(gin.Logger())
+	v1.Use(gin.Recovery())
+	router.Use(middleware.CORS())
+
+	// User Repository
+	userRepo := userRepo.NewMySqlUserRepo(conn)
+
+	// Email Service
+	emailSrv := emailService.NewEmailSrv(email, passwd, host, port)
+
+	// Token Service
+	tokenSrv := tokenService.NewTokenSrv(secret)
+
+	// Validation Service
+	validatorSrv := validationService.NewValidationStruct()
+
+	// Cryptography Service
+	cryptoSrv := cryptoService.NewCryptoSrv()
+
+	// Home Service
+	homeSrv := homeService.NewHomeSrv()
+
+	// User Service
+	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv)
+
+	// Routes
+	routes.HomeRoute(v1, homeSrv)
+	routes.UserRoute(v1, userSrv)
+	routes.ErrorRoute(router)
+
+	// Documentation
+	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.Run(":" + addr)
+}

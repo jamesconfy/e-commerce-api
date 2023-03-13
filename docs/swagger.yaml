@@ -1,0 +1,316 @@
+basePath: /api/v1
+definitions:
+  errorModels.ServiceError:
+    properties:
+      description:
+        type: string
+      error: {}
+      time:
+        type: string
+    type: object
+  userModels.ChangePasswordReq:
+    properties:
+      confirm_password:
+        type: string
+      password:
+        type: string
+    required:
+      - confirm_password
+      - password
+    type: object
+  userModels.CreateUserReq:
+    properties:
+      date_created:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      phone_number:
+        type: string
+      user_id:
+        type: string
+    required:
+      - email
+      - first_name
+      - last_name
+      - password
+      - phone_number
+    type: object
+  userModels.CreateUserRes:
+    properties:
+      access_token:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      refresh_token:
+        type: string
+      user_id:
+        type: string
+    type: object
+  userModels.LoginReq:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+      - email
+      - password
+    type: object
+  userModels.LoginRes:
+    properties:
+      access_token:
+        type: string
+      date_created:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      refresh_token:
+        type: string
+      user_id:
+        type: string
+    type: object
+  userModels.ResetPasswordReq:
+    properties:
+      email:
+        type: string
+    required:
+      - email
+    type: object
+  userModels.ResetPasswordRes:
+    properties:
+      expiry:
+        type: string
+      token:
+        type: string
+      token_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  userModels.ValidateTokenRes:
+    properties:
+      expiry:
+        type: string
+      token:
+        type: string
+      token_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: benny-foods.fly.dev
+info:
+  contact:
+    email: bobdence@gmail.com
+    name: Confidence James
+    url: http://github.com/jamesconfy
+  description: Server for https://bennyfoodie.netlify.app/
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Benny-Foods
+  version: "1.0"
+paths:
+  /users:
+    post:
+      consumes:
+        - application/json
+      description: Register route
+      parameters:
+        - description: Signup Details
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/userModels.CreateUserReq"
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/userModels.CreateUserRes"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+      summary: Register route
+      tags:
+        - Users
+  /users/login:
+    post:
+      consumes:
+        - application/json
+      description: Login route
+      parameters:
+        - description: Login Details
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/userModels.LoginReq"
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/userModels.LoginRes"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+      summary: Login route
+      tags:
+        - Users
+  /users/reset-password:
+    post:
+      consumes:
+        - application/json
+      description: Reset password route
+      parameters:
+        - description: Reset Password Details
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/userModels.ResetPasswordReq"
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/userModels.ResetPasswordRes"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+      summary: Reset password route
+      tags:
+        - Users
+  /users/reset-password/change-password:
+    patch:
+      consumes:
+        - application/json
+      description: Change password route
+      parameters:
+        - description: User Id
+          in: query
+          name: user_id
+          required: true
+          type: string
+        - description: Reset Password Details
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/userModels.ChangePasswordReq"
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Password changed successfully
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+      summary: Change password route
+      tags:
+        - Users
+  /users/reset-password/validate-token:
+    post:
+      consumes:
+        - application/json
+      description: Validate token route
+      parameters:
+        - description: Token
+          in: query
+          name: token
+          required: true
+          type: string
+        - description: User Id
+          in: query
+          name: user_id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/userModels.ValidateTokenRes"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/errorModels.ServiceError"
+      summary: Validate token route
+      tags:
+        - Users
+schemes:
+  - http
+  - https
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorisation
+    type: apiKey
+swagger: "2.0"
