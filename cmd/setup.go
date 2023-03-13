@@ -75,10 +75,13 @@ func Setup() {
 	defer connection.Close()
 	conn := connection.GetConn()
 
+	gin.SetMode(gin.DebugMode)
 	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.NewLogger())
 	gin.DisableConsoleColor()
 
 	router := gin.New()
+	router.SetTrustedProxies(nil)
+
 	v1 := router.Group("/api/v1")
 	v1.Use(gin.Logger())
 	v1.Use(gin.Recovery())
