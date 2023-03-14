@@ -14,7 +14,7 @@ import (
 	"e-commerce/internal/service/cryptoService"
 	"e-commerce/internal/service/emailService"
 	"e-commerce/internal/service/homeService"
-	loggerservice "e-commerce/internal/service/loggerService"
+	"e-commerce/internal/service/loggerService"
 	"e-commerce/internal/service/tokenService"
 	"e-commerce/internal/service/userService"
 	validationService "e-commerce/internal/service/validatorService"
@@ -93,20 +93,20 @@ func Setup() {
 	// User Repository
 	userRepo := userRepo.NewMySqlUserRepo(conn)
 
+	// Logger Service
+	loggerSrv := loggerService.NewLogger()
+
 	// Email Service
 	emailSrv := emailService.NewEmailSrv("email", "passwd", "host", "port")
 
 	// Token Service
-	tokenSrv := tokenService.NewTokenSrv(secret)
+	tokenSrv := tokenService.NewTokenSrv(secret, loggerSrv)
 
 	// Validation Service
 	validatorSrv := validationService.NewValidationService()
 
 	// Cryptography Service
 	cryptoSrv := cryptoService.NewCryptoSrv()
-
-	// Logger Service
-	loggerSrv := loggerservice.NewLogger()
 
 	// Home Service
 	homeSrv := homeService.NewHomeSrv(loggerSrv)

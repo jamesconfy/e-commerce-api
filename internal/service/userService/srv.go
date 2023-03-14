@@ -10,6 +10,7 @@ import (
 	loggerService "e-commerce/internal/service/loggerService"
 	"e-commerce/internal/service/tokenService"
 	validationService "e-commerce/internal/service/validatorService"
+	"e-commerce/utils"
 	"fmt"
 	"log"
 	"math/rand"
@@ -32,7 +33,8 @@ type userSrv struct {
 	crypto    cryptoService.CryptoSrv
 	token     tokenService.TokenSrv
 	email     emailService.EmailService
-	loggerSrv loggerService.LogSrv
+	logSrv    loggerService.LogSrv
+	// messageSrv utils.Messages
 }
 
 // Register User godoc
@@ -50,12 +52,13 @@ type userSrv struct {
 func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateUserRes, *errorModels.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
-		u.loggerSrv.Error(fmt.Sprintf("Error when validating create user req: %s", req))
+		u.logSrv.Error(utils.Messages.CreateUserValidationError(req))
 		return nil, errorModels.NewValidatingError(err)
 	}
 
 	user, err := u.repo.GetByEmail(req.Email)
 	if user != nil {
+		u.logSrv.Error(utils.Messages.CreateUserGetByEmailError(user))
 		return nil, errorModels.NewCustomServiceError("User already exists", err) //.NewInternalServiceError(err)
 	}
 
@@ -253,8 +256,8 @@ func (u *userSrv) ChangePassword(userId string, req *userModels.ChangePasswordRe
 	return nil
 }
 
-func NewUserSrv(repo userRepo.UserRepo, validator validationService.ValidationSrv, crypto cryptoService.CryptoSrv, token tokenService.TokenSrv, email emailService.EmailService, loggerSrv loggerService.LogSrv) UserService {
-	return &userSrv{repo: repo, validator: validator, crypto: crypto, token: token, email: email, loggerSrv: loggerSrv}
+func NewUserSrv(repo userRepo.UserRepo, validator validationService.ValidationSrv, crypto cryptoService.CryptoSrv, token tokenService.TokenSrv, email emailService.EmailService, logSrv loggerService.LogSrv) UserService {
+	return &userSrv{repo: repo, validator: validator, crypto: crypto, token: token, email: email, logSrv: logSrv}
 }
 
 // Auxillary Function

@@ -1,7 +1,9 @@
 package tokenService
 
 import (
+	"e-commerce/internal/service/loggerService"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -21,6 +23,7 @@ type TokenSrv interface {
 
 type tokenSrv struct {
 	SecretKey string
+	logSrv    loggerService.LogSrv
 }
 
 func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
@@ -42,14 +45,17 @@ func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenDetails).SignedString([]byte(t.SecretKey))
 	if err != nil {
+		t.logSrv.Warning(fmt.Sprintf("Could not create access token created for User: %s with Email: %s", id, email))
 		return "", "", err
 	}
 
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenDetails).SignedString([]byte(t.SecretKey))
 	if err != nil {
+		t.logSrv.Warning(fmt.Sprintf("Could not create refresh token created for User: %s with Email: %s", id, email))
 		return "", "", err
 	}
 
+	t.logSrv.Info(fmt.Sprintf("Access and Refresh token created for User: %s with Email: %s", id, email))
 	return token, refreshToken, err
 }
 
@@ -79,6 +85,6 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 
 }
 
-func NewTokenSrv(secret string) TokenSrv {
-	return &tokenSrv{secret}
+func NewTokenSrv(secret string, logSrv loggerService.LogSrv) TokenSrv {
+	return &tokenSrv{SecretKey: secret, logSrv: logSrv}
 }
