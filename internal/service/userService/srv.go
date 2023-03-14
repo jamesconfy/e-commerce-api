@@ -52,18 +52,19 @@ type userSrv struct {
 func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateUserRes, *errorModels.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
-		u.logSrv.Error(utils.Messages.CreateUserValidationError(req))
+		u.logSrv.Error(utils.Messages.CreateUserValidationError(req, err))
 		return nil, errorModels.NewValidatingError(err)
 	}
 
 	user, err := u.repo.GetByEmail(req.Email)
 	if user != nil {
-		u.logSrv.Error(utils.Messages.CreateUserGetByEmailError(user))
+		u.logSrv.Error(utils.Messages.CreateUserGetByEmailError(user, err))
 		return nil, errorModels.NewCustomServiceError("User already exists", err) //.NewInternalServiceError(err)
 	}
 
 	password, err := u.crypto.HashPassword(req.Password)
 	if err != nil {
+		u.logSrv.Error(utils.Messages.CreateUserPasswordError(req, err))
 		return nil, errorModels.NewCustomServiceError("Could not hash password", err)
 	}
 
@@ -73,22 +74,28 @@ func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateU
 
 	err = u.repo.RegisterUser(req)
 	if err != nil {
+		u.logSrv.Fatal(utils.Messages.CreateUserAddToRepo(req, err))
 		return nil, errorModels.NewCustomServiceError("Error saving user to database", err)
 	}
 
 	token, refresh_token, err := u.token.CreateToken(req.UserId, req.Email)
 	if err != nil {
+		u.logSrv.Error(utils.Messages.CreateTokenError(req.UserId, req.Email))
 		return nil, errorModels.NewCustomServiceError("Error when creating token", err)
 	}
 
-	return &userModels.CreateUserRes{
+	data := &userModels.CreateUserRes{
 		UserId:       req.UserId,
 		Email:        req.Email,
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		Token:        token,
 		RefreshToken: refresh_token,
-	}, nil
+		DateCreated:  req.DateCreated,
+	}
+
+	u.logSrv.Info(utils.Messages.CreateUserSuccess(data))
+	return data, nil
 }
 
 // Login User godoc
@@ -106,32 +113,39 @@ func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateU
 func (u *userSrv) Login(req *userModels.LoginReq) (*userModels.LoginRes, *errorModels.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
+		u.logSrv.Error(utils.Messages.LoginUserValidationError(req))
 		return nil, errorModels.NewValidatingError(err)
 	}
 
 	user, err := u.repo.GetByEmail(req.Email)
 	if user == nil {
+		u.logSrv.Error(utils.Messages.LoginUserGetByEmailError(req))
 		return nil, errorModels.NewCustomServiceError("Email does not exists!", err) //.NewInternalServiceError(err)
 	}
 
 	ok := u.crypto.ComparePassword(user.Password, req.Password)
 	if !ok {
+		u.logSrv.Error(utils.Messages.LoginUserPasswordError(user.UserId, req))
 		return nil, errorModels.NewCustomServiceError("Passwords do not match", err) //.NewInternalServiceError(err)
 	}
 
 	token, refresh_token, err := u.token.CreateToken(user.UserId, user.Email)
 	if err != nil {
+		u.logSrv.Error(utils.Messages.CreateTokenError(user.UserId, req.Email))
 		return nil, errorModels.NewCustomServiceError("Error when creating token", err)
 	}
 
-	return &userModels.LoginRes{
+	data := &userModels.LoginRes{
 		UserId:       user.UserId,
 		Name:         user.FirstName + user.LastName,
 		DateCreated:  user.DateCreated,
 		Email:        user.Email,
 		Token:        token,
 		RefreshToken: refresh_token,
-	}, nil
+	}
+
+	u.logSrv.Info(utils.Messages.LoginUserSuccess(data))
+	return data, nil
 }
 
 // Reset User Password godoc

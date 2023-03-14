@@ -17,6 +17,7 @@ type CreateUserRes struct {
 	LastName     string `json:"last_name"`
 	Token        string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+	DateCreated  string `json:"date_created"`
 }
 
 type LoginReq struct {
