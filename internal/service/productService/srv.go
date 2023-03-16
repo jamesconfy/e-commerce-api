@@ -1,6 +1,7 @@
 package productService
 
 import (
+	"e-commerce/internal/Repository/productRepo"
 	"e-commerce/internal/models/errorModels"
 	"e-commerce/internal/models/productModels"
 	"e-commerce/internal/service/loggerService"
@@ -13,6 +14,7 @@ type ProductService interface {
 }
 
 type productSrv struct {
+	productRepo  productRepo.ProductRepo
 	validatorSrv validationService.ValidationSrv
 	loggerSrv    loggerService.LogSrv
 }
@@ -26,6 +28,6 @@ func (p *productSrv) AddProduct(userId string, req *productModels.AddProductReq)
 	return nil, nil
 }
 
-func NewProductService(validatorSrv validationService.ValidationSrv, loggerSrv loggerService.LogSrv) ProductService {
-	return &productSrv{validatorSrv: validatorSrv, loggerSrv: loggerSrv}
+func NewProductService(productRepo productRepo.ProductRepo, validatorSrv validationService.ValidationSrv, loggerSrv loggerService.LogSrv) ProductService {
+	return &productSrv{productRepo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv}
 }

@@ -59,6 +59,8 @@ func (m *mySql) GetByEmail(email string) (*userModels.GetByEmailRes, error) {
 		&user.PhoneNumber,
 		&user.DateCreated,
 	)
+
+	// fmt.Println(time.Parse("2006-01-02 15:04:05", user.DateCreated))
 	if err != nil {
 		return nil, err
 	}

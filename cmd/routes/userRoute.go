@@ -2,12 +2,13 @@ package routes
 
 import (
 	"e-commerce/cmd/handlers/userHandler"
+	"e-commerce/internal/service/tokenService"
 	"e-commerce/internal/service/userService"
 
 	"github.com/gin-gonic/gin"
 )
 
-func UserRoute(router *gin.RouterGroup, userSrv userService.UserService) {
+func UserRoute(router *gin.RouterGroup, userSrv userService.UserService, tokenSrv tokenService.TokenSrv) {
 	handler := userHandler.NewUserHandler(userSrv)
 	user := router.Group("/users")
 	{

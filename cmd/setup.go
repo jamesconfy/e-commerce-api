@@ -8,6 +8,7 @@ import (
 
 	"e-commerce/cmd/middleware"
 	"e-commerce/cmd/routes"
+	"e-commerce/internal/Repository/productRepo"
 	"e-commerce/internal/Repository/userRepo"
 	mysql "e-commerce/internal/database"
 	"e-commerce/internal/logger"
@@ -16,6 +17,7 @@ import (
 	"e-commerce/internal/service/homeService"
 	"e-commerce/internal/service/loggerService"
 	"e-commerce/internal/service/productService"
+	"e-commerce/internal/service/timeService"
 	"e-commerce/internal/service/tokenService"
 	"e-commerce/internal/service/userService"
 	validationService "e-commerce/internal/service/validatorService"
@@ -94,14 +96,17 @@ func Setup() {
 	// User Repository
 	userRepo := userRepo.NewMySqlUserRepo(conn)
 
+	// Product Repository
+	productRepo := productRepo.NewMySqlUserRepo(conn)
+
 	// Logger Service
 	loggerSrv := loggerService.NewLogger()
 
+	// Time Service
+	timeSrv := timeService.NewTimeService()
+
 	// Email Service
 	emailSrv := emailService.NewEmailSrv("email", "passwd", "host", "port")
-
-	// Token Service
-	tokenSrv := tokenService.NewTokenSrv(secret, loggerSrv)
 
 	// Validation Service
 	validatorSrv := validationService.NewValidationService()
@@ -109,18 +114,21 @@ func Setup() {
 	// Cryptography Service
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
+	// Token Service
+	tokenSrv := tokenService.NewTokenSrv(secret, loggerSrv)
+
 	// Home Service
 	homeSrv := homeService.NewHomeSrv(loggerSrv)
 
 	// User Service
-	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv)
+	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv)
 
 	// Product Service
-	productSrv := productService.NewProductService(validatorSrv, loggerSrv)
+	productSrv := productService.NewProductService(productRepo, validatorSrv, loggerSrv)
 
 	// Routes
 	routes.HomeRoute(v1, homeSrv)
-	routes.UserRoute(v1, userSrv)
+	routes.UserRoute(v1, userSrv, tokenSrv)
 	routes.ProductRoutes(v1, productSrv, tokenSrv)
 	routes.ErrorRoute(router)
 

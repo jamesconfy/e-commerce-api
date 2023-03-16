@@ -5,10 +5,10 @@ CREATE TABLE IF NOT EXISTS `users`(
     `last_name` VARCHAR(250) NULL,
     `email` VARCHAR(250) NOT NULL UNIQUE,
     `phone_number` VARCHAR(250) NOT NULL UNIQUE,
-    `password` VARCHAR(250) NOT NULL, 
-    `date_created` VARCHAR(250) NOT NULL,
-    `date_updated` VARCHAR(250) NOT NULL DEFAULT '',
-    `address` VARCHAR(250) NOT NULL DEFAULT '',
+    `password` VARCHAR(250) NOT NULL,
+    `date_created` (250) NOT NULL,
+    `date_updated` VARCHAR(250) NOT NULL DEFAULT "",
+    `address` VARCHAR(250) NOT NULL DEFAULT "",
     
     PRIMARY KEY(user_id)
 );

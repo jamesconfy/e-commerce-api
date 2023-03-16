@@ -8,6 +8,7 @@ import (
 	"e-commerce/internal/service/cryptoService"
 	"e-commerce/internal/service/emailService"
 	loggerService "e-commerce/internal/service/loggerService"
+	"e-commerce/internal/service/timeService"
 	"e-commerce/internal/service/tokenService"
 	validationService "e-commerce/internal/service/validatorService"
 	"e-commerce/utils"
@@ -34,6 +35,7 @@ type userSrv struct {
 	token     tokenService.TokenSrv
 	email     emailService.EmailService
 	logSrv    loggerService.LogSrv
+	timeSrv   timeService.TimeService
 	// messageSrv utils.Messages
 }
 
@@ -270,8 +272,8 @@ func (u *userSrv) ChangePassword(userId string, req *userModels.ChangePasswordRe
 	return nil
 }
 
-func NewUserSrv(repo userRepo.UserRepo, validator validationService.ValidationSrv, crypto cryptoService.CryptoSrv, token tokenService.TokenSrv, email emailService.EmailService, logSrv loggerService.LogSrv) UserService {
-	return &userSrv{repo: repo, validator: validator, crypto: crypto, token: token, email: email, logSrv: logSrv}
+func NewUserSrv(repo userRepo.UserRepo, validator validationService.ValidationSrv, crypto cryptoService.CryptoSrv, token tokenService.TokenSrv, email emailService.EmailService, logSrv loggerService.LogSrv, timeSrv timeService.TimeService) UserService {
+	return &userSrv{repo: repo, validator: validator, crypto: crypto, token: token, email: email, logSrv: logSrv, timeSrv: timeSrv}
 }
 
 // Auxillary Function
