@@ -26,8 +26,7 @@ type userHandler struct {
 func (h *userHandler) CreateUser(c *gin.Context) {
 	var req userModels.CreateUserReq
 
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
 		return
 	}

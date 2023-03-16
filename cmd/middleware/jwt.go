@@ -22,6 +22,7 @@ func (j *jwtMiddleWare) ValidateJWT() gin.HandlerFunc {
 		}
 
 		auth := strings.Split(authHeader, " ")
+
 		token, err := j.tokenSrv.ValidateToken(auth[1])
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("invalid Token: %v", err))

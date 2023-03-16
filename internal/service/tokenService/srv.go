@@ -10,9 +10,8 @@ import (
 )
 
 type Token struct {
-	Email  string
-	Id     string
-	Status string
+	Email string
+	Id    string
 	jwt.RegisteredClaims
 }
 
@@ -55,7 +54,7 @@ func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
 		return "", "", err
 	}
 
-	t.logSrv.Info(fmt.Sprintf("Access and Refresh token created for User: %s with Email: %s", id, email))
+	t.logSrv.Info(fmt.Sprintf("Access and Refresh token created for UserId: %s with Email: %s", id, email))
 	return token, refreshToken, err
 }
 
@@ -69,20 +68,28 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 	)
 
 	if token == nil {
+		t.logSrv.Debug(fmt.Sprintf("Token is empty after parsing || Token String: %s", tokenUrl))
 		return nil, errors.New("check the provided token")
 	}
 
 	claims, ok := token.Claims.(*Token)
 	if !ok {
+		t.logSrv.Debug(fmt.Sprintf("Token claims is not ok || Claims: %s", claims))
 		return nil, err
 	}
 
-	if !claims.ExpiresAt.Time.Before(time.Now().Local()) {
+	if errc := claims.Valid(); errc != nil {
+		t.logSrv.Debug(fmt.Sprintf("Token claims is not valid || Claims: %s", claims))
 		return nil, err
 	}
 
+	if claims.ExpiresAt.Time.Before(time.Now().Local()) {
+		t.logSrv.Debug(fmt.Sprintf("Token is expired || Expired Time: %s", claims.ExpiresAt))
+		return nil, fmt.Errorf("expired token, please login again || expired time: %s", claims.ExpiresAt.Time)
+	}
+
+	t.logSrv.Info(fmt.Sprintf("Access token validated for UserId: %s with Email: %s and Expires At: %s", claims.Id, claims.Email, claims.ExpiresAt))
 	return claims, err
-
 }
 
 func NewTokenSrv(secret string, logSrv loggerService.LogSrv) TokenSrv {

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"e-commerce/internal/models/productModels"
 	"e-commerce/internal/models/userModels"
 	"fmt"
 )
@@ -67,5 +68,10 @@ func (m message) CreateTokenError(userId, email string) (str string) {
 // Login user success message
 func (m message) LoginUserSuccess(req *userModels.LoginRes) (str string) {
 	str = fmt.Sprintf("User logged in successfully || UserId: %s || Email: %s || Access_Token: %s || Refresh_Token: %s || Date_Created: %s", req.UserId, req.Email, req.Token, req.RefreshToken, req.DateCreated)
+	return
+}
+
+func (m message) AddProductValidationError(userId string, req *productModels.AddProductReq) (str string) {
+	str = fmt.Sprintf("Error when validating add product request || UserId: %s", userId)
 	return
 }

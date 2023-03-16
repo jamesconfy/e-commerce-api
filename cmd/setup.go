@@ -15,6 +15,7 @@ import (
 	"e-commerce/internal/service/emailService"
 	"e-commerce/internal/service/homeService"
 	"e-commerce/internal/service/loggerService"
+	"e-commerce/internal/service/productService"
 	"e-commerce/internal/service/tokenService"
 	"e-commerce/internal/service/userService"
 	validationService "e-commerce/internal/service/validatorService"
@@ -114,10 +115,13 @@ func Setup() {
 	// User Service
 	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv)
 
+	// Product Service
+	productSrv := productService.NewProductService(validatorSrv, loggerSrv)
+
 	// Routes
 	routes.HomeRoute(v1, homeSrv)
 	routes.UserRoute(v1, userSrv)
-	routes.ProductRoutes(v1, tokenSrv)
+	routes.ProductRoutes(v1, productSrv, tokenSrv)
 	routes.ErrorRoute(router)
 
 	// Documentation

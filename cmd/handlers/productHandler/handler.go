@@ -1,21 +1,45 @@
 package producthandler
 
 import (
+	"e-commerce/internal/models/productModels"
+	"e-commerce/internal/models/responseModels"
+	"e-commerce/internal/service/productService"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ProductHandler interface {
-	Product(c *gin.Context)
+	AddProduct(c *gin.Context)
 }
 
-type productHanlder struct{}
-
-func (p productHanlder) Product(c *gin.Context) {
-	c.JSON(http.StatusOK, "Hello from product handler")
+type productHanlder struct {
+	productSrv productService.ProductService
 }
 
-func NewProductHandler() ProductHandler {
-	return &productHanlder{}
+func (p *productHanlder) AddProduct(c *gin.Context) {
+	var req productModels.AddProductReq
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
+		return
+	}
+
+	userId := c.GetString("userId")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You are not authorized to do that", nil, nil))
+		return
+	}
+
+	product, errP := p.productSrv.AddProduct(userId, &req)
+	if errP != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error creating user", errP, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Product added successfully", product, nil))
+}
+
+func NewProductHandler(productSrv productService.ProductService) ProductHandler {
+	return &productHanlder{productSrv: productSrv}
 }
