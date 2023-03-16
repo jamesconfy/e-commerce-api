@@ -9,9 +9,11 @@ import (
 	"e-commerce/cmd/middleware"
 	"e-commerce/cmd/routes"
 	"e-commerce/internal/Repository/productRepo"
+	"e-commerce/internal/Repository/tokenRepo"
 	"e-commerce/internal/Repository/userRepo"
 	mysql "e-commerce/internal/database"
 	"e-commerce/internal/logger"
+	"e-commerce/internal/service/cartService"
 	"e-commerce/internal/service/cryptoService"
 	"e-commerce/internal/service/emailService"
 	"e-commerce/internal/service/homeService"
@@ -99,6 +101,9 @@ func Setup() {
 	// Product Repository
 	productRepo := productRepo.NewMySqlUserRepo(conn)
 
+	// Token Repository
+	tokenRepo := tokenRepo.NewMySqlTokenRepo(conn)
+
 	// Logger Service
 	loggerSrv := loggerService.NewLogger()
 
@@ -115,7 +120,7 @@ func Setup() {
 	cryptoSrv := cryptoService.NewCryptoSrv()
 
 	// Token Service
-	tokenSrv := tokenService.NewTokenSrv(secret, loggerSrv)
+	tokenSrv := tokenService.NewTokenSrv(secret, loggerSrv, tokenRepo)
 
 	// Home Service
 	homeSrv := homeService.NewHomeSrv(loggerSrv)
@@ -126,10 +131,14 @@ func Setup() {
 	// Product Service
 	productSrv := productService.NewProductService(productRepo, validatorSrv, loggerSrv)
 
+	// Cart Service
+	cartSrv := cartService.NewCartService(loggerSrv, validatorSrv)
+
 	// Routes
 	routes.HomeRoute(v1, homeSrv)
 	routes.UserRoute(v1, userSrv, tokenSrv)
 	routes.ProductRoutes(v1, productSrv, tokenSrv)
+	routes.CartRoute(v1, cartSrv, tokenSrv)
 	routes.ErrorRoute(router)
 
 	// Documentation

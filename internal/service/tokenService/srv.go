@@ -1,6 +1,7 @@
 package tokenService
 
 import (
+	"e-commerce/internal/Repository/tokenRepo"
 	"e-commerce/internal/service/loggerService"
 	"errors"
 	"fmt"
@@ -23,6 +24,7 @@ type TokenSrv interface {
 type tokenSrv struct {
 	SecretKey string
 	logSrv    loggerService.LogSrv
+	tokenRepo tokenRepo.TokenRepo
 }
 
 func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
@@ -88,10 +90,21 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 		return nil, fmt.Errorf("expired token, please login again || expired time: %s", claims.ExpiresAt.Time)
 	}
 
+	row, err := t.tokenRepo.ConfirmToken(claims.Id)
+	if err != nil {
+		t.logSrv.Fatal(fmt.Sprintf("Internal server error, when trying to get token associated with user || UserId: %s", claims.Id))
+		return nil, err
+	}
+
+	if row.AccessToken != tokenUrl {
+		t.logSrv.Info(fmt.Sprintf("User tried to use old access token to login || UserId: %s || Latest Access Token: %s || Provided Access Token: %s", claims.Id, row.AccessToken, tokenUrl))
+		return nil, fmt.Errorf("outdated token")
+	}
+
 	t.logSrv.Info(fmt.Sprintf("Access token validated for UserId: %s with Email: %s and Expires At: %s", claims.Id, claims.Email, claims.ExpiresAt))
 	return claims, err
 }
 
-func NewTokenSrv(secret string, logSrv loggerService.LogSrv) TokenSrv {
-	return &tokenSrv{SecretKey: secret, logSrv: logSrv}
+func NewTokenSrv(secret string, logSrv loggerService.LogSrv, tokenRepo tokenRepo.TokenRepo) TokenSrv {
+	return &tokenSrv{SecretKey: secret, logSrv: logSrv, tokenRepo: tokenRepo}
 }

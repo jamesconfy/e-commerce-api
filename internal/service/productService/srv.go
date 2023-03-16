@@ -10,7 +10,7 @@ import (
 )
 
 type ProductService interface {
-	AddProduct(userId string, req *productModels.AddProductReq) (*productModels.AddProductRes, *errorModels.ServiceError)
+	AddProduct(req *productModels.AddProductReq) (*productModels.AddProductRes, *errorModels.ServiceError)
 }
 
 type productSrv struct {
@@ -19,9 +19,9 @@ type productSrv struct {
 	loggerSrv    loggerService.LogSrv
 }
 
-func (p *productSrv) AddProduct(userId string, req *productModels.AddProductReq) (*productModels.AddProductRes, *errorModels.ServiceError) {
+func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModels.AddProductRes, *errorModels.ServiceError) {
 	if err := p.validatorSrv.Validate(req); err != nil {
-		p.loggerSrv.Error(utils.Messages.AddProductValidationError(userId, req))
+		p.loggerSrv.Error(utils.Messages.AddProductValidationError(req))
 		return nil, errorModels.NewValidatingError(err)
 	}
 

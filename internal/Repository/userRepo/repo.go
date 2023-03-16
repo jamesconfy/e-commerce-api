@@ -12,6 +12,7 @@ type UserRepo interface {
 	RegisterUser(req *userModels.CreateUserReq) error
 	GetByEmail(email string) (*userModels.GetByEmailRes, error)
 	GetById(email string) (*userModels.GetByIdRes, error)
+	UpdateTokens(req *userModels.UpdateTokens) error
 	CreateToken(token *userModels.ResetPasswordRes) error
 	ValidateToken(userId, tokenId string) (*userModels.ValidateTokenRes, error)
 	ChangePassword(userId, newPassword string) error
@@ -29,9 +30,11 @@ func (m *mySql) RegisterUser(req *userModels.CreateUserReq) error {
                    email,
                    phone_number,
                    password,
-				   date_created
-                   ) VALUES ('%v', '%v', '%v', '%v', '%v', '%v', '%v')`,
-		req.UserId, req.FirstName, req.LastName, req.Email, req.PhoneNumber, req.Password, req.DateCreated)
+				   date_created,
+				   access_token,
+				   refresh_token
+                   ) VALUES ('%v', '%v', '%v', '%v', '%v', '%v', '%v', '%v', '%v')`,
+		req.UserId, req.FirstName, req.LastName, req.Email, req.PhoneNumber, req.Password, req.DateCreated, req.AccessToken, req.RefreshToken)
 
 	_, err := m.conn.Exec(stmt)
 	if err != nil {
@@ -60,7 +63,6 @@ func (m *mySql) GetByEmail(email string) (*userModels.GetByEmailRes, error) {
 		&user.DateCreated,
 	)
 
-	// fmt.Println(time.Parse("2006-01-02 15:04:05", user.DateCreated))
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +93,19 @@ func (m *mySql) GetById(userId string) (*userModels.GetByIdRes, error) {
 	}
 
 	return &user, nil
+}
+
+func (m *mySql) UpdateTokens(req *userModels.UpdateTokens) error {
+	query := fmt.Sprintf(`UPDATE users 
+							SET access_token = '%v', refresh_token = '%v', date_updated = '%v' 
+							WHERE user_id = '%v'`, req.AccessToken, req.RefreshToken, req.DateUpdated, req.UserId)
+
+	_, err := m.conn.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *mySql) CreateToken(token *userModels.ResetPasswordRes) error {

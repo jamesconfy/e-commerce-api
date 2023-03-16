@@ -1,13 +1,15 @@
 package userModels
 
 type CreateUserReq struct {
-	UserId      string `json:"user_id"`
-	FirstName   string `json:"first_name" validate:"required"`
-	LastName    string `json:"last_name" validate:"required"`
-	PhoneNumber string `json:"phone_number" validate:"required"`
-	Email       string `json:"email" validate:"required,email"`
-	Password    string `json:"password" validate:"required,min=6"`
-	DateCreated string `json:"date_created"`
+	UserId       string `json:"user_id"`
+	FirstName    string `json:"first_name" validate:"required"`
+	LastName     string `json:"last_name" validate:"required"`
+	PhoneNumber  string `json:"phone_number" validate:"required"`
+	Email        string `json:"email" validate:"required,email"`
+	Password     string `json:"password" validate:"required,min=6"`
+	DateCreated  string `json:"date_created"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type CreateUserRes struct {
@@ -30,7 +32,7 @@ type LoginRes struct {
 	Name         string `json:"name"`
 	Email        string `json:"email"`
 	DateCreated  string `json:"date_created"`
-	Token        string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
 
@@ -52,6 +54,13 @@ type GetByIdRes struct {
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phone_number"`
 	DateCreated string `json:"date_created"`
+}
+
+type UpdateTokens struct {
+	UserId       string `json:"user_id"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	DateUpdated  string `json:"date_updated"`
 }
 
 type ResetPasswordReq struct {

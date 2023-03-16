@@ -25,13 +25,13 @@ func (p *productHanlder) AddProduct(c *gin.Context) {
 		return
 	}
 
-	userId := c.GetString("userId")
-	if userId == "" {
+	req.UserId = c.GetString("userId")
+	if req.UserId == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You are not authorized to do that", nil, nil))
 		return
 	}
 
-	product, errP := p.productSrv.AddProduct(userId, &req)
+	product, errP := p.productSrv.AddProduct(&req)
 	if errP != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error creating user", errP, nil))
 		return

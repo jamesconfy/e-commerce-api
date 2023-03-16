@@ -72,7 +72,13 @@ func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateU
 
 	req.UserId = uuid.New().String()
 	req.Password = password
-	req.DateCreated = time.Now().Local().Format(time.RFC3339)
+	req.DateCreated = u.timeSrv.CurrentTime()
+
+	req.AccessToken, req.RefreshToken, err = u.token.CreateToken(req.UserId, req.Email)
+	if err != nil {
+		u.logSrv.Error(utils.Messages.CreateTokenError(req.UserId, req.Email))
+		return nil, errorModels.NewCustomServiceError("Error when creating token", err)
+	}
 
 	err = u.repo.RegisterUser(req)
 	if err != nil {
@@ -80,19 +86,13 @@ func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateU
 		return nil, errorModels.NewCustomServiceError("Error saving user to database", err)
 	}
 
-	token, refresh_token, err := u.token.CreateToken(req.UserId, req.Email)
-	if err != nil {
-		u.logSrv.Error(utils.Messages.CreateTokenError(req.UserId, req.Email))
-		return nil, errorModels.NewCustomServiceError("Error when creating token", err)
-	}
-
 	data := &userModels.CreateUserRes{
 		UserId:       req.UserId,
 		Email:        req.Email,
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
-		Token:        token,
-		RefreshToken: refresh_token,
+		Token:        req.AccessToken,
+		RefreshToken: req.RefreshToken,
 		DateCreated:  req.DateCreated,
 	}
 
@@ -131,10 +131,19 @@ func (u *userSrv) Login(req *userModels.LoginReq) (*userModels.LoginRes, *errorM
 		return nil, errorModels.NewCustomServiceError("Passwords do not match", err) //.NewInternalServiceError(err)
 	}
 
-	token, refresh_token, err := u.token.CreateToken(user.UserId, user.Email)
+	var updatetoken userModels.UpdateTokens
+	updatetoken.UserId = user.UserId
+	updatetoken.DateUpdated = u.timeSrv.CurrentTime()
+
+	updatetoken.AccessToken, updatetoken.RefreshToken, err = u.token.CreateToken(user.UserId, user.Email)
 	if err != nil {
 		u.logSrv.Error(utils.Messages.CreateTokenError(user.UserId, req.Email))
 		return nil, errorModels.NewCustomServiceError("Error when creating token", err)
+	}
+
+	if err := u.repo.UpdateTokens(&updatetoken); err != nil {
+		u.logSrv.Error(utils.Messages.UpdateTokensError(&updatetoken))
+		return nil, errorModels.NewCustomServiceError("Error when updating users token", err)
 	}
 
 	data := &userModels.LoginRes{
@@ -142,8 +151,8 @@ func (u *userSrv) Login(req *userModels.LoginReq) (*userModels.LoginRes, *errorM
 		Name:         user.FirstName + user.LastName,
 		DateCreated:  user.DateCreated,
 		Email:        user.Email,
-		Token:        token,
-		RefreshToken: refresh_token,
+		AccessToken:  updatetoken.AccessToken,
+		RefreshToken: updatetoken.RefreshToken,
 	}
 
 	u.logSrv.Info(utils.Messages.LoginUserSuccess(data))
