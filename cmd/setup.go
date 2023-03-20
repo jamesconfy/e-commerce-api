@@ -129,7 +129,7 @@ func Setup() {
 	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv)
 
 	// Product Service
-	productSrv := productService.NewProductService(productRepo, validatorSrv, loggerSrv)
+	productSrv := productService.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv)
 
 	// Cart Service
 	cartSrv := cartService.NewCartService(loggerSrv, validatorSrv)

@@ -16,14 +16,16 @@
 
 FROM golang:1.19-alpine3.16
 
-RUN mkdir /bennyfoodie
+RUN mkdir /e-commerce
 
-COPY . /bennyfoodie
+COPY . /e-commerce
 
-WORKDIR /bennyfoodie
+WORKDIR /e-commerce
 
-RUN go build -o benny-foods-api
+RUN go build -o e-commerce
+
+LABEL Name="e-commerce" Version=1.0
 
 EXPOSE  8080
 
-CMD [ "./benny-foods-api" ]
+CMD [ "./e-commerce" ]

@@ -17,5 +17,7 @@ func ProductRoutes(v1 *gin.RouterGroup, productSrv productService.ProductService
 	product.Use(jwtMiddleWare.ValidateJWT())
 	{
 		product.POST("", handler.AddProduct)
+		product.GET("/:product_id", handler.GetProductById)
+		product.POST("/:product_id/ratings", handler.AddRating)
 	}
 }

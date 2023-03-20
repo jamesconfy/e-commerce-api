@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `products`(
     `date_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     `date_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     `image` VARCHAR(250) NULL,
+    `price` FLOAT NOT NULL DEFAULT 0.00,
 
     FOREIGN KEY (`user_id`) REFERENCES e_commerce_api.users(`user_id`) ON DELETE CASCADE,
     PRIMARY KEY(`product_id`)

@@ -80,3 +80,18 @@ func (m message) AddProductValidationError(req *productModels.AddProductReq) (st
 	str = fmt.Sprintf("Error when validating add product request || UserId: %s || Product Name: %s || Product Description: %s", req.UserId, req.Name, req.Description)
 	return
 }
+
+func (m message) AddProductSuccess(req *productModels.AddProductReq) (str string) {
+	str = fmt.Sprintf("Product created successfully || ProductId: %s || ProductName: %s || ProductDescription: %s || DateCreated: %s", req.ProductId, req.Name, req.Description, req.DateCreated)
+	return
+}
+
+func (m message) AddProductRepoError(req *productModels.AddProductReq, err error) (str string) {
+	str = fmt.Sprintf("Error occured when adding product to database || ProductId: %s || Error: %s || DateCreated: %s", req.ProductId, err, req.DateCreated)
+	return
+}
+
+func (m message) GetProductByIdRepoError(productId string, err error) (str string) {
+	str = fmt.Sprintf("Error occured when getting product || ProductId: %s || Error: %s", productId, err)
+	return
+}
