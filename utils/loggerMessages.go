@@ -91,7 +91,17 @@ func (m message) AddProductRepoError(req *productModels.AddProductReq, err error
 	return
 }
 
-func (m message) GetProductByIdRepoError(productId string, err error) (str string) {
+func (m message) GetProductRepoError(productId string, err error) (str string) {
 	str = fmt.Sprintf("Error occured when getting product || ProductId: %s || Error: %s", productId, err)
+	return
+}
+
+func (m message) GetAllProductsRepoError(err error) (str string) {
+	str = fmt.Sprintf("Error occured when getting all product || Error: %s", err)
+	return
+}
+
+func (m message) DeleteProductRepoError(productId string, err error) (str string) {
+	str = fmt.Sprintf("Error occured when deleting product || ProductId: %s || Error: %s", productId, err)
 	return
 }

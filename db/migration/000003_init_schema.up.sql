@@ -12,3 +12,11 @@ CREATE TABLE IF NOT EXISTS `products`(
     FOREIGN KEY (`user_id`) REFERENCES e_commerce_api.users(`user_id`) ON DELETE CASCADE,
     PRIMARY KEY(`product_id`)
 );
+
+CREATE TRIGGER `products_delete_trigger`
+AFTER DELETE ON `products`
+FOR EACH ROW
+INSERT INTO `deleted_products`
+	(`_id`, `product_id`, `user_id`, `name`, `description`, `date_created`, `date_updated`, `image`, `price`, `date_deleted`)
+VALUES
+	(OLD._id, OLD.product_id, OLD.user_id, OLD.name, OLD.description, OLD.date_created, OLD.date_updated, OLD.image, OLD.price, current_timestamp());

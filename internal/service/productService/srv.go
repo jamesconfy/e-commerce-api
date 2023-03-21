@@ -15,7 +15,9 @@ import (
 
 type ProductService interface {
 	AddProduct(req *productModels.AddProductReq) (*productModels.AddProductRes, *errorModels.ServiceError)
-	GetProductById(productId string) (*productModels.GetProductById, *errorModels.ServiceError)
+	GetProducts(page int) ([]*productModels.GetProduct, *errorModels.ServiceError)
+	GetProduct(productId string) (*productModels.GetProduct, *errorModels.ServiceError)
+	DeleteProduct(productId string) (*productModels.DeleteProduct, *errorModels.ServiceError)
 	AddRating(req *productModels.AddRatingsReq) (*productModels.AddRatingsRes, *errorModels.ServiceError)
 	VerifyUserRatings(userId, productId string) *errorModels.ServiceError
 }
@@ -57,11 +59,31 @@ func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModel
 	return data, nil
 }
 
-func (p *productSrv) GetProductById(productId string) (*productModels.GetProductById, *errorModels.ServiceError) {
-	product, err := p.productRepo.GetProductById(productId)
+func (p *productSrv) GetProducts(page int) ([]*productModels.GetProduct, *errorModels.ServiceError) {
+	products, err := p.productRepo.GetProducts(page)
 	if err != nil {
-		p.loggerSrv.Error(utils.Messages.GetProductByIdRepoError(productId, err))
+		p.loggerSrv.Error(utils.Messages.GetAllProductsRepoError(err))
+		return nil, errorModels.NewCustomServiceError("Error when getting products", err)
+	}
+
+	return products, nil
+}
+
+func (p *productSrv) GetProduct(productId string) (*productModels.GetProduct, *errorModels.ServiceError) {
+	product, err := p.productRepo.GetProduct(productId)
+	if err != nil {
+		p.loggerSrv.Error(utils.Messages.GetProductRepoError(productId, err))
 		return nil, errorModels.NewCustomServiceError("Error when getting product", err)
+	}
+
+	return product, nil
+}
+
+func (p *productSrv) DeleteProduct(productId string) (*productModels.DeleteProduct, *errorModels.ServiceError) {
+	product, err := p.productRepo.DeleteProduct(productId)
+	if err != nil {
+		p.loggerSrv.Error(utils.Messages.DeleteProductRepoError(productId, err))
+		return nil, errorModels.NewCustomServiceError("Error when deleting product", err)
 	}
 
 	return product, nil

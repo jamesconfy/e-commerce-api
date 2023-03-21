@@ -19,7 +19,7 @@ type AddProductRes struct {
 	Image       string  `json:"product_image"`
 }
 
-type GetProductById struct {
+type GetProduct struct {
 	ProductId   string  `json:"product_id"`
 	UserId      string  `json:"user_id"`
 	Name        string  `json:"name" validate:"required,min=1"`
@@ -29,6 +29,17 @@ type GetProductById struct {
 	DateUpdated string  `json:"date_updated"`
 	Image       string  `json:"product_image"`
 	Rating      string  `json:"rating"`
+}
+
+type DeleteProduct struct {
+	ProductId   string  `json:"product_id"`
+	UserId      string  `json:"user_id"`
+	Name        string  `json:"name" validate:"required,min=1"`
+	Description string  `json:"description" validate:"required,min=10"`
+	Price       float64 `json:"price" validate:"required"`
+	DateCreated string  `json:"date_created"`
+	DateUpdated string  `json:"date_updated"`
+	Image       string  `json:"product_image"`
 }
 
 type AddRatingsReq struct {
