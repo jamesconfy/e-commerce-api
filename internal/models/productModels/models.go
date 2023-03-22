@@ -19,7 +19,7 @@ type AddProductRes struct {
 	Image       string  `json:"product_image"`
 }
 
-type GetProduct struct {
+type GetProductRes struct {
 	ProductId   string  `json:"product_id"`
 	UserId      string  `json:"user_id"`
 	Name        string  `json:"name" validate:"required,min=1"`
@@ -31,7 +31,26 @@ type GetProduct struct {
 	Rating      string  `json:"rating"`
 }
 
-type DeleteProduct struct {
+type EditProductReq struct {
+	ProductId   string  `json:"product_id"`
+	UserId      string  `json:"user_id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	DateUpdated string  `json:"date_updated"`
+	Image       string  `json:"image"`
+}
+
+type EditProductRes struct {
+	ProductId   string  `json:"product_id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	DateUpdated string  `json:"date_updated"`
+	Image       string  `json:"image"`
+}
+
+type DeleteProductRes struct {
 	ProductId   string  `json:"product_id"`
 	UserId      string  `json:"user_id"`
 	Name        string  `json:"name" validate:"required,min=1"`

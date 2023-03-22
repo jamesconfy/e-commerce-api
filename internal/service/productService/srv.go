@@ -14,9 +14,10 @@ import (
 
 type ProductService interface {
 	AddProduct(req *productModels.AddProductReq) (*productModels.AddProductRes, *errorModels.ServiceError)
-	GetProducts(page int) ([]*productModels.GetProduct, *errorModels.ServiceError)
-	GetProduct(productId string) (*productModels.GetProduct, *errorModels.ServiceError)
-	DeleteProduct(productId string) (*productModels.DeleteProduct, *errorModels.ServiceError)
+	GetProducts(page int) ([]*productModels.GetProductRes, *errorModels.ServiceError)
+	GetProduct(productId string) (*productModels.GetProductRes, *errorModels.ServiceError)
+	EditProduct(req *productModels.EditProductReq, product *productModels.GetProductRes) (*productModels.EditProductRes, *errorModels.ServiceError)
+	DeleteProduct(productId string) (*productModels.DeleteProductRes, *errorModels.ServiceError)
 	AddRating(req *productModels.AddRatingsReq) (*productModels.AddRatingsRes, *errorModels.ServiceError)
 	VerifyUserRatings(userId, productId string) *errorModels.ServiceError
 }
@@ -59,7 +60,7 @@ func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModel
 	return data, nil
 }
 
-func (p *productSrv) GetProducts(page int) ([]*productModels.GetProduct, *errorModels.ServiceError) {
+func (p *productSrv) GetProducts(page int) ([]*productModels.GetProductRes, *errorModels.ServiceError) {
 	products, err := p.productRepo.GetProducts(page)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.GetProductsRepoError(err))
@@ -70,7 +71,7 @@ func (p *productSrv) GetProducts(page int) ([]*productModels.GetProduct, *errorM
 	return products, nil
 }
 
-func (p *productSrv) GetProduct(productId string) (*productModels.GetProduct, *errorModels.ServiceError) {
+func (p *productSrv) GetProduct(productId string) (*productModels.GetProductRes, *errorModels.ServiceError) {
 	product, err := p.productRepo.GetProduct(productId)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.GetProductRepoError(productId, err))
@@ -81,7 +82,30 @@ func (p *productSrv) GetProduct(productId string) (*productModels.GetProduct, *e
 	return product, nil
 }
 
-func (p *productSrv) DeleteProduct(productId string) (*productModels.DeleteProduct, *errorModels.ServiceError) {
+func (p *productSrv) EditProduct(req *productModels.EditProductReq, product *productModels.GetProductRes) (*productModels.EditProductRes, *errorModels.ServiceError) {
+	if err := p.validatorSrv.Validate(req); err != nil {
+		p.loggerSrv.Error(p.message.EditProductValidationError(req))
+		return nil, errorModels.NewValidatingError(err)
+	}
+
+	editReq := p.updateProduct(*req, product)
+
+	err := p.productRepo.EditProduct(editReq)
+	if err != nil {
+		return nil, errorModels.NewCustomServiceError("Error when editing product", err)
+	}
+
+	return &productModels.EditProductRes{
+		ProductId:   editReq.ProductId,
+		Name:        editReq.Name,
+		Description: editReq.Description,
+		Price:       editReq.Price,
+		DateUpdated: editReq.DateUpdated,
+		Image:       editReq.Image,
+	}, nil
+}
+
+func (p *productSrv) DeleteProduct(productId string) (*productModels.DeleteProductRes, *errorModels.ServiceError) {
 	product, err := p.productRepo.DeleteProduct(productId)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.DeleteProductRepoError(productId, err))
@@ -134,4 +158,35 @@ func (p *productSrv) VerifyUserRatings(userId, productId string) *errorModels.Se
 
 func NewProductService(productRepo productRepo.ProductRepo, validatorSrv validationService.ValidationSrv, loggerSrv loggerService.LogSrv, timeSrv timeService.TimeService, message utils.Messages) ProductService {
 	return &productSrv{productRepo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv, timeSrv: timeSrv, message: message}
+}
+
+// Auxillary Function
+func (p *productSrv) updateProduct(req productModels.EditProductReq, product *productModels.GetProductRes) *productModels.EditProductReq {
+	if req.Name != "" && req.Name != product.Name {
+		product.Name = req.Name
+	}
+
+	if req.Description != "" && req.Description != product.Description {
+		product.Description = req.Description
+	}
+
+	if req.Price != 0.0 && req.Price != product.Price {
+		product.Price = req.Price
+	}
+
+	if req.Image != "" && req.Image != product.Image {
+		product.Image = req.Image
+	}
+
+	product.DateUpdated = p.timeSrv.CurrentTime()
+
+	return &productModels.EditProductReq{
+		Name:        product.Name,
+		Description: product.Description,
+		ProductId:   product.ProductId,
+		UserId:      product.UserId,
+		DateUpdated: product.DateUpdated,
+		Price:       product.Price,
+		Image:       product.Image,
+	}
 }

@@ -11,9 +11,10 @@ import (
 
 type ProductRepo interface {
 	AddProduct(req *productModels.AddProductReq) error
-	GetProducts(page int) ([]*productModels.GetProduct, error)
-	GetProduct(productId string) (*productModels.GetProduct, error)
-	DeleteProduct(productId string) (*productModels.DeleteProduct, error)
+	GetProducts(page int) ([]*productModels.GetProductRes, error)
+	GetProduct(productId string) (*productModels.GetProductRes, error)
+	EditProduct(req *productModels.EditProductReq) error
+	DeleteProduct(productId string) (*productModels.DeleteProductRes, error)
 	AddRating(req *productModels.AddRatingsReq) error
 	VerifyUserRatings(userId, productId string) error
 }
@@ -53,7 +54,7 @@ func (m *mySql) AddProduct(req *productModels.AddProductReq) error {
 	return nil
 }
 
-func (m *mySql) GetProducts(page int) ([]*productModels.GetProduct, error) {
+func (m *mySql) GetProducts(page int) ([]*productModels.GetProductRes, error) {
 	tx, err := m.conn.Begin()
 	if err != nil {
 		return nil, err
@@ -67,7 +68,7 @@ func (m *mySql) GetProducts(page int) ([]*productModels.GetProduct, error) {
 		}
 	}()
 
-	var products []*productModels.GetProduct
+	var products []*productModels.GetProductRes
 
 	limit := 20
 	offset := limit * (page - 1)
@@ -83,7 +84,7 @@ func (m *mySql) GetProducts(page int) ([]*productModels.GetProduct, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var product productModels.GetProduct
+		var product productModels.GetProductRes
 
 		if err = rows.Scan(&product.ProductId, &product.UserId, &product.Name,
 			&product.Description, &product.Price, &product.DateCreated,
@@ -103,7 +104,7 @@ func (m *mySql) GetProducts(page int) ([]*productModels.GetProduct, error) {
 	return products, nil
 }
 
-func (m *mySql) GetProduct(productId string) (*productModels.GetProduct, error) {
+func (m *mySql) GetProduct(productId string) (*productModels.GetProductRes, error) {
 	tx, err := m.conn.Begin()
 	if err != nil {
 		return nil, err
@@ -117,7 +118,7 @@ func (m *mySql) GetProduct(productId string) (*productModels.GetProduct, error) 
 		}
 	}()
 
-	var product productModels.GetProduct
+	var product productModels.GetProductRes
 
 	stmt := fmt.Sprintf(`SELECT product_id, user_id, name, description, price, date_updated, date_created, image FROM products WHERE product_id = '%s'`, productId)
 	row := tx.QueryRow(stmt)
@@ -135,7 +136,33 @@ func (m *mySql) GetProduct(productId string) (*productModels.GetProduct, error) 
 	return &product, nil
 }
 
-func (m *mySql) DeleteProduct(productId string) (*productModels.DeleteProduct, error) {
+func (m *mySql) EditProduct(req *productModels.EditProductReq) error {
+	tx, err := m.conn.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	stmt := fmt.Sprintf(`UPDATE products 
+						SET name = '%v', description = '%v', price = %v, date_updated = '%v', image = '%v'
+						WHERE user_id = '%v' AND product_id = '%v'`, req.Name, req.Description, req.Price, req.DateUpdated, req.Image, req.UserId, req.ProductId)
+
+	_, err = tx.Exec(stmt)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *mySql) DeleteProduct(productId string) (*productModels.DeleteProductRes, error) {
 	tx, err := m.conn.Begin()
 	if err != nil {
 		return nil, err
@@ -149,7 +176,7 @@ func (m *mySql) DeleteProduct(productId string) (*productModels.DeleteProduct, e
 		}
 	}()
 
-	var product productModels.DeleteProduct
+	var product productModels.DeleteProductRes
 
 	stmt := fmt.Sprintf(`SELECT product_id, user_id, name, description, price, date_updated, date_created, image 
 			FROM products

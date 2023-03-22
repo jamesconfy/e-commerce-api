@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"e-commerce/cmd/handlers/cartHandler"
 	"e-commerce/cmd/middleware"
 	"e-commerce/internal/service/cartService"
 	"e-commerce/internal/service/tokenService"
@@ -9,15 +10,11 @@ import (
 )
 
 func CartRoute(router *gin.RouterGroup, cartSrv cartService.CartService, tokenSrv tokenService.TokenSrv) {
-	// //handler := .NewUserHandler(cartSrv)
+	handler := cartHandler.NewCartHandler(cartSrv)
 	jwt := middleware.NewJWTMiddleWare(tokenSrv)
-	cart := router.Group("/cart")
+	cart := router.Group("/carts")
 	cart.Use(jwt.ValidateJWT())
-	// {
-	// 	user.POST("/add-item", handler.CreateUser)
-	// 	user.POST("/remove-item", handler.LoginUser)
-	// 	// user.POST("/reset-password", handler.ResetPassword)
-	// 	// user.POST("/reset-password/validate-token", handler.ValidateToken)
-	// 	// user.PATCH("/reset-password/change-password", handler.ChangePassword)
-	// }
+	{
+		cart.POST("/add", handler.AddToCart)
+	}
 }

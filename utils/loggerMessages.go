@@ -104,8 +104,13 @@ func (m Messages) GetProductRepoError(productId string, err error) (str string) 
 	return
 }
 
-func (m Messages) GetProductSuccess(req *productModels.GetProduct) (str string) {
+func (m Messages) GetProductSuccess(req *productModels.GetProductRes) (str string) {
 	str = fmt.Sprintf("Product successfully gotten || ProductId: %s || ProductName: %s || ProductDescription: %s || DateCreated: %s", req.ProductId, req.Name, req.Description, req.DateCreated)
+	return
+}
+
+func (m Messages) EditProductValidationError(req *productModels.EditProductReq) (str string) {
+	str = fmt.Sprintf("Error when validating edit product request || ProductId: %s || UserId: %s || Name: %v || Description: %v || Price: %v || Image: %v || DateCreated: || %v", req.ProductId, req.UserId, req.Name, req.Description, req.Price, req.Image, req.DateUpdated)
 	return
 }
 
@@ -114,7 +119,7 @@ func (m Messages) DeleteProductRepoError(productId string, err error) (str strin
 	return
 }
 
-func (m Messages) DeleteProductSuccess(req *productModels.DeleteProduct) (str string) {
+func (m Messages) DeleteProductSuccess(req *productModels.DeleteProductRes) (str string) {
 	str = fmt.Sprintf("Product successfully deleted || ProductId: %s || ProductName: %s || ProductDescription: %s || DateCreated: %s", req.ProductId, req.Name, req.Description, req.DateCreated)
 	return
 }

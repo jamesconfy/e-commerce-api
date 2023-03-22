@@ -19,6 +19,7 @@ func ProductRoutes(v1 *gin.RouterGroup, productSrv productService.ProductService
 		product.POST("", handler.AddProduct)
 		product.GET("", handler.GetProducts)
 		product.GET("/:product_id", handler.GetProduct)
+		product.PATCH("/:product_id", handler.EditProduct)
 		product.DELETE("/:product_id", handler.DeleteProduct)
 		product.POST("/:product_id/ratings", handler.AddRating)
 	}
