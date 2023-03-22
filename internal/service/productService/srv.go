@@ -26,11 +26,12 @@ type productSrv struct {
 	validatorSrv validationService.ValidationSrv
 	loggerSrv    loggerService.LogSrv
 	timeSrv      timeService.TimeService
+	message      utils.Messages
 }
 
 func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModels.AddProductRes, *errorModels.ServiceError) {
 	if err := p.validatorSrv.Validate(req); err != nil {
-		p.loggerSrv.Error(utils.Messages.AddProductValidationError(req))
+		p.loggerSrv.Error(p.message.AddProductValidationError(req))
 		return nil, errorModels.NewValidatingError(err)
 	}
 	// fmt.Printf("Type of provided price: %T\n", req.Price)
@@ -42,7 +43,7 @@ func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModel
 
 	err := p.productRepo.AddProduct(req)
 	if err != nil {
-		p.loggerSrv.Fatal(utils.Messages.AddProductRepoError(req, err))
+		p.loggerSrv.Fatal(p.message.AddProductRepoError(req, err))
 		return nil, errorModels.NewCustomServiceError("Error when creating new product", err)
 	}
 
@@ -54,46 +55,46 @@ func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModel
 		Image:       req.Image,
 	}
 
-	p.loggerSrv.Info(utils.Messages.AddProductSuccess(req))
+	p.loggerSrv.Info(p.message.AddProductSuccess(req))
 	return data, nil
 }
 
 func (p *productSrv) GetProducts(page int) ([]*productModels.GetProduct, *errorModels.ServiceError) {
 	products, err := p.productRepo.GetProducts(page)
 	if err != nil {
-		p.loggerSrv.Fatal(utils.Messages.GetProductsRepoError(err))
+		p.loggerSrv.Fatal(p.message.GetProductsRepoError(err))
 		return nil, errorModels.NewCustomServiceError("Error when getting products", err)
 	}
 
-	p.loggerSrv.Info(utils.Messages.GetProductsSuccess())
+	p.loggerSrv.Info(p.message.GetProductsSuccess())
 	return products, nil
 }
 
 func (p *productSrv) GetProduct(productId string) (*productModels.GetProduct, *errorModels.ServiceError) {
 	product, err := p.productRepo.GetProduct(productId)
 	if err != nil {
-		p.loggerSrv.Fatal(utils.Messages.GetProductRepoError(productId, err))
+		p.loggerSrv.Fatal(p.message.GetProductRepoError(productId, err))
 		return nil, errorModels.NewCustomServiceError("Error when getting product", err)
 	}
 
-	p.loggerSrv.Info(utils.Messages.GetProductSuccess(product))
+	p.loggerSrv.Info(p.message.GetProductSuccess(product))
 	return product, nil
 }
 
 func (p *productSrv) DeleteProduct(productId string) (*productModels.DeleteProduct, *errorModels.ServiceError) {
 	product, err := p.productRepo.DeleteProduct(productId)
 	if err != nil {
-		p.loggerSrv.Fatal(utils.Messages.DeleteProductRepoError(productId, err))
+		p.loggerSrv.Fatal(p.message.DeleteProductRepoError(productId, err))
 		return nil, errorModels.NewCustomServiceError("Error when deleting product", err)
 	}
 
-	p.loggerSrv.Info(utils.Messages.DeleteProductSuccess(product))
+	p.loggerSrv.Info(p.message.DeleteProductSuccess(product))
 	return product, nil
 }
 
 func (p *productSrv) AddRating(req *productModels.AddRatingsReq) (*productModels.AddRatingsRes, *errorModels.ServiceError) {
 	if err := p.validatorSrv.Validate(req); err != nil {
-		p.loggerSrv.Error(utils.Messages.AddRatingValidationError(req))
+		p.loggerSrv.Error(p.message.AddRatingValidationError(req))
 		return nil, errorModels.NewValidatingError(err)
 	}
 
@@ -103,7 +104,7 @@ func (p *productSrv) AddRating(req *productModels.AddRatingsReq) (*productModels
 
 	err := p.productRepo.AddRating(req)
 	if err != nil {
-		p.loggerSrv.Fatal(utils.Messages.AddRatingRepoError(req))
+		p.loggerSrv.Fatal(p.message.AddRatingRepoError(req))
 		return nil, errorModels.NewCustomServiceError("error when saving rating", err)
 	}
 
@@ -116,21 +117,21 @@ func (p *productSrv) AddRating(req *productModels.AddRatingsReq) (*productModels
 		DateUpdated: req.DateUpdated,
 	}
 
-	p.loggerSrv.Info(utils.Messages.AddRatingSuccess(data))
+	p.loggerSrv.Info(p.message.AddRatingSuccess(data))
 	return data, nil
 }
 
 func (p *productSrv) VerifyUserRatings(userId, productId string) *errorModels.ServiceError {
 	err := p.productRepo.VerifyUserRatings(userId, productId)
 	if err != nil {
-		p.loggerSrv.Error(utils.Messages.VerifyUserRatingsRepoError(userId, productId))
+		p.loggerSrv.Error(p.message.VerifyUserRatingsRepoError(userId, productId))
 		return errorModels.NewCustomServiceError("This user has already rated this product", err)
 	}
 
-	p.loggerSrv.Info(utils.Messages.VerifyUserRatingsSucess(userId, productId))
+	p.loggerSrv.Info(p.message.VerifyUserRatingsSucess(userId, productId))
 	return nil
 }
 
-func NewProductService(productRepo productRepo.ProductRepo, validatorSrv validationService.ValidationSrv, loggerSrv loggerService.LogSrv, timeSrv timeService.TimeService) ProductService {
-	return &productSrv{productRepo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv, timeSrv: timeSrv}
+func NewProductService(productRepo productRepo.ProductRepo, validatorSrv validationService.ValidationSrv, loggerSrv loggerService.LogSrv, timeSrv timeService.TimeService, message utils.Messages) ProductService {
+	return &productSrv{productRepo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv, timeSrv: timeSrv, message: message}
 }

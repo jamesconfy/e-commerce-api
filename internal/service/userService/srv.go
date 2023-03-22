@@ -36,7 +36,7 @@ type userSrv struct {
 	email     emailService.EmailService
 	logSrv    loggerService.LogSrv
 	timeSrv   timeService.TimeService
-	// messageSrv utils.Messages
+	message   utils.Messages
 }
 
 // Register User godoc
@@ -54,19 +54,19 @@ type userSrv struct {
 func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateUserRes, *errorModels.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
-		u.logSrv.Error(utils.Messages.CreateUserValidationError(req, err))
+		u.logSrv.Error(u.message.CreateUserValidationError(req, err))
 		return nil, errorModels.NewValidatingError(err)
 	}
 
 	user, err := u.repo.GetByEmail(req.Email)
 	if user != nil {
-		u.logSrv.Error(utils.Messages.CreateUserGetByEmailError(user, err))
+		u.logSrv.Error(u.message.CreateUserGetByEmailError(user, err))
 		return nil, errorModels.NewCustomServiceError("User already exists", err) //.NewInternalServiceError(err)
 	}
 
 	password, err := u.crypto.HashPassword(req.Password)
 	if err != nil {
-		u.logSrv.Error(utils.Messages.CreateUserPasswordError(req, err))
+		u.logSrv.Error(u.message.CreateUserPasswordError(req, err))
 		return nil, errorModels.NewCustomServiceError("Could not hash password", err)
 	}
 
@@ -76,13 +76,13 @@ func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateU
 
 	req.AccessToken, req.RefreshToken, err = u.token.CreateToken(req.UserId, req.Email)
 	if err != nil {
-		u.logSrv.Error(utils.Messages.CreateTokenError(req.UserId, req.Email))
+		u.logSrv.Error(u.message.CreateTokenError(req.UserId, req.Email))
 		return nil, errorModels.NewCustomServiceError("Error when creating token", err)
 	}
 
 	err = u.repo.RegisterUser(req)
 	if err != nil {
-		u.logSrv.Fatal(utils.Messages.CreateUserAddToRepo(req, err))
+		u.logSrv.Fatal(u.message.CreateUserAddToRepo(req, err))
 		return nil, errorModels.NewCustomServiceError("Error saving user to database", err)
 	}
 
@@ -96,7 +96,7 @@ func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateU
 		DateCreated:  req.DateCreated,
 	}
 
-	u.logSrv.Info(utils.Messages.CreateUserSuccess(data))
+	u.logSrv.Info(u.message.CreateUserSuccess(data))
 	return data, nil
 }
 
@@ -115,19 +115,19 @@ func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateU
 func (u *userSrv) Login(req *userModels.LoginReq) (*userModels.LoginRes, *errorModels.ServiceError) {
 	err := u.validator.Validate(req)
 	if err != nil {
-		u.logSrv.Error(utils.Messages.LoginUserValidationError(req))
+		u.logSrv.Error(u.message.LoginUserValidationError(req))
 		return nil, errorModels.NewValidatingError(err)
 	}
 
 	user, err := u.repo.GetByEmail(req.Email)
 	if user == nil {
-		u.logSrv.Error(utils.Messages.LoginUserGetByEmailError(req))
+		u.logSrv.Error(u.message.LoginUserGetByEmailError(req))
 		return nil, errorModels.NewCustomServiceError("Email does not exists!", err) //.NewInternalServiceError(err)
 	}
 
 	ok := u.crypto.ComparePassword(user.Password, req.Password)
 	if !ok {
-		u.logSrv.Error(utils.Messages.LoginUserPasswordError(user.UserId, req))
+		u.logSrv.Error(u.message.LoginUserPasswordError(user.UserId, req))
 		return nil, errorModels.NewCustomServiceError("Passwords do not match", err) //.NewInternalServiceError(err)
 	}
 
@@ -137,12 +137,12 @@ func (u *userSrv) Login(req *userModels.LoginReq) (*userModels.LoginRes, *errorM
 
 	updatetoken.AccessToken, updatetoken.RefreshToken, err = u.token.CreateToken(user.UserId, user.Email)
 	if err != nil {
-		u.logSrv.Error(utils.Messages.CreateTokenError(user.UserId, req.Email))
+		u.logSrv.Error(u.message.CreateTokenError(user.UserId, req.Email))
 		return nil, errorModels.NewCustomServiceError("Error when creating token", err)
 	}
 
 	if err := u.repo.UpdateTokens(&updatetoken); err != nil {
-		u.logSrv.Error(utils.Messages.UpdateTokensError(&updatetoken))
+		u.logSrv.Error(u.message.UpdateTokensError(&updatetoken))
 		return nil, errorModels.NewCustomServiceError("Error when updating users token", err)
 	}
 
@@ -155,7 +155,7 @@ func (u *userSrv) Login(req *userModels.LoginReq) (*userModels.LoginRes, *errorM
 		RefreshToken: updatetoken.RefreshToken,
 	}
 
-	u.logSrv.Info(utils.Messages.LoginUserSuccess(data))
+	u.logSrv.Info(u.message.LoginUserSuccess(data))
 	return data, nil
 }
 
@@ -281,8 +281,8 @@ func (u *userSrv) ChangePassword(userId string, req *userModels.ChangePasswordRe
 	return nil
 }
 
-func NewUserSrv(repo userRepo.UserRepo, validator validationService.ValidationSrv, crypto cryptoService.CryptoSrv, token tokenService.TokenSrv, email emailService.EmailService, logSrv loggerService.LogSrv, timeSrv timeService.TimeService) UserService {
-	return &userSrv{repo: repo, validator: validator, crypto: crypto, token: token, email: email, logSrv: logSrv, timeSrv: timeSrv}
+func NewUserSrv(repo userRepo.UserRepo, validator validationService.ValidationSrv, crypto cryptoService.CryptoSrv, token tokenService.TokenSrv, email emailService.EmailService, logSrv loggerService.LogSrv, timeSrv timeService.TimeService, message utils.Messages) UserService {
+	return &userSrv{repo: repo, validator: validator, crypto: crypto, token: token, email: email, logSrv: logSrv, timeSrv: timeSrv, message: message}
 }
 
 // Auxillary Function

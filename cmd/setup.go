@@ -104,6 +104,9 @@ func Setup() {
 	// Token Repository
 	tokenRepo := tokenRepo.NewMySqlTokenRepo(conn)
 
+	// Message Utility
+	message := utils.NewMessageUtils()
+
 	// Logger Service
 	loggerSrv := loggerService.NewLogger()
 
@@ -126,10 +129,10 @@ func Setup() {
 	homeSrv := homeService.NewHomeSrv(loggerSrv)
 
 	// User Service
-	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv)
+	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv, message)
 
 	// Product Service
-	productSrv := productService.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv)
+	productSrv := productService.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv, message)
 
 	// Cart Service
 	cartSrv := cartService.NewCartService(loggerSrv, validatorSrv)
