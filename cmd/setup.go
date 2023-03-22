@@ -99,7 +99,7 @@ func Setup() {
 	userRepo := userRepo.NewMySqlUserRepo(conn)
 
 	// Product Repository
-	productRepo := productRepo.NewMySqlUserRepo(conn)
+	productRepo := productRepo.NewMySqlProductRepo(conn)
 
 	// Token Repository
 	tokenRepo := tokenRepo.NewMySqlTokenRepo(conn)

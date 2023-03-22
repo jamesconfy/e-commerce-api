@@ -44,7 +44,7 @@ type DeleteProduct struct {
 
 type AddRatingsReq struct {
 	RatingId    string  `json:"rating_id"`
-	Rating      float32 `json:"rating" validate:"required"`
+	Rating      float32 `json:"rating" validate:"required,numeric,min=0,max=5"`
 	ProductId   string  `json:"product_id"`
 	UserId      string  `json:"user_id"`
 	DateCreated string  `json:"date_created"`

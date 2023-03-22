@@ -230,7 +230,7 @@ func (u *userSrv) ValidateToken(userId, token string) (*userModels.ValidateToken
 
 	tokenDB, err := u.repo.ValidateToken(userId, token)
 	if err != nil {
-		return nil, errorModels.NewInternalServiceError("Unable to validate token, check the provided token or userId")
+		return nil, errorModels.NewCustomServiceError("Unable to validate token, check the provided token or userId", err)
 	}
 
 	timeNow := time.Now().Format(time.RFC3339)
@@ -257,7 +257,7 @@ func (u *userSrv) ValidateToken(userId, token string) (*userModels.ValidateToken
 func (u *userSrv) ChangePassword(userId string, req *userModels.ChangePasswordReq) *errorModels.ServiceError {
 	err := u.validator.Validate(req)
 	if err != nil {
-		return errorModels.NewValidatingError("Password not equal to Confirm Password, please check!")
+		return errorModels.NewCustomServiceError("Password not equal to Confirm Password, please check!", err)
 	}
 
 	user, errU := u.repo.GetById(userId)
@@ -271,11 +271,11 @@ func (u *userSrv) ChangePassword(userId string, req *userModels.ChangePasswordRe
 
 	password, err := u.crypto.HashPassword(req.Password)
 	if err != nil {
-		return errorModels.NewInternalServiceError("Error when hashing password")
+		return errorModels.NewCustomServiceError("Error when hashing password", err)
 	}
 
 	if err := u.repo.ChangePassword(userId, password); err != nil {
-		return errorModels.NewInternalServiceError("Error when changing password")
+		return errorModels.NewCustomServiceError("Error when changing password", err)
 	}
 
 	return nil

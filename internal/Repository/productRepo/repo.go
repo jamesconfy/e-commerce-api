@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"e-commerce/internal/models/productModels"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -216,13 +217,13 @@ func (m *mySql) VerifyUserRatings(userId, productId string) error {
 	rows, err := tx.Query(stmt)
 
 	if rows.Next() {
-		return fmt.Errorf("product already rated, you can edit it though")
+		return errors.New("product already rated, you can edit it though")
 	}
 	defer rows.Close()
 
 	return nil
 }
 
-func NewMySqlUserRepo(conn *sql.DB) ProductRepo {
+func NewMySqlProductRepo(conn *sql.DB) ProductRepo {
 	return &mySql{conn: conn}
 }

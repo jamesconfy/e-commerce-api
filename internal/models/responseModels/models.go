@@ -10,10 +10,6 @@ type ResponseMessage struct {
 	Extra        any    `json:"extra,omitempty"`
 }
 
-func NewCustomError(code int, message string) *ResponseMessage {
-	return &ResponseMessage{ResponseCode: code, Message: message}
-}
-
 func NewDecodingError(err error) *ResponseMessage {
 	return &ResponseMessage{
 		ResponseCode: 400,
@@ -26,21 +22,22 @@ func BuildSuccessResponse(code int, message string, data any, extra any) *Respon
 	return &ResponseMessage{
 		Status:       "success",
 		ResponseCode: code,
-		Name:         "",
 		Message:      message,
-		Error:        nil,
 		Data:         data,
 		Extra:        extra,
 	}
 }
 
-func BuildErrorResponse(code int, message string, err interface{}, data interface{}) *ResponseMessage {
+func BuildErrorResponse(code int, message string, err any, data any) *ResponseMessage {
 	return &ResponseMessage{
-		Status:       "failure",
+		Status:       "fail",
 		ResponseCode: code,
-		Name:         "",
 		Message:      message,
 		Error:        err,
 		Data:         data,
 	}
 }
+
+// func NewCustomError(code int, message string) *ResponseMessage {
+// 	return &ResponseMessage{ResponseCode: code, Message: message}
+// }

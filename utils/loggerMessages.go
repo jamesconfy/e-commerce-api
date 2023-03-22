@@ -91,17 +91,57 @@ func (m message) AddProductRepoError(req *productModels.AddProductReq, err error
 	return
 }
 
+func (m message) GetProductsRepoError(err error) (str string) {
+	str = fmt.Sprintf("Error occured when getting all product || Error: %s", err)
+	return
+}
+
+func (m message) GetProductsSuccess() (str string) {
+	str = "Products successfully gotten"
+	return
+}
+
 func (m message) GetProductRepoError(productId string, err error) (str string) {
 	str = fmt.Sprintf("Error occured when getting product || ProductId: %s || Error: %s", productId, err)
 	return
 }
 
-func (m message) GetAllProductsRepoError(err error) (str string) {
-	str = fmt.Sprintf("Error occured when getting all product || Error: %s", err)
+func (m message) GetProductSuccess(req *productModels.GetProduct) (str string) {
+	str = fmt.Sprintf("Product successfully gotten || ProductId: %s || ProductName: %s || ProductDescription: %s || DateCreated: %s", req.ProductId, req.Name, req.Description, req.DateCreated)
 	return
 }
 
 func (m message) DeleteProductRepoError(productId string, err error) (str string) {
 	str = fmt.Sprintf("Error occured when deleting product || ProductId: %s || Error: %s", productId, err)
+	return
+}
+
+func (m message) DeleteProductSuccess(req *productModels.DeleteProduct) (str string) {
+	str = fmt.Sprintf("Product successfully deleted || ProductId: %s || ProductName: %s || ProductDescription: %s || DateCreated: %s", req.ProductId, req.Name, req.Description, req.DateCreated)
+	return
+}
+
+func (m message) AddRatingValidationError(req *productModels.AddRatingsReq) (str string) {
+	str = fmt.Sprintf("Error when validating add rating request || RatingId: %s || Rating: %v || ProductId: %s || UserId: %s || DateCreated: %s", req.RatingId, req.Rating, req.ProductId, req.UserId, req.DateCreated)
+	return
+}
+
+func (m message) AddRatingRepoError(req *productModels.AddRatingsReq) (str string) {
+	str = fmt.Sprintf("Error when adding rating request to database || RatingId: %s || Rating: %v || ProductId: %s || UserId: %s || DateCreated: %s", req.RatingId, req.Rating, req.ProductId, req.UserId, req.DateCreated)
+	return
+}
+
+func (m message) AddRatingSuccess(req *productModels.AddRatingsRes) (str string) {
+	str = fmt.Sprintf("Rating successfully added || RatingId: %s || Rating: %v || ProductId: %s || UserId: %s || DateCreated: %s", req.RatingId, req.Rating, req.ProductId, req.UserId, req.DateCreated)
+	return
+}
+
+func (m message) VerifyUserRatingsRepoError(userId, productId string) (str string) {
+	str = fmt.Sprintf("User tried to re-rate a product || UserId: %s || ProductId: %s", userId, productId)
+	return
+}
+
+func (m message) VerifyUserRatingsSucess(userId, productId string) (str string) {
+	str = fmt.Sprintf("Product rated successfully || UserId: %s || ProductId: %s", userId, productId)
 	return
 }

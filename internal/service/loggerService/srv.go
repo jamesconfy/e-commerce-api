@@ -41,11 +41,6 @@ func (l logSrv) Fatal(message string) {
 	l.logger.Log(log.FatalLevel, getSource(), fmt.Sprintf(" %s", message))
 }
 
-// func (l logSrv) Audit(record *loggermodel.AuditLog) {
-// 	js, _ := json.Marshal(record)
-// 	l.logger.Log(log.InfoLevel, getSource(), string(js))
-// }
-
 func NewLogger() LogSrv {
 	logger := log.New()
 	// Log as JSON instead of the default ASCII formatter.

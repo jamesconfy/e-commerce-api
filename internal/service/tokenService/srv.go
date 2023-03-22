@@ -32,7 +32,7 @@ func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
 		Email: email,
 		Id:    id,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Local().Add(time.Minute * time.Duration(60))),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Local().Add(time.Hour * time.Duration(24))),
 		},
 	}
 
@@ -40,7 +40,7 @@ func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
 		Email: email,
 		Id:    id,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Local().Add(time.Hour * time.Duration(24))),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Local().Add(time.Hour * time.Duration(72))),
 		},
 	}
 

@@ -76,6 +76,7 @@ func (p *productHanlder) GetProduct(c *gin.Context) {
 
 	product, err := p.productSrv.GetProduct(productId)
 	if err != nil {
+		fmt.Println(err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when getting product", err, nil))
 		return
 	}
@@ -143,15 +144,13 @@ func (p *productHanlder) AddRating(c *gin.Context) {
 	}
 
 	err = p.productSrv.VerifyUserRatings(req.UserId, req.ProductId)
-	fmt.Println(err)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusProxyAuthRequired, "You have already rated this product before, try another product", err, nil))
+		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You have already rated this product before, try another product", err, nil))
 		return
 	}
 
 	rating, err := p.productSrv.AddRating(&req)
 	if err != nil {
-		fmt.Println(err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when adding rating to product", err, nil))
 		return
 	}
