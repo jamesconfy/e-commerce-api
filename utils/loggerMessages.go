@@ -1,12 +1,19 @@
 package utils
 
 import (
+	"e-commerce/internal/models/errorModels"
 	"e-commerce/internal/models/productModels"
 	"e-commerce/internal/models/userModels"
 	"fmt"
 )
 
 type Messages struct {
+}
+
+// Internal server error
+func (m Messages) InternalServerError(err *errorModels.ServiceError) (str string) {
+	str = fmt.Sprintf("Internal server error occurred || Error: %v", err)
+	return
 }
 
 // Create user validation error
@@ -84,22 +91,22 @@ func (m Messages) AddProductSuccess(req *productModels.AddProductReq) (str strin
 	return
 }
 
-func (m Messages) AddProductRepoError(req *productModels.AddProductReq, err error) (str string) {
+func (m Messages) AddProductRepoError(req *productModels.AddProductReq, err *errorModels.ServiceError) (str string) {
 	str = fmt.Sprintf("Error occured when adding product to database || ProductId: %s || Error: %s || DateCreated: %s", req.ProductId, err, req.DateCreated)
 	return
 }
 
-func (m Messages) GetProductsRepoError(err error) (str string) {
-	str = fmt.Sprintf("Error occured when getting all product || Error: %s", err)
-	return
-}
+// func (m Messages) GetProductsRepoError(err *errorModels.ServiceError) (str string) {
+// 	str = fmt.Sprintf("Error occured when getting all product || Error: %s", err)
+// 	return
+// }
 
 func (m Messages) GetProductsSuccess() (str string) {
 	str = "Products successfully gotten"
 	return
 }
 
-func (m Messages) GetProductRepoError(productId string, err error) (str string) {
+func (m Messages) GetProductNotFound(productId string, err *errorModels.ServiceError) (str string) {
 	str = fmt.Sprintf("Error occured when getting product || ProductId: %s || Error: %s", productId, err)
 	return
 }
@@ -114,13 +121,18 @@ func (m Messages) EditProductValidationError(req *productModels.EditProductReq) 
 	return
 }
 
-func (m Messages) DeleteProductRepoError(productId string, err error) (str string) {
+func (m Messages) EditProductSuccess(req *productModels.EditProductReq) (str string) {
+	str = fmt.Sprintf("Product edited successfully || ProductId: %v || UserId: %v || Name: %v || Description: %v || Image: %v || DateUpdated: %v", req.ProductId, req.UserId, req.Name, req.Description, req.Image, req.DateUpdated)
+	return
+}
+
+func (m Messages) DeleteProductRepoError(productId string, err *errorModels.ServiceError) (str string) {
 	str = fmt.Sprintf("Error occured when deleting product || ProductId: %s || Error: %s", productId, err)
 	return
 }
 
-func (m Messages) DeleteProductSuccess(req *productModels.DeleteProductRes) (str string) {
-	str = fmt.Sprintf("Product successfully deleted || ProductId: %s || ProductName: %s || ProductDescription: %s || DateCreated: %s", req.ProductId, req.Name, req.Description, req.DateCreated)
+func (m Messages) DeleteProductSuccess(productId string) (str string) {
+	str = fmt.Sprintf("Product successfully deleted || ProductId: %s", productId)
 	return
 }
 

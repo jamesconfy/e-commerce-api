@@ -2,6 +2,7 @@ package userModels
 
 type CreateUserReq struct {
 	UserId       string `json:"user_id"`
+	CartId       string `json:"cart_id"`
 	FirstName    string `json:"first_name" validate:"required"`
 	LastName     string `json:"last_name" validate:"required"`
 	PhoneNumber  string `json:"phone_number" validate:"required"`
@@ -14,6 +15,7 @@ type CreateUserReq struct {
 
 type CreateUserRes struct {
 	UserId       string `json:"user_id"`
+	CartId       string `json:"cart_id"`
 	Email        string `json:"email"`
 	FirstName    string `json:"first_name"`
 	LastName     string `json:"last_name"`
@@ -29,6 +31,7 @@ type LoginReq struct {
 
 type LoginRes struct {
 	UserId       string `json:"user_id"`
+	CartId       string `json:"cart_id"`
 	Name         string `json:"name"`
 	Email        string `json:"email"`
 	DateCreated  string `json:"date_created"`
@@ -38,6 +41,7 @@ type LoginRes struct {
 
 type GetByEmailRes struct {
 	UserId      string `json:"user_id"`
+	CartId      string `json:"cart_id"`
 	FirstName   string `json:"first_name"`
 	Password    string `json:"password"`
 	LastName    string `json:"last_name"`
@@ -48,6 +52,7 @@ type GetByEmailRes struct {
 
 type GetByIdRes struct {
 	UserId      string `json:"user_id"`
+	CartId      string `json:"cart_id"`
 	FirstName   string `json:"first_name"`
 	Password    string `json:"password"`
 	LastName    string `json:"last_name"`

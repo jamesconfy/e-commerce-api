@@ -14,6 +14,7 @@ func UserRoute(router *gin.RouterGroup, userSrv userService.UserService, tokenSr
 	{
 		user.POST("/signup", handler.CreateUser)
 		user.POST("/login", handler.LoginUser)
+		// user.POST("/:userId", handler.GetUser)
 		// user.POST("/reset-password", handler.ResetPassword)
 		// user.POST("/reset-password/validate-token", handler.ValidateToken)
 		// user.PATCH("/reset-password/change-password", handler.ChangePassword)

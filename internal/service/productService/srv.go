@@ -4,22 +4,25 @@ import (
 	"e-commerce/internal/Repository/productRepo"
 	"e-commerce/internal/models/errorModels"
 	"e-commerce/internal/models/productModels"
+	"e-commerce/internal/models/responseModels"
 	"e-commerce/internal/service/loggerService"
 	"e-commerce/internal/service/timeService"
 	validationService "e-commerce/internal/service/validatorService"
 	"e-commerce/utils"
+	"net/http"
 
 	"github.com/google/uuid"
 )
 
 type ProductService interface {
-	AddProduct(req *productModels.AddProductReq) (*productModels.AddProductRes, *errorModels.ServiceError)
-	GetProducts(page int) ([]*productModels.GetProductRes, *errorModels.ServiceError)
-	GetProduct(productId string) (*productModels.GetProductRes, *errorModels.ServiceError)
-	EditProduct(req *productModels.EditProductReq, product *productModels.GetProductRes) (*productModels.EditProductRes, *errorModels.ServiceError)
-	DeleteProduct(productId string) (*productModels.DeleteProductRes, *errorModels.ServiceError)
-	AddRating(req *productModels.AddRatingsReq) (*productModels.AddRatingsRes, *errorModels.ServiceError)
-	VerifyUserRatings(userId, productId string) *errorModels.ServiceError
+	Validate(req any) *responseModels.ResponseMessage
+	AddProduct(req *productModels.AddProductReq) (*productModels.AddProductRes, *responseModels.ResponseMessage)
+	GetProducts(page int) ([]*productModels.GetProductRes, *responseModels.ResponseMessage)
+	GetProduct(productId string) (*productModels.GetProductRes, *responseModels.ResponseMessage)
+	EditProduct(req *productModels.EditProductReq, product *productModels.GetProductRes) (*productModels.EditProductRes, *responseModels.ResponseMessage)
+	DeleteProduct(productId string) *responseModels.ResponseMessage
+	AddRating(req *productModels.AddRatingsReq) (*productModels.AddRatingsRes, *responseModels.ResponseMessage)
+	VerifyUserRatings(userId, productId string) *responseModels.ResponseMessage
 }
 
 type productSrv struct {
@@ -30,14 +33,16 @@ type productSrv struct {
 	message      utils.Messages
 }
 
-func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModels.AddProductRes, *errorModels.ServiceError) {
+func (p *productSrv) Validate(req any) *responseModels.ResponseMessage {
 	if err := p.validatorSrv.Validate(req); err != nil {
-		p.loggerSrv.Error(p.message.AddProductValidationError(req))
-		return nil, errorModels.NewValidatingError(err)
+		e := errorModels.NewValidatingError(err)
+		return responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", e, nil)
 	}
-	// fmt.Printf("Type of provided price: %T\n", req.Price)
-	// fmt.Printf("User Id: %s", req.UserId)
 
+	return nil
+}
+
+func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModels.AddProductRes, *responseModels.ResponseMessage) {
 	req.DateCreated = p.timeSrv.CurrentTime()
 	req.DateUpdated = p.timeSrv.CurrentTime()
 	req.ProductId = uuid.New().String()
@@ -45,7 +50,7 @@ func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModel
 	err := p.productRepo.AddProduct(req)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.AddProductRepoError(req, err))
-		return nil, errorModels.NewCustomServiceError("Error when creating new product", err)
+		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when adding product to database", err, nil)
 	}
 
 	data := &productModels.AddProductRes{
@@ -60,41 +65,43 @@ func (p *productSrv) AddProduct(req *productModels.AddProductReq) (*productModel
 	return data, nil
 }
 
-func (p *productSrv) GetProducts(page int) ([]*productModels.GetProductRes, *errorModels.ServiceError) {
+func (p *productSrv) GetProducts(page int) ([]*productModels.GetProductRes, *responseModels.ResponseMessage) {
 	products, err := p.productRepo.GetProducts(page)
 	if err != nil {
-		p.loggerSrv.Fatal(p.message.GetProductsRepoError(err))
-		return nil, errorModels.NewCustomServiceError("Error when getting products", err)
+		p.loggerSrv.Fatal(p.message.InternalServerError(err))
+		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when getting products", err, nil)
 	}
 
 	p.loggerSrv.Info(p.message.GetProductsSuccess())
 	return products, nil
 }
 
-func (p *productSrv) GetProduct(productId string) (*productModels.GetProductRes, *errorModels.ServiceError) {
+func (p *productSrv) GetProduct(productId string) (*productModels.GetProductRes, *responseModels.ResponseMessage) {
 	product, err := p.productRepo.GetProduct(productId)
-	if err != nil {
-		p.loggerSrv.Fatal(p.message.GetProductRepoError(productId, err))
-		return nil, errorModels.NewCustomServiceError("Error when getting product", err)
+	if product != nil && err != nil {
+		p.loggerSrv.Fatal(p.message.GetProductNotFound(productId, err))
+		return product, responseModels.BuildErrorResponse(http.StatusNotFound, "Product not found", err, nil)
+	}
+
+	if product == nil && err != nil {
+		p.loggerSrv.Fatal(p.message.InternalServerError(err))
+		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Internal server error", err, nil)
 	}
 
 	p.loggerSrv.Info(p.message.GetProductSuccess(product))
 	return product, nil
 }
 
-func (p *productSrv) EditProduct(req *productModels.EditProductReq, product *productModels.GetProductRes) (*productModels.EditProductRes, *errorModels.ServiceError) {
-	if err := p.validatorSrv.Validate(req); err != nil {
-		p.loggerSrv.Error(p.message.EditProductValidationError(req))
-		return nil, errorModels.NewValidatingError(err)
-	}
-
+func (p *productSrv) EditProduct(req *productModels.EditProductReq, product *productModels.GetProductRes) (*productModels.EditProductRes, *responseModels.ResponseMessage) {
 	editReq := p.updateProduct(*req, product)
 
 	err := p.productRepo.EditProduct(editReq)
 	if err != nil {
-		return nil, errorModels.NewCustomServiceError("Error when editing product", err)
+		p.loggerSrv.Fatal(p.message.InternalServerError(err))
+		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Internal server error", err, nil)
 	}
 
+	p.loggerSrv.Info(p.message.EditProductSuccess(editReq))
 	return &productModels.EditProductRes{
 		ProductId:   editReq.ProductId,
 		Name:        editReq.Name,
@@ -105,23 +112,18 @@ func (p *productSrv) EditProduct(req *productModels.EditProductReq, product *pro
 	}, nil
 }
 
-func (p *productSrv) DeleteProduct(productId string) (*productModels.DeleteProductRes, *errorModels.ServiceError) {
-	product, err := p.productRepo.DeleteProduct(productId)
+func (p *productSrv) DeleteProduct(productId string) *responseModels.ResponseMessage {
+	err := p.productRepo.DeleteProduct(productId)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.DeleteProductRepoError(productId, err))
-		return nil, errorModels.NewCustomServiceError("Error when deleting product", err)
+		return responseModels.BuildErrorResponse(http.StatusInternalServerError, "Internal server error", err, nil)
 	}
 
-	p.loggerSrv.Info(p.message.DeleteProductSuccess(product))
-	return product, nil
+	p.loggerSrv.Info(p.message.DeleteProductSuccess(productId))
+	return nil
 }
 
-func (p *productSrv) AddRating(req *productModels.AddRatingsReq) (*productModels.AddRatingsRes, *errorModels.ServiceError) {
-	if err := p.validatorSrv.Validate(req); err != nil {
-		p.loggerSrv.Error(p.message.AddRatingValidationError(req))
-		return nil, errorModels.NewValidatingError(err)
-	}
-
+func (p *productSrv) AddRating(req *productModels.AddRatingsReq) (*productModels.AddRatingsRes, *responseModels.ResponseMessage) {
 	req.RatingId = uuid.New().String()
 	req.DateCreated = p.timeSrv.CurrentTime()
 	req.DateUpdated = p.timeSrv.CurrentTime()
@@ -129,7 +131,7 @@ func (p *productSrv) AddRating(req *productModels.AddRatingsReq) (*productModels
 	err := p.productRepo.AddRating(req)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.AddRatingRepoError(req))
-		return nil, errorModels.NewCustomServiceError("error when saving rating", err)
+		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when rating product", err, nil)
 	}
 
 	data := &productModels.AddRatingsRes{
@@ -145,11 +147,11 @@ func (p *productSrv) AddRating(req *productModels.AddRatingsReq) (*productModels
 	return data, nil
 }
 
-func (p *productSrv) VerifyUserRatings(userId, productId string) *errorModels.ServiceError {
+func (p *productSrv) VerifyUserRatings(userId, productId string) *responseModels.ResponseMessage {
 	err := p.productRepo.VerifyUserRatings(userId, productId)
 	if err != nil {
 		p.loggerSrv.Error(p.message.VerifyUserRatingsRepoError(userId, productId))
-		return errorModels.NewCustomServiceError("This user has already rated this product", err)
+		return responseModels.BuildErrorResponse(http.StatusConflict, "You cannot re-rate this product", err, nil)
 	}
 
 	p.loggerSrv.Info(p.message.VerifyUserRatingsSucess(userId, productId))

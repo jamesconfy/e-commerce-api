@@ -4,7 +4,6 @@ import (
 	"e-commerce/internal/models/productModels"
 	"e-commerce/internal/models/responseModels"
 	"e-commerce/internal/service/productService"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -32,15 +31,20 @@ func (p *productHanlder) AddProduct(c *gin.Context) {
 		return
 	}
 
+	if err := p.productSrv.Validate(req); err != nil {
+		c.AbortWithStatusJSON(err.ResponseCode, err)
+		return
+	}
+
 	req.UserId = c.GetString("userId")
 	if req.UserId == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You are not authorized to do that", nil, nil))
 		return
 	}
 
-	product, errP := p.productSrv.AddProduct(&req)
-	if errP != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error creating user", errP, nil))
+	product, err := p.productSrv.AddProduct(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
 
@@ -61,7 +65,7 @@ func (p *productHanlder) GetProducts(c *gin.Context) {
 
 	products, err := p.productSrv.GetProducts(pagei)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when getting product", err, nil))
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
 
@@ -70,15 +74,10 @@ func (p *productHanlder) GetProducts(c *gin.Context) {
 
 func (p *productHanlder) GetProduct(c *gin.Context) {
 	productId := c.Param("product_id")
-	if productId == "" {
-		c.AbortWithStatusJSON(http.StatusNotFound, responseModels.BuildErrorResponse(http.StatusNotFound, "No product id was provided", nil, nil))
-		return
-	}
 
 	product, err := p.productSrv.GetProduct(productId)
 	if err != nil {
-		fmt.Println(err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when getting product", err, nil))
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
 
@@ -93,15 +92,15 @@ func (p *productHanlder) EditProduct(c *gin.Context) {
 		return
 	}
 
-	req.ProductId = c.Param("product_id")
-	if req.ProductId == "" {
-		c.AbortWithStatusJSON(http.StatusNotFound, responseModels.BuildErrorResponse(http.StatusNotFound, "No product id was provided", nil, nil))
+	if err := p.productSrv.Validate(req); err != nil {
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
 
+	req.ProductId = c.Param("product_id")
 	product, err := p.productSrv.GetProduct(req.ProductId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, responseModels.BuildErrorResponse(http.StatusNotFound, "No product with that id", err, nil))
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
 
@@ -112,7 +111,7 @@ func (p *productHanlder) EditProduct(c *gin.Context) {
 
 	updatedProduct, err := p.productSrv.EditProduct(&req, product)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when editing product", err, nil))
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
 
@@ -121,35 +120,30 @@ func (p *productHanlder) EditProduct(c *gin.Context) {
 
 func (p *productHanlder) DeleteProduct(c *gin.Context) {
 	productId := c.Param("product_id")
-	if productId == "" {
-		c.AbortWithStatusJSON(http.StatusNotFound, responseModels.BuildErrorResponse(http.StatusNotFound, "No product id was provided", nil, nil))
-		return
-	}
 
 	userId := c.GetString("userId")
-	fmt.Println(userId)
 	if userId == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You need to be logged in to access this resource", nil, nil))
 		return
 	}
 
-	productG, err := p.productSrv.GetProduct(productId)
+	product, err := p.productSrv.GetProduct(productId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when getting product", nil, nil))
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
-	if productG.UserId != userId {
-		c.AbortWithStatusJSON(http.StatusForbidden, responseModels.BuildErrorResponse(http.StatusForbidden, "You are not authorized to change that resource", nil, nil))
+	if product.UserId != userId {
+		c.AbortWithStatusJSON(http.StatusForbidden, responseModels.BuildErrorResponse(http.StatusForbidden, "You are not authorized to delete this resource", nil, nil))
 		return
 	}
 
-	productD, err := p.productSrv.DeleteProduct(productId)
+	err = p.productSrv.DeleteProduct(productId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when deleting product", nil, nil))
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Product deleted successfully", productD, nil))
+	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Product deleted successfully", product, nil))
 }
 
 func (p *productHanlder) AddRating(c *gin.Context) {
@@ -160,15 +154,16 @@ func (p *productHanlder) AddRating(c *gin.Context) {
 		return
 	}
 
-	req.ProductId = c.Param("product_id")
-	if req.ProductId == "" {
-		c.AbortWithStatusJSON(http.StatusNotFound, responseModels.BuildErrorResponse(http.StatusNotFound, "No product id was provided", nil, nil))
+	if err := p.productSrv.Validate(req); err != nil {
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
 
+	req.ProductId = c.Param("product_id")
+
 	_, err := p.productSrv.GetProduct(req.ProductId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when getting product", err, nil))
+		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
 	}
 

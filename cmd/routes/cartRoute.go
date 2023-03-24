@@ -15,6 +15,8 @@ func CartRoute(router *gin.RouterGroup, cartSrv cartService.CartService, tokenSr
 	cart := router.Group("/carts")
 	cart.Use(jwt.ValidateJWT())
 	{
-		cart.POST("/add", handler.AddToCart)
+		cart.POST("", handler.AddToCart)
+		cart.GET("/:cart_item_id", handler.GetItem)
+		cart.DELETE("/:cart_item_id", handler.DeleteItem)
 	}
 }

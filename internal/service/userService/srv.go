@@ -24,6 +24,7 @@ type UserService interface {
 	CreateUser(req *userModels.CreateUserReq) (*userModels.CreateUserRes, *errorModels.ServiceError)
 	ResetPassword(req *userModels.ResetPasswordReq) (*userModels.ResetPasswordRes, *errorModels.ServiceError)
 	Login(req *userModels.LoginReq) (*userModels.LoginRes, *errorModels.ServiceError)
+	GetUser(userId string) (*userModels.GetByIdRes, *errorModels.ServiceError)
 	ValidateToken(userId, token string) (*userModels.ValidateTokenRes, *errorModels.ServiceError)
 	ChangePassword(userId string, req *userModels.ChangePasswordReq) *errorModels.ServiceError
 }
@@ -71,6 +72,7 @@ func (u *userSrv) CreateUser(req *userModels.CreateUserReq) (*userModels.CreateU
 	}
 
 	req.UserId = uuid.New().String()
+	req.CartId = uuid.New().String()
 	req.Password = password
 	req.DateCreated = u.timeSrv.CurrentTime()
 
@@ -148,6 +150,7 @@ func (u *userSrv) Login(req *userModels.LoginReq) (*userModels.LoginRes, *errorM
 
 	data := &userModels.LoginRes{
 		UserId:       user.UserId,
+		CartId:       user.CartId,
 		Name:         user.FirstName + user.LastName,
 		DateCreated:  user.DateCreated,
 		Email:        user.Email,
@@ -157,6 +160,16 @@ func (u *userSrv) Login(req *userModels.LoginReq) (*userModels.LoginRes, *errorM
 
 	u.logSrv.Info(u.message.LoginUserSuccess(data))
 	return data, nil
+}
+
+func (u *userSrv) GetUser(userId string) (*userModels.GetByIdRes, *errorModels.ServiceError) {
+	user, err := u.repo.GetById(userId) // (userId)
+	if user == nil {
+		//u.logSrv.Error(u.message.LoginUserGetByEmailError(req))
+		return nil, errorModels.NewCustomServiceError("No user with that id", err)
+	}
+
+	return user, nil
 }
 
 // Reset User Password godoc

@@ -8,6 +8,7 @@ import (
 
 	"e-commerce/cmd/middleware"
 	"e-commerce/cmd/routes"
+	"e-commerce/internal/Repository/cartRepo"
 	"e-commerce/internal/Repository/productRepo"
 	"e-commerce/internal/Repository/tokenRepo"
 	"e-commerce/internal/Repository/userRepo"
@@ -104,6 +105,9 @@ func Setup() {
 	// Token Repository
 	tokenRepo := tokenRepo.NewMySqlTokenRepo(conn)
 
+	// Cart Repository
+	cartRepo := cartRepo.NewMySqlCartRepo(conn)
+
 	// Message Utility
 	message := utils.NewMessageUtils()
 
@@ -135,7 +139,7 @@ func Setup() {
 	productSrv := productService.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv, message)
 
 	// Cart Service
-	cartSrv := cartService.NewCartService(loggerSrv, validatorSrv)
+	cartSrv := cartService.NewCartService(cartRepo, loggerSrv, validatorSrv, timeSrv)
 
 	// Routes
 	routes.HomeRoute(v1, homeSrv)

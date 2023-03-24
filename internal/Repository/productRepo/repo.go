@@ -1,35 +1,30 @@
 package productRepo
 
 import (
-	"context"
 	"database/sql"
+	"e-commerce/internal/models/errorModels"
 	"e-commerce/internal/models/productModels"
-	"errors"
 	"fmt"
-	"time"
 )
 
 type ProductRepo interface {
-	AddProduct(req *productModels.AddProductReq) error
-	GetProducts(page int) ([]*productModels.GetProductRes, error)
-	GetProduct(productId string) (*productModels.GetProductRes, error)
-	EditProduct(req *productModels.EditProductReq) error
-	DeleteProduct(productId string) (*productModels.DeleteProductRes, error)
-	AddRating(req *productModels.AddRatingsReq) error
-	VerifyUserRatings(userId, productId string) error
+	AddProduct(req *productModels.AddProductReq) *errorModels.ServiceError
+	GetProducts(page int) ([]*productModels.GetProductRes, *errorModels.ServiceError)
+	GetProduct(productId string) (*productModels.GetProductRes, *errorModels.ServiceError)
+	EditProduct(req *productModels.EditProductReq) *errorModels.ServiceError
+	DeleteProduct(productId string) *errorModels.ServiceError
+	AddRating(req *productModels.AddRatingsReq) *errorModels.ServiceError
+	VerifyUserRatings(userId, productId string) *errorModels.ServiceError
 }
 
 type mySql struct {
 	conn *sql.DB
 }
 
-func (m *mySql) AddProduct(req *productModels.AddProductReq) error {
-	var ctx, cancel = context.WithTimeout(context.Background(), 1*time.Minute)
-	defer cancel()
-
-	tx, err := m.conn.BeginTx(ctx, nil)
+func (m *mySql) AddProduct(req *productModels.AddProductReq) *errorModels.ServiceError {
+	tx, err := m.conn.Begin()
 	if err != nil {
-		return err
+		return errorModels.NewCustomServiceError("Error when starting transaction", err)
 	}
 
 	defer func() {
@@ -46,18 +41,18 @@ func (m *mySql) AddProduct(req *productModels.AddProductReq) error {
 			'%v', '%v', '%v', '%v', %v, '%v', '%v', '%v'
 		)`, req.ProductId, req.UserId, req.Name, req.Description, req.Price, req.DateCreated, req.DateUpdated, req.Image)
 
-	_, err = tx.ExecContext(ctx, stmt)
+	_, err = tx.Exec(stmt)
 	if err != nil {
-		return err
+		return errorModels.NewCustomServiceError("Internal server error", err)
 	}
 
 	return nil
 }
 
-func (m *mySql) GetProducts(page int) ([]*productModels.GetProductRes, error) {
+func (m *mySql) GetProducts(page int) ([]*productModels.GetProductRes, *errorModels.ServiceError) {
 	tx, err := m.conn.Begin()
 	if err != nil {
-		return nil, err
+		return nil, errorModels.NewCustomServiceError("Error when starting transaction", err)
 	}
 
 	defer func() {
@@ -79,7 +74,7 @@ func (m *mySql) GetProducts(page int) ([]*productModels.GetProductRes, error) {
 			OFFSET %v`, limit, offset)
 	rows, err := tx.Query(stmt)
 	if err != nil {
-		return nil, err
+		return nil, errorModels.NewCustomServiceError("Error when fetching products from database", err)
 	}
 	defer rows.Close()
 
@@ -89,7 +84,7 @@ func (m *mySql) GetProducts(page int) ([]*productModels.GetProductRes, error) {
 		if err = rows.Scan(&product.ProductId, &product.UserId, &product.Name,
 			&product.Description, &product.Price, &product.DateCreated,
 			&product.DateUpdated, &product.Image); err != nil {
-			return nil, err
+			return nil, errorModels.NewCustomServiceError("Error when saving product to structure", err)
 		}
 
 		products = append(products, &product)
@@ -104,10 +99,10 @@ func (m *mySql) GetProducts(page int) ([]*productModels.GetProductRes, error) {
 	return products, nil
 }
 
-func (m *mySql) GetProduct(productId string) (*productModels.GetProductRes, error) {
+func (m *mySql) GetProduct(productId string) (*productModels.GetProductRes, *errorModels.ServiceError) {
 	tx, err := m.conn.Begin()
 	if err != nil {
-		return nil, err
+		return nil, errorModels.NewCustomServiceError("Error when starting transaction", err)
 	}
 
 	defer func() {
@@ -123,10 +118,16 @@ func (m *mySql) GetProduct(productId string) (*productModels.GetProductRes, erro
 	stmt := fmt.Sprintf(`SELECT product_id, user_id, name, description, price, date_updated, date_created, image FROM products WHERE product_id = '%s'`, productId)
 	row := tx.QueryRow(stmt)
 
-	if err = row.Scan(&product.ProductId, &product.UserId, &product.Name,
+	err = row.Scan(&product.ProductId, &product.UserId, &product.Name,
 		&product.Description, &product.Price, &product.DateCreated,
-		&product.DateUpdated, &product.Image); err != nil {
-		return nil, err
+		&product.DateUpdated, &product.Image)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &productModels.GetProductRes{}, errorModels.NewCustomServiceError("Product not found", err)
+		}
+
+		return nil, errorModels.NewCustomServiceError("Error when getting product", err)
 	}
 
 	stmt = fmt.Sprintf(`SELECT IFNULL(AVG(rating), 0.00) AS rating FROM ratings WHERE product_id = '%v'`, productId)
@@ -136,10 +137,10 @@ func (m *mySql) GetProduct(productId string) (*productModels.GetProductRes, erro
 	return &product, nil
 }
 
-func (m *mySql) EditProduct(req *productModels.EditProductReq) error {
+func (m *mySql) EditProduct(req *productModels.EditProductReq) *errorModels.ServiceError {
 	tx, err := m.conn.Begin()
 	if err != nil {
-		return err
+		return errorModels.NewCustomServiceError("Error when starting transaction", err)
 	}
 
 	defer func() {
@@ -156,16 +157,16 @@ func (m *mySql) EditProduct(req *productModels.EditProductReq) error {
 
 	_, err = tx.Exec(stmt)
 	if err != nil {
-		return err
+		return errorModels.NewCustomServiceError("Error when updating product", err)
 	}
 
 	return nil
 }
 
-func (m *mySql) DeleteProduct(productId string) (*productModels.DeleteProductRes, error) {
+func (m *mySql) DeleteProduct(productId string) *errorModels.ServiceError {
 	tx, err := m.conn.Begin()
 	if err != nil {
-		return nil, err
+		return errorModels.NewCustomServiceError("Error when starting transaction", err)
 	}
 
 	defer func() {
@@ -176,33 +177,19 @@ func (m *mySql) DeleteProduct(productId string) (*productModels.DeleteProductRes
 		}
 	}()
 
-	var product productModels.DeleteProductRes
-
-	stmt := fmt.Sprintf(`SELECT product_id, user_id, name, description, price, date_updated, date_created, image 
-			FROM products
-			WHERE product_id = '%v'
-			`, productId)
-	row := tx.QueryRow(stmt)
-
-	if err = row.Scan(&product.ProductId, &product.UserId, &product.Name,
-		&product.Description, &product.Price, &product.DateCreated,
-		&product.DateUpdated, &product.Image); err != nil {
-		return nil, err
-	}
-
 	stmt1 := fmt.Sprintf(`DELETE FROM products WHERE product_id = '%v'`, productId)
 	_, err = tx.Exec(stmt1)
 	if err != nil {
-		return nil, err
+		return errorModels.NewCustomServiceError("Error when deleting product", err)
 	}
 
-	return &product, nil
+	return nil
 }
 
-func (m *mySql) AddRating(req *productModels.AddRatingsReq) error {
+func (m *mySql) AddRating(req *productModels.AddRatingsReq) *errorModels.ServiceError {
 	tx, err := m.conn.Begin()
 	if err != nil {
-		return err
+		return errorModels.NewCustomServiceError("Error when starting transaction", err)
 	}
 
 	defer func() {
@@ -220,16 +207,16 @@ func (m *mySql) AddRating(req *productModels.AddRatingsReq) error {
 
 	_, err = tx.Exec(stmt)
 	if err != nil {
-		return err
+		return errorModels.NewCustomServiceError("error when saving rating", err)
 	}
 
 	return nil
 }
 
-func (m *mySql) VerifyUserRatings(userId, productId string) error {
+func (m *mySql) VerifyUserRatings(userId, productId string) *errorModels.ServiceError {
 	tx, err := m.conn.Begin()
 	if err != nil {
-		return err
+		return errorModels.NewCustomServiceError("Error when starting transaction", err)
 	}
 
 	defer func() {
@@ -244,7 +231,7 @@ func (m *mySql) VerifyUserRatings(userId, productId string) error {
 	rows, err := tx.Query(stmt)
 
 	if rows.Next() {
-		return errors.New("product already rated, you can edit it though")
+		return errorModels.NewCustomServiceError("Product already rated, you can edit it though", err) // errors.New("product already rated, you can edit it though")
 	}
 	defer rows.Close()
 

@@ -50,20 +50,9 @@ type EditProductRes struct {
 	Image       string  `json:"image"`
 }
 
-type DeleteProductRes struct {
-	ProductId   string  `json:"product_id"`
-	UserId      string  `json:"user_id"`
-	Name        string  `json:"name" validate:"required,min=1"`
-	Description string  `json:"description" validate:"required,min=10"`
-	Price       float64 `json:"price" validate:"required"`
-	DateCreated string  `json:"date_created"`
-	DateUpdated string  `json:"date_updated"`
-	Image       string  `json:"product_image"`
-}
-
 type AddRatingsReq struct {
 	RatingId    string  `json:"rating_id"`
-	Rating      float32 `json:"rating" validate:"required,numeric,min=0,max=5"`
+	Rating      float32 `json:"rating" validate:"required,min=0,max=5"`
 	ProductId   string  `json:"product_id"`
 	UserId      string  `json:"user_id"`
 	DateCreated string  `json:"date_created"`

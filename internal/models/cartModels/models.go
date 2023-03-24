@@ -1,13 +1,37 @@
 package cartModels
 
-type CreateCart struct{
-	CartId string `json:""`
+type AddToCartReq struct {
+	CartItemId  string  `json:"cart_item_id"`
+	CartId      string  `json:"cart_id"`
+	ProductId   string  `json:"product_id" validate:"required"`
+	Quantity    int     `json:"quantity" validate:"required,min=1"`
+	Price       float64 `json:"price"`
+	DateCreated string  `json:"date_created"`
+	DateUpdated string  `json:"date_updated"`
 }
 
-type AddToCart struct {
-	ProductId   string `json:"product_id" validate:"required"`
-	UserId      string `json:"user_id"`
-	DateCreated string `json:"date_created"`
-	DateUpdated string `json:"date_updated"`
-	CartId      string `json:"cart_id"`
+type AddToCartRes struct {
+	CartItemId  string  `json:"cart_item_id"`
+	CartId      string  `json:"cart_id"`
+	ProductId   string  `json:"product_id"`
+	UserId      string  `json:"user_id"`
+	Quantity    int     `json:"quantity"`
+	Price       float64 `json:"price"`
+	DateCreated string  `json:"date_created"`
+	DateUpdated string  `json:"date_updated"`
+}
+
+type GetItemByIdRes struct {
+	CartItemId  string  `json:"cart_item_id"`
+	CartId      string  `json:"cart_id"`
+	ProductId   string  `json:"product_id"`
+	UserId      string  `json:"user_id"`
+	Quantity    int     `json:"quantity"`
+	Price       float64 `json:"price"`
+	DateCreated string  `json:"date_created"`
+	DateUpdated string  `json:"date_updated"`
+}
+
+type RemoveFromCart struct {
+	CartItemId string `json:"cart_item_id"`
 }

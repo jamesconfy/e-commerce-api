@@ -23,8 +23,22 @@ type mySql struct {
 }
 
 func (m *mySql) RegisterUser(req *userModels.CreateUserReq) error {
+	tx, err := m.conn.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
 	stmt := fmt.Sprintf(`INSERT INTO users(
                    user_id,
+				   cart_id,
                    first_name,
                    last_name,
                    email,
@@ -33,10 +47,19 @@ func (m *mySql) RegisterUser(req *userModels.CreateUserReq) error {
 				   date_created,
 				   access_token,
 				   refresh_token
-                   ) VALUES ('%v', '%v', '%v', '%v', '%v', '%v', '%v', '%v', '%v')`,
-		req.UserId, req.FirstName, req.LastName, req.Email, req.PhoneNumber, req.Password, req.DateCreated, req.AccessToken, req.RefreshToken)
+                   ) VALUES ('%v', '%v', '%v', '%v', '%v', '%v', '%v', '%v', '%v', '%v')`,
+		req.UserId, req.CartId, req.FirstName, req.LastName, req.Email, req.PhoneNumber, req.Password, req.DateCreated, req.AccessToken, req.RefreshToken)
 
-	_, err := m.conn.Exec(stmt)
+	_, err = tx.Exec(stmt)
+	if err != nil {
+		return err
+	}
+
+	stmt1 := fmt.Sprintf(`INSERT INTO carts(
+		cart_id, user_id, date_created
+	) VALUES ('%v', '%v', '%v')`, req.CartId, req.UserId, req.DateCreated)
+
+	_, err = tx.Exec(stmt1)
 	if err != nil {
 		return err
 	}
@@ -47,7 +70,7 @@ func (m *mySql) RegisterUser(req *userModels.CreateUserReq) error {
 func (m *mySql) GetByEmail(email string) (*userModels.GetByEmailRes, error) {
 	ctx := context.Background()
 	stmt := fmt.Sprintf(`
-		SELECT user_id, email, password, first_name, last_name, phone_number, date_created
+		SELECT user_id, email, password, first_name, last_name, phone_number, date_created, cart_id
 		FROM users
 		WHERE email = '%s'
 	`, email)
@@ -61,6 +84,7 @@ func (m *mySql) GetByEmail(email string) (*userModels.GetByEmailRes, error) {
 		&user.LastName,
 		&user.PhoneNumber,
 		&user.DateCreated,
+		&user.CartId,
 	)
 
 	if err != nil {
@@ -73,7 +97,7 @@ func (m *mySql) GetByEmail(email string) (*userModels.GetByEmailRes, error) {
 func (m *mySql) GetById(userId string) (*userModels.GetByIdRes, error) {
 	ctx := context.Background()
 	stmt := fmt.Sprintf(`
-		SELECT user_id, email, password, first_name, last_name, phone_number, date_created
+		SELECT user_id, email, password, first_name, last_name, phone_number, date_created, cart_id
 		FROM users
 		WHERE user_id = '%s'
 	`, userId)
@@ -87,6 +111,7 @@ func (m *mySql) GetById(userId string) (*userModels.GetByIdRes, error) {
 		&user.LastName,
 		&user.PhoneNumber,
 		&user.DateCreated,
+		&user.CartId,
 	)
 	if err != nil {
 		return nil, err
