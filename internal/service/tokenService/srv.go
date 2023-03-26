@@ -105,6 +105,6 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 	return claims, err
 }
 
-func NewTokenSrv(secret string, logSrv loggerService.LogSrv, tokenRepo tokenRepo.TokenRepo) TokenSrv {
+func New(secret string, logSrv loggerService.LogSrv, tokenRepo tokenRepo.TokenRepo) TokenSrv {
 	return &tokenSrv{SecretKey: secret, logSrv: logSrv, tokenRepo: tokenRepo}
 }

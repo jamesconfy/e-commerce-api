@@ -19,6 +19,6 @@ func (t timeSrv) CurrentTime() string {
 	return time.Now().Local().Format(layout)
 }
 
-func NewTimeService() TimeService {
+func New() TimeService {
 	return &timeSrv{}
 }

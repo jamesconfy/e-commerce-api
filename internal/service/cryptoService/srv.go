@@ -23,6 +23,6 @@ func (c cryptoSrv) ComparePassword(hashed, plain string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain)) == nil
 }
 
-func NewCryptoSrv() CryptoSrv {
+func New() CryptoSrv {
 	return &cryptoSrv{}
 }

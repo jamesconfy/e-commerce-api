@@ -22,6 +22,7 @@ type CartService interface {
 	AddToCart(req *cartModels.AddToCartReq, product *productModels.GetProductRes, user *userModels.GetByIdRes) (*cartModels.AddToCartRes, *responseModels.ResponseMessage)
 	CheckIfProductInCart(productId, cartId string) *responseModels.ResponseMessage
 	GetItem(itemId string) (*cartModels.GetItemByIdRes, *responseModels.ResponseMessage)
+	EditItem(req *cartModels.EditItemReq, item *cartModels.GetItemByIdRes) (*cartModels.EditItemRes, *responseModels.ResponseMessage)
 	DeleteItem(itemId string) *responseModels.ResponseMessage
 }
 
@@ -69,7 +70,7 @@ func (ch *cartSrv) GetUser(userId string) (*userModels.GetByIdRes, *responseMode
 }
 
 func (ch *cartSrv) AddToCart(req *cartModels.AddToCartReq, product *productModels.GetProductRes, user *userModels.GetByIdRes) (*cartModels.AddToCartRes, *responseModels.ResponseMessage) {
-	req.CartItemId = uuid.New().String()
+	req.ItemId = uuid.New().String()
 	req.Price = product.Price * float64(req.Quantity)
 	req.CartId = user.CartId
 	req.DateCreated = ch.timeSrv.CurrentTime()
@@ -81,7 +82,7 @@ func (ch *cartSrv) AddToCart(req *cartModels.AddToCartReq, product *productModel
 	}
 
 	return &cartModels.AddToCartRes{
-		CartItemId:  req.CartItemId,
+		CartItemId:  req.ItemId,
 		CartId:      req.CartId,
 		ProductId:   req.ProductId,
 		UserId:      user.UserId,
@@ -114,6 +115,25 @@ func (ch *cartSrv) GetItem(itemId string) (*cartModels.GetItemByIdRes, *response
 	return item, nil
 }
 
+func (ch *cartSrv) EditItem(req *cartModels.EditItemReq, item *cartModels.GetItemByIdRes) (*cartModels.EditItemRes, *responseModels.ResponseMessage) {
+	editItem := ch.updateItem(*req, item)
+
+	err := ch.repo.EditItem(editItem)
+	if err != nil {
+		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when updating cart item", err, nil)
+	}
+
+	return &cartModels.EditItemRes{
+		CartItemId:  editItem.CartItemId,
+		CartId:      item.CartId,
+		UserId:      item.UserId,
+		ProductId:   item.ProductId,
+		Quantity:    editItem.Quantity,
+		Price:       editItem.Price,
+		DateUpdated: editItem.DateUpdated,
+	}, nil
+}
+
 func (ch *cartSrv) DeleteItem(itemId string) *responseModels.ResponseMessage {
 	err := ch.repo.DeleteItem(itemId)
 	if err != nil {
@@ -123,6 +143,27 @@ func (ch *cartSrv) DeleteItem(itemId string) *responseModels.ResponseMessage {
 	return nil
 }
 
-func NewCartService(repo cartRepo.CartRepo, loggerSrv loggerService.LogSrv, validatorSrv validationService.ValidationSrv, timeSrv timeService.TimeService) CartService {
+func New(repo cartRepo.CartRepo, loggerSrv loggerService.LogSrv, validatorSrv validationService.ValidationSrv, timeSrv timeService.TimeService) CartService {
 	return &cartSrv{loggerSrv: loggerSrv, validatorSrv: validatorSrv, timeSrv: timeSrv, repo: repo}
+}
+
+// Auxillary Function
+func (ch *cartSrv) updateItem(req cartModels.EditItemReq, item *cartModels.GetItemByIdRes) *cartModels.EditItemReq {
+	price := item.Price / float64(item.Quantity)
+
+	if req.Quantity != 0 && req.Quantity != item.Quantity {
+		item.Quantity = req.Quantity
+	}
+
+	item.Price = price * float64(item.Quantity)
+
+	item.DateUpdated = ch.timeSrv.CurrentTime()
+
+	return &cartModels.EditItemReq{
+		CartItemId:  item.CartItemId,
+		UserId:      item.UserId,
+		Quantity:    item.Quantity,
+		Price:       item.Price,
+		DateUpdated: item.DateUpdated,
+	}
 }

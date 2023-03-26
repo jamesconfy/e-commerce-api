@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"e-commerce/cmd/middleware"
-	"e-commerce/cmd/routes"
+	route "e-commerce/cmd/routes"
 	"e-commerce/internal/Repository/cartRepo"
 	"e-commerce/internal/Repository/productRepo"
 	"e-commerce/internal/Repository/tokenRepo"
@@ -85,7 +85,7 @@ func Setup() {
 	conn := connection.GetConn()
 
 	gin.SetMode(gin.DebugMode)
-	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.NewLogger())
+	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
 	gin.DisableConsoleColor()
 
 	router := gin.New()
@@ -97,56 +97,56 @@ func Setup() {
 	router.Use(middleware.CORS())
 
 	// User Repository
-	userRepo := userRepo.NewMySqlUserRepo(conn)
+	userRepo := userRepo.New(conn)
 
 	// Product Repository
-	productRepo := productRepo.NewMySqlProductRepo(conn)
+	productRepo := productRepo.New(conn)
 
 	// Token Repository
-	tokenRepo := tokenRepo.NewMySqlTokenRepo(conn)
+	tokenRepo := tokenRepo.New(conn)
 
 	// Cart Repository
-	cartRepo := cartRepo.NewMySqlCartRepo(conn)
+	cartRepo := cartRepo.New(conn)
 
 	// Message Utility
-	message := utils.NewMessageUtils()
+	message := utils.New()
 
 	// Logger Service
-	loggerSrv := loggerService.NewLogger()
+	loggerSrv := loggerService.New()
 
 	// Time Service
-	timeSrv := timeService.NewTimeService()
+	timeSrv := timeService.New()
 
 	// Email Service
-	emailSrv := emailService.NewEmailSrv("email", "passwd", "host", "port")
+	emailSrv := emailService.New("email", "passwd", "host", "port")
 
 	// Validation Service
-	validatorSrv := validationService.NewValidationService()
+	validatorSrv := validationService.New()
 
 	// Cryptography Service
-	cryptoSrv := cryptoService.NewCryptoSrv()
+	cryptoSrv := cryptoService.New()
 
 	// Token Service
-	tokenSrv := tokenService.NewTokenSrv(secret, loggerSrv, tokenRepo)
+	tokenSrv := tokenService.New(secret, loggerSrv, tokenRepo)
 
 	// Home Service
-	homeSrv := homeService.NewHomeSrv(loggerSrv)
+	homeSrv := homeService.New(loggerSrv)
 
 	// User Service
-	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv, message)
+	userSrv := userService.New(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv, message)
 
 	// Product Service
-	productSrv := productService.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv, message)
+	productSrv := productService.New(productRepo, validatorSrv, loggerSrv, timeSrv, message)
 
 	// Cart Service
-	cartSrv := cartService.NewCartService(cartRepo, loggerSrv, validatorSrv, timeSrv)
+	cartSrv := cartService.New(cartRepo, loggerSrv, validatorSrv, timeSrv)
 
 	// Routes
-	routes.HomeRoute(v1, homeSrv)
-	routes.UserRoute(v1, userSrv, tokenSrv)
-	routes.ProductRoutes(v1, productSrv, tokenSrv)
-	routes.CartRoute(v1, cartSrv, tokenSrv)
-	routes.ErrorRoute(router)
+	route.HomeRoute(v1, homeSrv)
+	route.UserRoute(v1, userSrv, tokenSrv)
+	route.ProductRoutes(v1, productSrv, tokenSrv)
+	route.CartRoute(v1, cartSrv, tokenSrv)
+	route.ErrorRoute(router)
 
 	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

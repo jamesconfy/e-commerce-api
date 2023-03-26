@@ -161,6 +161,6 @@ func (m Messages) VerifyUserRatingsSucess(userId, productId string) (str string)
 	return
 }
 
-func NewMessageUtils() Messages {
+func New() Messages {
 	return Messages{}
 }

@@ -41,7 +41,7 @@ func (l logSrv) Fatal(message string) {
 	l.logger.Log(log.FatalLevel, getSource(), fmt.Sprintf(" %s", message))
 }
 
-func NewLogger() LogSrv {
+func New() LogSrv {
 	logger := log.New()
 	// Log as JSON instead of the default ASCII formatter.
 	log.SetFormatter(&log.JSONFormatter{})

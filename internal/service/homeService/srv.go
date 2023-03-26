@@ -15,6 +15,6 @@ func (h *homeSrv) CreateHome() (string, error) {
 	return "Home", nil
 }
 
-func NewHomeSrv(loggerSrv loggerservice.LogSrv) HomeService {
+func New(loggerSrv loggerservice.LogSrv) HomeService {
 	return &homeSrv{loggerSrv: loggerSrv}
 }

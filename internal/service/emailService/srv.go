@@ -60,6 +60,6 @@ func (e emailSrv) SendMailToSupport(req emailModels.SendEmailReq) error {
 	return nil
 }
 
-func NewEmailSrv(fromEmail string, password string, host string, port string) EmailService {
+func New(fromEmail string, password string, host string, port string) EmailService {
 	return &emailSrv{FromEmail: fromEmail, Password: password, Host: host, Port: port}
 }

@@ -93,22 +93,22 @@ func (p *productSrv) GetProduct(productId string) (*productModels.GetProductRes,
 }
 
 func (p *productSrv) EditProduct(req *productModels.EditProductReq, product *productModels.GetProductRes) (*productModels.EditProductRes, *responseModels.ResponseMessage) {
-	editReq := p.updateProduct(*req, product)
+	editProduct := p.updateProduct(*req, product)
 
-	err := p.productRepo.EditProduct(editReq)
+	err := p.productRepo.EditProduct(editProduct)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.InternalServerError(err))
 		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Internal server error", err, nil)
 	}
 
-	p.loggerSrv.Info(p.message.EditProductSuccess(editReq))
+	p.loggerSrv.Info(p.message.EditProductSuccess(editProduct))
 	return &productModels.EditProductRes{
-		ProductId:   editReq.ProductId,
-		Name:        editReq.Name,
-		Description: editReq.Description,
-		Price:       editReq.Price,
-		DateUpdated: editReq.DateUpdated,
-		Image:       editReq.Image,
+		ProductId:   editProduct.ProductId,
+		Name:        editProduct.Name,
+		Description: editProduct.Description,
+		Price:       editProduct.Price,
+		DateUpdated: editProduct.DateUpdated,
+		Image:       editProduct.Image,
 	}, nil
 }
 
@@ -158,7 +158,7 @@ func (p *productSrv) VerifyUserRatings(userId, productId string) *responseModels
 	return nil
 }
 
-func NewProductService(productRepo productRepo.ProductRepo, validatorSrv validationService.ValidationSrv, loggerSrv loggerService.LogSrv, timeSrv timeService.TimeService, message utils.Messages) ProductService {
+func New(productRepo productRepo.ProductRepo, validatorSrv validationService.ValidationSrv, loggerSrv loggerService.LogSrv, timeSrv timeService.TimeService, message utils.Messages) ProductService {
 	return &productSrv{productRepo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv, timeSrv: timeSrv, message: message}
 }
 

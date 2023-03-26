@@ -1,1 +1,1 @@
-CREATE DATABASE IF NOT EXISTS `e-commerce-api`;
+CREATE DATABASE IF NOT EXISTS `e_ommerce_api`;
