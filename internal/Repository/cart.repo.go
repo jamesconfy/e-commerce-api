@@ -179,6 +179,6 @@ func (c *cartSql) Delete(productId, cartId string) error {
 	return nil
 }
 
-func New(conn *sql.DB) CartRepo {
+func NewCartRepo(conn *sql.DB) CartRepo {
 	return &cartSql{conn: conn}
 }

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	tokenservice "e-commerce/internal/service/tokenService"
+	"e-commerce/internal/service"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,10 +10,10 @@ import (
 )
 
 type jwtMiddleWare struct {
-	tokenSrv tokenservice.TokenSrv
+	tokenSrv service.TokenSrv
 }
 
-func (j *jwtMiddleWare) ValidateJWT() gin.HandlerFunc {
+func (j *jwtMiddleWare) CheckJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -34,6 +34,6 @@ func (j *jwtMiddleWare) ValidateJWT() gin.HandlerFunc {
 	}
 }
 
-func NewJWTMiddleWare(tokenSrv tokenservice.TokenSrv) *jwtMiddleWare {
+func NewJWTMiddleWare(tokenSrv service.TokenSrv) *jwtMiddleWare {
 	return &jwtMiddleWare{tokenSrv: tokenSrv}
 }

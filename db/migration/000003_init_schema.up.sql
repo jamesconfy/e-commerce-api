@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS `products`(
     `price` FLOAT NOT NULL DEFAULT 0.00,
 
     FOREIGN KEY (`user_id`) REFERENCES e_commerce_api.users(`id`) ON DELETE CASCADE,
-    PRIMARY KEY(`id`)
+    PRIMARY KEY(`id`),
+    CONSTRAINT chk_price CHECK (price >= 0.00)
 );
 
 CREATE TABLE IF NOT EXISTS `deleted_products`(

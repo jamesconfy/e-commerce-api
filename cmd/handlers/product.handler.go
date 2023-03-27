@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"e-commerce/internal/models/productModels"
+	"e-commerce/internal/models"
 	"e-commerce/internal/models/responseModels"
-	"e-commerce/internal/service/productService"
+	"e-commerce/internal/service"
 	"net/http"
 	"strconv"
 
@@ -20,7 +20,7 @@ type ProductHandler interface {
 }
 
 type productHanlder struct {
-	productSrv productService.ProductService
+	productSrv service.ProductService
 }
 
 func (p *productHanlder) AddProduct(c *gin.Context) {
@@ -85,7 +85,7 @@ func (p *productHanlder) GetProduct(c *gin.Context) {
 }
 
 func (p *productHanlder) EditProduct(c *gin.Context) {
-	var req productModels.EditProductReq
+	var req models.Product
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
@@ -97,8 +97,8 @@ func (p *productHanlder) EditProduct(c *gin.Context) {
 		return
 	}
 
-	req.ProductId = c.Param("product_id")
-	product, err := p.productSrv.GetProduct(req.ProductId)
+	req.Id = c.Param("product_id")
+	product, err := p.productSrv.GetProduct(req.Id)
 	if err != nil {
 		c.AbortWithStatusJSON(err.ResponseCode, err)
 		return
@@ -147,7 +147,7 @@ func (p *productHanlder) DeleteProduct(c *gin.Context) {
 }
 
 func (p *productHanlder) AddRating(c *gin.Context) {
-	var req productModels.AddRatingsReq
+	var req models.Rating
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
@@ -188,6 +188,6 @@ func (p *productHanlder) AddRating(c *gin.Context) {
 	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Product rated successfully", rating, nil))
 }
 
-func NewProductHandler(productSrv productService.ProductService) ProductHandler {
+func NewProductHandler(productSrv service.ProductService) ProductHandler {
 	return &productHanlder{productSrv: productSrv}
 }

@@ -3,13 +3,13 @@ package handler
 import (
 	"net/http"
 
-	"e-commerce/internal/service/homeService"
+	"e-commerce/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 type homeHandler struct {
-	homeSrv homeService.HomeService
+	homeSrv service.HomeService
 }
 
 func (h *homeHandler) Home(c *gin.Context) {
@@ -21,6 +21,6 @@ func (h *homeHandler) Home(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"msg": message})
 }
 
-func NewHomeHandler(homeSrv homeService.HomeService) *homeHandler {
+func NewHomeHandler(homeSrv service.HomeService) *homeHandler {
 	return &homeHandler{homeSrv: homeSrv}
 }

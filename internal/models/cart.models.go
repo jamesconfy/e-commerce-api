@@ -2,7 +2,6 @@ package models
 
 type Cart struct {
 	Id          string     `json:"cart_id"`
-	UserId      string     `json:"user_id"`
 	TotalPrice  float64    `json:"total_price"`
 	DateCreated string     `json:"date_created"`
 	DateUpdated string     `json:"date_updated"`

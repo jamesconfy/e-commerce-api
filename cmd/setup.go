@@ -8,22 +8,10 @@ import (
 
 	"e-commerce/cmd/middleware"
 	route "e-commerce/cmd/routes"
-	"e-commerce/internal/Repository/cartRepo"
-	"e-commerce/internal/Repository/productRepo"
-	"e-commerce/internal/Repository/tokenRepo"
-	"e-commerce/internal/Repository/userRepo"
 	mysql "e-commerce/internal/database"
 	"e-commerce/internal/logger"
-	"e-commerce/internal/service/cartService"
-	"e-commerce/internal/service/cryptoService"
-	"e-commerce/internal/service/emailService"
-	"e-commerce/internal/service/homeService"
-	"e-commerce/internal/service/loggerService"
-	"e-commerce/internal/service/productService"
-	"e-commerce/internal/service/timeService"
-	"e-commerce/internal/service/tokenService"
-	"e-commerce/internal/service/userService"
-	validationService "e-commerce/internal/service/validatorService"
+	repo "e-commerce/internal/repository"
+	service "e-commerce/internal/service"
 	"e-commerce/utils"
 
 	_ "e-commerce/docs"
@@ -97,49 +85,49 @@ func Setup() {
 	router.Use(middleware.CORS())
 
 	// User Repository
-	userRepo := userRepo.New(conn)
+	userRepo := repo.NewUserRepo(conn)
 
 	// Product Repository
-	productRepo := productRepo.New(conn)
+	productRepo := repo.NewProductRepo(conn)
 
 	// Token Repository
-	tokenRepo := tokenRepo.New(conn)
+	tokenRepo := repo.NewTokenRepo(conn)
 
 	// Cart Repository
-	cartRepo := cartRepo.New(conn)
+	cartRepo := repo.NewCartRepo(conn)
 
 	// Message Utility
 	message := utils.New()
 
 	// Logger Service
-	loggerSrv := loggerService.New()
+	loggerSrv := service.NewLoggerService()
 
 	// Time Service
-	timeSrv := timeService.New()
+	timeSrv := service.NewTimeService()
 
 	// Email Service
-	emailSrv := emailService.New("email", "passwd", "host", "port")
+	emailSrv := service.NewEmailService("email", "passwd", "host", "port")
 
 	// Validation Service
-	validatorSrv := validationService.New()
+	validatorSrv := service.NewValidationService()
 
 	// Cryptography Service
-	cryptoSrv := cryptoService.New()
+	cryptoSrv := service.NewCryptoService()
 
 	// Token Service
-	tokenSrv := tokenService.New(secret, loggerSrv, tokenRepo)
+	tokenSrv := service.NewTokenService(secret, loggerSrv, tokenRepo)
 
 	// Home Service
-	homeSrv := homeService.New(loggerSrv)
+	homeSrv := service.NewHomeService(loggerSrv)
 
 	// User Service
-	userSrv := userService.New(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv, message)
+	userSrv := service.NewUserService(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv, message)
 
 	// Product Service
-	productSrv := productService.New(productRepo, validatorSrv, loggerSrv, timeSrv, message)
+	productSrv := service.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv, message)
 
 	// Cart Service
-	cartSrv := cartService.New(cartRepo, loggerSrv, validatorSrv, timeSrv)
+	cartSrv := service.NewCartService(cartRepo, loggerSrv, validatorSrv, timeSrv)
 
 	// Routes
 	route.HomeRoute(v1, homeSrv)

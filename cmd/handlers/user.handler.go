@@ -4,10 +4,10 @@ import (
 	"errors"
 
 	"e-commerce/internal/forms"
+	"e-commerce/internal/service"
 
+	se "e-commerce/internal/errors"
 	"e-commerce/internal/response"
-	se "e-commerce/internal/service/errors"
-	"e-commerce/internal/service/userService"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +22,7 @@ type UserHandler interface {
 }
 
 type userHandler struct {
-	userSrv userService.UserService
+	userSrv service.UserService
 }
 
 func (u *userHandler) Create(c *gin.Context) {
@@ -156,6 +156,6 @@ func (u *userHandler) GetId(c *gin.Context) {
 // 	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Password changed successfully", nil, nil))
 // }
 
-func NewUserHandler(userSrv userService.UserService) UserHandler {
+func NewUserHandler(userSrv service.UserService) UserHandler {
 	return &userHandler{userSrv: userSrv}
 }

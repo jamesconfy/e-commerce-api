@@ -1,4 +1,4 @@
-package loggerService
+package service
 
 import (
 	"fmt"
@@ -41,7 +41,7 @@ func (l logSrv) Fatal(message string) {
 	l.logger.Log(log.FatalLevel, getSource(), fmt.Sprintf(" %s", message))
 }
 
-func New() LogSrv {
+func NewLoggerService() LogSrv {
 	logger := log.New()
 	// Log as JSON instead of the default ASCII formatter.
 	log.SetFormatter(&log.JSONFormatter{})

@@ -1,7 +1,6 @@
 package models
 
 type Rating struct {
-	Id          string `json:"id"`
 	Value       int    `json:"value"`
 	ProductId   string `json:"product_id"`
 	UserId      string `json:"user_id"`

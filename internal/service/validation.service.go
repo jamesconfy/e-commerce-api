@@ -1,4 +1,4 @@
-package validationService
+package service
 
 import "github.com/go-playground/validator/v10"
 
@@ -8,7 +8,7 @@ type ValidationSrv interface {
 
 type validationStruct struct{}
 
-func New() ValidationSrv {
+func NewValidationService() ValidationSrv {
 	return &validationStruct{}
 }
 

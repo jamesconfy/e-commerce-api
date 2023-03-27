@@ -1,8 +1,7 @@
-package tokenService
+package service
 
 import (
-	"e-commerce/internal/Repository/tokenRepo"
-	"e-commerce/internal/service/loggerService"
+	repo "e-commerce/internal/repository"
 	"errors"
 	"fmt"
 	"time"
@@ -23,8 +22,8 @@ type TokenSrv interface {
 
 type tokenSrv struct {
 	SecretKey string
-	logSrv    loggerService.LogSrv
-	tokenRepo tokenRepo.TokenRepo
+	logSrv    LogSrv
+	repo      repo.TokenRepo
 }
 
 func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
@@ -46,17 +45,17 @@ func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenDetails).SignedString([]byte(t.SecretKey))
 	if err != nil {
-		t.logSrv.Warning(fmt.Sprintf("Could not create access token created for User: %s with Email: %s", id, email))
+		// t.logSrv.Warning(fmt.Sprintf("Could not create access token created for User: %s with Email: %s", id, email))
 		return "", "", err
 	}
 
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenDetails).SignedString([]byte(t.SecretKey))
 	if err != nil {
-		t.logSrv.Warning(fmt.Sprintf("Could not create refresh token created for User: %s with Email: %s", id, email))
+		//t.logSrv.Warning(fmt.Sprintf("Could not create refresh token created for User: %s with Email: %s", id, email))
 		return "", "", err
 	}
 
-	t.logSrv.Info(fmt.Sprintf("Access and Refresh token created for UserId: %s with Email: %s", id, email))
+	// t.logSrv.Info(fmt.Sprintf("Access and Refresh token created for UserId: %s with Email: %s", id, email))
 	return token, refreshToken, err
 }
 
@@ -70,41 +69,41 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 	)
 
 	if token == nil {
-		t.logSrv.Debug(fmt.Sprintf("Token is empty after parsing || Token String: %s", tokenUrl))
+		// t.logSrv.Debug(fmt.Sprintf("Token is empty after parsing || Token String: %s", tokenUrl))
 		return nil, errors.New("check the provided token")
 	}
 
 	claims, ok := token.Claims.(*Token)
 	if !ok {
-		t.logSrv.Debug(fmt.Sprintf("Token claims is not ok || Claims: %s", claims))
+		// t.logSrv.Debug(fmt.Sprintf("Token claims is not ok || Claims: %s", claims))
 		return nil, err
 	}
 
-	if errc := claims.Valid(); errc != nil {
-		t.logSrv.Debug(fmt.Sprintf("Token claims is not valid || Claims: %s", claims))
+	if err := claims.Valid(); err != nil {
+		// t.logSrv.Debug(fmt.Sprintf("Token claims is not valid || Claims: %s", claims))
 		return nil, err
 	}
 
 	if claims.ExpiresAt.Time.Before(time.Now().Local()) {
-		t.logSrv.Debug(fmt.Sprintf("Token is expired || Expired Time: %s", claims.ExpiresAt))
+		// t.logSrv.Debug(fmt.Sprintf("Token is expired || Expired Time: %s", claims.ExpiresAt))
 		return nil, fmt.Errorf("expired token, please login again || expired time: %s", claims.ExpiresAt.Time)
 	}
 
-	row, err := t.tokenRepo.ConfirmToken(claims.Id)
+	row, err := t.repo.Confirm(claims.Id)
 	if err != nil {
-		t.logSrv.Fatal(fmt.Sprintf("Internal server error, when trying to get token associated with user || UserId: %s", claims.Id))
+		// t.logSrv.Fatal(fmt.Sprintf("Internal server error, when trying to get token associated with user || UserId: %s", claims.Id))
 		return nil, err
 	}
 
 	if row.AccessToken != tokenUrl {
-		t.logSrv.Info(fmt.Sprintf("User tried to use old access token to login || UserId: %s || Latest Access Token: %s || Provided Access Token: %s", claims.Id, row.AccessToken, tokenUrl))
-		return nil, fmt.Errorf("outdated token")
+		// t.logSrv.Info(fmt.Sprintf("User tried to use old access token to login || UserId: %s || Latest Access Token: %s || Provided Access Token: %s", claims.Id, row.AccessToken, tokenUrl))
+		return nil, fmt.Errorf("Outdated token")
 	}
 
-	t.logSrv.Info(fmt.Sprintf("Access token validated for UserId: %s with Email: %s and Expires At: %s", claims.Id, claims.Email, claims.ExpiresAt))
+	// t.logSrv.Info(fmt.Sprintf("Access token validated for UserId: %s with Email: %s and Expires At: %s", claims.Id, claims.Email, claims.ExpiresAt))
 	return claims, err
 }
 
-func New(secret string, logSrv loggerService.LogSrv, tokenRepo tokenRepo.TokenRepo) TokenSrv {
-	return &tokenSrv{SecretKey: secret, logSrv: logSrv, tokenRepo: tokenRepo}
+func NewTokenService(secret string, logSrv LogSrv, tokenRepo repo.TokenRepo) TokenSrv {
+	return &tokenSrv{SecretKey: secret, logSrv: logSrv, repo: tokenRepo}
 }

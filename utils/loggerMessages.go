@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"e-commerce/internal/models/errorModels"
+	se "e-commerce/internal/errors"
 	"e-commerce/internal/models/productModels"
 	"e-commerce/internal/models/userModels"
 	"fmt"
@@ -11,7 +11,7 @@ type Messages struct {
 }
 
 // Internal server error
-func (m Messages) InternalServerError(err *errorModels.ServiceError) (str string) {
+func (m Messages) InternalServerError(err *se.ServiceError) (str string) {
 	str = fmt.Sprintf("Internal server error occurred || Error: %v", err)
 	return
 }

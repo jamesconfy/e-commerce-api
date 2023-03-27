@@ -1,4 +1,4 @@
-package cryptoService
+package service
 
 import "golang.org/x/crypto/bcrypt"
 
@@ -23,6 +23,6 @@ func (c cryptoSrv) ComparePassword(hashed, plain string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain)) == nil
 }
 
-func New() CryptoSrv {
+func NewCryptoService() CryptoSrv {
 	return &cryptoSrv{}
 }

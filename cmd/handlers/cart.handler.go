@@ -1,9 +1,11 @@
 package handler
 
 import (
+	se "e-commerce/internal/errors"
 	"e-commerce/internal/models/cartModels"
 	"e-commerce/internal/models/responseModels"
-	"e-commerce/internal/service/cartService"
+	"e-commerce/internal/response"
+	"e-commerce/internal/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +20,7 @@ type CartHanlder interface {
 }
 
 type cartHandler struct {
-	cartSrv cartService.CartService
+	cartSrv service.CartService
 }
 
 func (ch *cartHandler) AddToCart(c *gin.Context) {
@@ -48,7 +50,7 @@ func (ch *cartHandler) AddToCart(c *gin.Context) {
 	}
 
 	if product.UserId == user.UserId {
-		c.AbortWithStatusJSON(http.StatusForbidden, responseModels.BuildErrorResponse(http.StatusForbidden, "You cannot buy your own product", nil, nil))
+		response.Error(c, *se.NewConflict())
 		return
 	}
 
@@ -175,6 +177,6 @@ func (ch *cartHandler) DeleteItem(c *gin.Context) {
 	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Item deleted successfully", item, nil))
 }
 
-func NewCartHandler(cartSrv cartService.CartService) CartHanlder {
+func NewCartHandler(cartSrv service.CartService) CartHanlder {
 	return &cartHandler{cartSrv: cartSrv}
 }

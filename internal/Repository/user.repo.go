@@ -36,7 +36,7 @@ func (u *userSql) ExistsEmail(email string) bool {
 func (u *userSql) ExistsId(userId string) bool {
 	var email string
 
-	stmt := fmt.Sprintf(`SELECT email FROM users WHERE user_id = '%[1]v'`, userId)
+	stmt := fmt.Sprintf(`SELECT email FROM users WHERE id = '%[1]v'`, userId)
 
 	err := u.conn.QueryRow(stmt).Scan(&email)
 
@@ -60,7 +60,7 @@ func (u *userSql) Register(user *models.UserCart, accessToken, refreshToken stri
 func (u *userSql) CreateCart(cart *models.UserCart) error {
 	query := `INSERT INTO carts(id, user_id, date_created) VALUES ('%[1]v', '%[2]v', '%[3]v')`
 
-	stmt1 := fmt.Sprintf(query, cart.Cart.Id, cart.Cart.UserId, cart.Cart.DateCreated)
+	stmt1 := fmt.Sprintf(query, cart.Cart.Id, cart.User.Id, cart.Cart.DateCreated)
 
 	_, err := u.conn.Exec(stmt1)
 	if err != nil {
@@ -120,7 +120,7 @@ func (u *userSql) GetById(userId string) (*models.User, error) {
 }
 
 func (u *userSql) UpdateTokens(auth *models.Auth) error {
-	query := `UPDATE users SET access_token = '%[1]v', refresh_token = '%[2]v', date_updated = '%[3]v' WHERE user_id = '%[4]v'`
+	query := `UPDATE users SET access_token = '%[1]v', refresh_token = '%[2]v', date_updated = '%[3]v' WHERE id = '%[4]v'`
 
 	stmt := fmt.Sprintf(query, auth.AccessToken, auth.RefreshToken, auth.DateUpdated, auth.UserId)
 

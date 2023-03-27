@@ -3,18 +3,17 @@ package route
 import (
 	handler "e-commerce/cmd/handlers"
 	"e-commerce/cmd/middleware"
-	"e-commerce/internal/service/productService"
-	"e-commerce/internal/service/tokenService"
+	"e-commerce/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-func ProductRoutes(v1 *gin.RouterGroup, productSrv productService.ProductService, tokenSrv tokenService.TokenSrv) {
+func ProductRoutes(v1 *gin.RouterGroup, productSrv service.ProductService, tokenSrv service.TokenSrv) {
 	handler := handler.NewProductHandler(productSrv)
 	jwtMiddleWare := middleware.NewJWTMiddleWare(tokenSrv)
 
 	product := v1.Group("/products")
-	product.Use(jwtMiddleWare.ValidateJWT())
+	product.Use(jwtMiddleWare.CheckJWT())
 	{
 		product.POST("", handler.AddProduct)
 		product.GET("", handler.GetProducts)

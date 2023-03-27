@@ -10,3 +10,7 @@ type Auth struct {
 
 	// DateDeleted  string `json:"date_deleted"`
 }
+
+type Token struct {
+	
+}

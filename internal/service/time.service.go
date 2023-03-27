@@ -1,4 +1,4 @@
-package timeService
+package service
 
 import "time"
 
@@ -19,6 +19,6 @@ func (t timeSrv) CurrentTime() string {
 	return time.Now().Local().Format(layout)
 }
 
-func New() TimeService {
+func NewTimeService() TimeService {
 	return &timeSrv{}
 }
