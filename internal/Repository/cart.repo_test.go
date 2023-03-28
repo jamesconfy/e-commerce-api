@@ -2,6 +2,7 @@ package repo_test
 
 import (
 	"e-commerce/internal/models"
+	"fmt"
 
 	"testing"
 )
@@ -67,10 +68,31 @@ func TestGetItem(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := c.GetId(tt.productId, tt.cartId)
+			_, err := c.Get(tt.productId, tt.cartId)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("cartSql.Get() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestGetCart(t *testing.T) {
+	tests := []struct {
+		name    string
+		cartId  string
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{name: "Test with correct cart id", cartId: "123", wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			carts, err := c.GetCart(tt.cartId)
+			fmt.Println(carts)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("cartSql.GetCart() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

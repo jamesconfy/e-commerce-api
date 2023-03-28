@@ -1,11 +1,11 @@
 package handler
 
 import (
-	se "e-commerce/internal/errors"
 	"e-commerce/internal/models/cartModels"
 	"e-commerce/internal/models/responseModels"
 	"e-commerce/internal/response"
 	"e-commerce/internal/service"
+	se "e-commerce/internal/serviceerror"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -50,7 +50,7 @@ func (ch *cartHandler) AddToCart(c *gin.Context) {
 	}
 
 	if product.UserId == user.UserId {
-		response.Error(c, *se.NewConflict())
+		response.Error(c, *se.Conflict())
 		return
 	}
 

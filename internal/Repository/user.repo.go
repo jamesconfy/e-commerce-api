@@ -11,6 +11,7 @@ type UserRepo interface {
 	ExistsId(userId string) bool
 	Register(user *models.UserCart, accessToken, refreshToken string) error
 	CreateCart(cart *models.UserCart) error
+	GetCartId(userId string) (*string, error)
 	GetByEmail(email string) (*models.User, error)
 	GetById(userId string) (*models.User, error)
 	UpdateTokens(auth *models.Auth) error
@@ -70,6 +71,18 @@ func (u *userSql) CreateCart(cart *models.UserCart) error {
 	return nil
 }
 
+func (u *userSql) GetCartId(userId string) (*string, error) {
+	query := `SELECT id FROM carts WHERE user_id = '%[1]v'`
+	stmt := fmt.Sprintf(query, userId)
+
+	var cartId string
+	if err := u.conn.QueryRow(stmt).Scan(&cartId); err != nil {
+		return nil, err
+	}
+
+	return &cartId, nil
+}
+
 func (u *userSql) GetByEmail(email string) (*models.User, error) {
 	var user models.User
 
@@ -113,6 +126,9 @@ func (u *userSql) GetById(userId string) (*models.User, error) {
 	)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return &models.User{}, err
+		}
 		return nil, err
 	}
 

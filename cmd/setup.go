@@ -127,7 +127,7 @@ func Setup() {
 	productSrv := service.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv, message)
 
 	// Cart Service
-	cartSrv := service.NewCartService(cartRepo, loggerSrv, validatorSrv, timeSrv)
+	cartSrv := service.NewCartService(cartRepo, loggerSrv, validatorSrv, timeSrv, userRepo, productRepo)
 
 	// Routes
 	route.HomeRoute(v1, homeSrv)

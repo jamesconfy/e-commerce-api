@@ -97,7 +97,7 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 
 	if row.AccessToken != tokenUrl {
 		// t.logSrv.Info(fmt.Sprintf("User tried to use old access token to login || UserId: %s || Latest Access Token: %s || Provided Access Token: %s", claims.Id, row.AccessToken, tokenUrl))
-		return nil, fmt.Errorf("Outdated token")
+		return nil, fmt.Errorf("outdated token")
 	}
 
 	// t.logSrv.Info(fmt.Sprintf("Access token validated for UserId: %s with Email: %s and Expires At: %s", claims.Id, claims.Email, claims.ExpiresAt))

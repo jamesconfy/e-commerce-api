@@ -6,8 +6,8 @@ import (
 	"e-commerce/internal/forms"
 	"e-commerce/internal/service"
 
-	se "e-commerce/internal/errors"
 	"e-commerce/internal/response"
+	se "e-commerce/internal/serviceerror"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +15,7 @@ import (
 type UserHandler interface {
 	Create(c *gin.Context)
 	Login(c *gin.Context)
-	GetId(c *gin.Context)
+	GetById(c *gin.Context)
 	// ResetPassword(c *gin.Context)
 	// ValidateToken(c *gin.Context)
 	// ChangePassword(c *gin.Context)
@@ -25,18 +25,30 @@ type userHandler struct {
 	userSrv service.UserService
 }
 
+// Register User godoc
+// @Summary	Register route
+// @Description	Register route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	request	body	userModels.CreateUserReq	true "Signup Details"
+// @Success	200  {object}  userModels.CreateUserRes
+// @Failure	400  {object}  errorModels.ServiceError
+// @Failure	404  {object}  errorModels.ServiceError
+// @Failure	500  {object}  errorModels.ServiceError
+// @Router	/users [post]
 func (u *userHandler) Create(c *gin.Context) {
 	var req forms.Signup
 
 	if err := c.ShouldBind(&req); err != nil {
-		response.Error(c, *se.NewValidating(errors.New("Details not found")))
+		response.Error(c, *se.Validating(errors.New("Details not found")))
 		return
 	}
 
-	if err := u.userSrv.Validate(req); err != nil {
-		response.Error(c, *se.NewValidating(err))
-		return
-	}
+	// if err := u.userSrv.Validate(req); err != nil {
+	// 	response.Error(c, *se.NewValidating(err))
+	// 	return
+	// }
 
 	user, err := u.userSrv.Create(&req)
 	if err != nil {
@@ -47,16 +59,23 @@ func (u *userHandler) Create(c *gin.Context) {
 	response.Success("User created successfully", user)
 }
 
+// Login User godoc
+// @Summary	Login route
+// @Description	Login route
+// @Tags	Users
+// @Accept	json
+// @Produce	json
+// @Param	request	body	userModels.LoginReq	true "Login Details"
+// @Success	200  {object}  userModels.LoginRes
+// @Failure	400  {object}  errorModels.ServiceError
+// @Failure	404  {object}  errorModels.ServiceError
+// @Failure	500  {object}  errorModels.ServiceError
+// @Router	/users/login [post]
 func (u *userHandler) Login(c *gin.Context) {
 	var req forms.Login
 
 	if err := c.ShouldBind(&req); err != nil {
-		response.Error(c, *se.NewValidating(errors.New("Details not found")))
-		return
-	}
-
-	if err := u.userSrv.Validate(req); err != nil {
-		response.Error(c, *se.NewValidating(err))
+		response.Error(c, *se.Validating(err))
 		return
 	}
 
@@ -69,8 +88,8 @@ func (u *userHandler) Login(c *gin.Context) {
 	response.Success("User logged in successfully", auth, nil)
 }
 
-func (u *userHandler) GetId(c *gin.Context) {
-	user, err := u.userSrv.GetId(c.Param("userId"))
+func (u *userHandler) GetById(c *gin.Context) {
+	user, err := u.userSrv.GetById(c.Param("userId"))
 	if err != nil {
 		response.Error(c, *err)
 		return

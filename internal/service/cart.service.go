@@ -1,106 +1,85 @@
 package service
 
-// import (
-// 	"e-commerce/internal/models/cartModels"
-// 	"e-commerce/internal/models/errorModels"
-// 	"e-commerce/internal/models/productModels"
-// 	"e-commerce/internal/models/responseModels"
-// 	"e-commerce/internal/models/userModels"
-// 	repo "e-commerce/internal/repository"
-// 	"net/http"
+import (
+	"e-commerce/internal/forms"
+	"e-commerce/internal/models"
+	repo "e-commerce/internal/repository"
+	"e-commerce/internal/serviceerror"
+)
 
-// 	"github.com/google/uuid"
-// )
+type CartService interface {
+	Add(req *forms.CartItem, userId string) (*models.CartItem, *serviceerror.ServiceError)
+	GetCart(userId string) (*models.Cart, *serviceerror.ServiceError)
+	// GetItem(itemId string) (*models.Cart, *responseModels.ResponseMessage)
+	// EditItem(req *cartModels.EditItemReq, item *cartModels.GetItemByIdRes) (*cartModels.EditItemRes, *responseModels.ResponseMessage)
+	Delete(productId, userId string) *serviceerror.ServiceError
+}
 
-// type CartService interface {
-// 	Validate(req any) *responseModels.ResponseMessage
-// 	CheckProduct(productId string) (*productModels.GetProductRes, *responseModels.ResponseMessage)
-// 	GetUser(userId string) (*userModels.GetByIdRes, *responseModels.ResponseMessage)
-// 	AddToCart(req *cartModels.AddToCartReq, product *productModels.GetProductRes, user *userModels.GetByIdRes) (*cartModels.AddToCartRes, *responseModels.ResponseMessage)
-// 	CheckIfProductInCart(productId, cartId string) *responseModels.ResponseMessage
-// 	GetItem(itemId string) (*cartModels.GetItemByIdRes, *responseModels.ResponseMessage)
-// 	EditItem(req *cartModels.EditItemReq, item *cartModels.GetItemByIdRes) (*cartModels.EditItemRes, *responseModels.ResponseMessage)
-// 	DeleteItem(itemId string) *responseModels.ResponseMessage
-// }
+type cartSrv struct {
+	loggerSrv    LogSrv
+	validatorSrv ValidationSrv
+	timeSrv      TimeService
+	repo         repo.CartRepo
+	userRepo     repo.UserRepo
+	productRepo  repo.ProductRepo
+}
 
-// type cartSrv struct {
-// 	loggerSrv    LogSrv
-// 	validatorSrv ValidationSrv
-// 	timeSrv      TimeService
-// 	repo         repo.CartRepo
-// }
+func (ch *cartSrv) Validate(req any) error {
+	err := ch.validatorSrv.Validate(req)
+	if err != nil {
+		return err
+	}
 
-// func (ch *cartSrv) Validate(req any) *responseModels.ResponseMessage {
-// 	err := ch.validatorSrv.Validate(req)
-// 	if err != nil {
-// 		e := errorModels.NewValidatingError(err)
-// 		return responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", e, nil)
-// 	}
+	return nil
+}
 
-// 	return nil
-// }
+func (ch *cartSrv) Add(req *forms.CartItem, userId string) (*models.CartItem, *serviceerror.ServiceError) {
+	if err := ch.Validate(req); err != nil {
+		return nil, serviceerror.Validating(err)
+	}
 
-// func (ch *cartSrv) CheckProduct(productId string) (*productModels.GetProductRes, *responseModels.ResponseMessage) {
-// 	product, err := ch.repo.GetProduct(productId)
-// 	if product != nil && err != nil {
-// 		return product, responseModels.BuildErrorResponse(http.StatusNotFound, "Product not found", err, nil)
-// 	}
+	cartId, err := ch.userRepo.GetCartId(userId)
+	if err != nil {
+		return nil, serviceerror.Internal(err)
+	}
 
-// 	if product == nil && err != nil {
-// 		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Internal server error", err, nil)
-// 	}
+	product, err := ch.productRepo.GetId(req.ProductId)
+	if err != nil {
+		return nil, serviceerror.NotFoundOrInternal(err)
+	}
 
-// 	return product, nil
-// }
+	var item models.CartItem
 
-// func (ch *cartSrv) GetUser(userId string) (*userModels.GetByIdRes, *responseModels.ResponseMessage) {
-// 	user, err := ch.repo.GetUser(userId)
-// 	if user != nil && err != nil {
-// 		return user, responseModels.BuildErrorResponse(http.StatusNotFound, "User not found", err, nil)
-// 	}
+	item.CartId = *cartId
+	item.Product = product.Product
+	item.Quantity = req.Quantity
+	item.DateCreated = ch.timeSrv.CurrentTime()
+	item.DateUpdated = ch.timeSrv.CurrentTime()
 
-// 	if user == nil && err != nil {
-// 		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Internal server error", err, nil)
-// 	}
+	err = ch.repo.Add(&item)
+	if err != nil {
+		return nil, serviceerror.Internal(err)
+	}
 
-// 	return user, nil
-// }
+	return &item, nil
+}
 
-// func (ch *cartSrv) AddToCart(req *cartModels.AddToCartReq, product *productModels.GetProductRes, user *userModels.GetByIdRes) (*cartModels.AddToCartRes, *responseModels.ResponseMessage) {
-// 	req.ItemId = uuid.New().String()
-// 	req.Price = product.Price * float64(req.Quantity)
-// 	req.CartId = user.CartId
-// 	req.DateCreated = ch.timeSrv.CurrentTime()
-// 	req.DateUpdated = ch.timeSrv.CurrentTime()
+func (ch *cartSrv) GetCart(userId string) (*models.Cart, *serviceerror.ServiceError) {
+	cartId, err := ch.userRepo.GetCartId(userId)
+	if err != nil {
+		return nil, serviceerror.Internal(err)
+	}
 
-// 	err := ch.repo.Add(req)
-// 	if err != nil {
-// 		return nil, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Internal server error", err, nil)
-// 	}
+	items, err := ch.repo.GetCart(*cartId)
+	if err != nil {
+		return nil, serviceerror.Internal(err)
+	}
 
-// 	return &cartModels.AddToCartRes{
-// 		CartItemId:  req.ItemId,
-// 		CartId:      req.CartId,
-// 		ProductId:   req.ProductId,
-// 		UserId:      user.UserId,
-// 		Quantity:    req.Quantity,
-// 		Price:       req.Price,
-// 		DateCreated: req.DateCreated,
-// 		DateUpdated: req.DateUpdated,
-// 	}, nil
-// }
-
-// func (ch *cartSrv) CheckIfProductInCart(productId, cartId string) *responseModels.ResponseMessage {
-// 	err := ch.repo.CheckIfProductInCart(productId, cartId)
-// 	if err != nil {
-// 		return responseModels.BuildErrorResponse(http.StatusConflict, "Product already in cart, you can either remove it or change the quantity", err, nil)
-// 	}
-
-// 	return nil
-// }
+	return items, nil
+}
 
 // func (ch *cartSrv) GetItem(itemId string) (*cartModels.GetItemByIdRes, *responseModels.ResponseMessage) {
-// 	item, err := ch.repo.GetItem(itemId)
+// 	item, err := ch.repo.GetId(itemId)
 // 	if item != nil && err != nil {
 // 		return item, responseModels.BuildErrorResponse(http.StatusNotFound, "Item not found", err, nil)
 // 	}
@@ -131,20 +110,25 @@ package service
 // 	}, nil
 // }
 
-// func (ch *cartSrv) DeleteItem(itemId string) *responseModels.ResponseMessage {
-// 	err := ch.repo.DeleteItem(itemId)
-// 	if err != nil {
-// 		return responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when removing item from cart", err, nil)
-// 	}
+func (ch *cartSrv) Delete(productId, userId string) *serviceerror.ServiceError {
+	cartId, err := ch.userRepo.GetCartId(userId)
+	if err != nil {
+		return serviceerror.Internal(err)
+	}
 
-// 	return nil
-// }
+	err = ch.repo.Delete(productId, *cartId)
+	if err != nil {
+		return serviceerror.Internal(err)
+	}
 
-// func NewCartService(repo repo.CartRepo, loggerSrv LogSrv, validatorSrv ValidationSrv, timeSrv TimeService) CartService {
-// 	return &cartSrv{loggerSrv: loggerSrv, validatorSrv: validatorSrv, timeSrv: timeSrv, repo: repo}
-// }
+	return nil
+}
 
-// // Auxillary Function
+func NewCartService(repo repo.CartRepo, loggerSrv LogSrv, validatorSrv ValidationSrv, timeSrv TimeService, userRepo repo.UserRepo, productRepo repo.ProductRepo) CartService {
+	return &cartSrv{loggerSrv: loggerSrv, validatorSrv: validatorSrv, timeSrv: timeSrv, repo: repo, userRepo: userRepo, productRepo: productRepo}
+}
+
+// Auxillary Function
 // func (ch *cartSrv) updateItem(req cartModels.EditItemReq, item *cartModels.GetItemByIdRes) *cartModels.EditItemReq {
 // 	price := item.Price / float64(item.Quantity)
 

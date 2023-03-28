@@ -1,6 +1,8 @@
-package se
+package serviceerror
 
 import (
+	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -45,18 +47,30 @@ func New(description string, err error, errType Type) *ServiceError {
 	return &ServiceError{Time: time.Now().Format(time.RFC3339), Description: description, Error: err, ErrorType: errType}
 }
 
-func NewInternal(err error) *ServiceError {
+func Internal(err error) *ServiceError {
 	return New("Internal server error", err, ErrServer)
 }
 
-func NewValidating(err error) *ServiceError {
+func Validating(err error) *ServiceError {
 	return New("Bad input request", err, ErrBadRequest)
 }
 
-func NewConflict(description string) *ServiceError {
+func Conflict(description string) *ServiceError {
 	return New(description, nil, ErrConflict)
 }
 
-func NewNotFound(description string) *ServiceError {
+func NotFound(description string) *ServiceError {
 	return New(description, nil, ErrNotFound)
+}
+func NotFoundOrInternal(err error, descriptions ...string) *ServiceError {
+	description := "not found"
+	if len(descriptions) > 0 {
+		description = descriptions[0]
+	}
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return NotFound(description)
+	default:
+		return Internal(err)
+	}
 }
