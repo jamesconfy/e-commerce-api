@@ -11,7 +11,7 @@ func TestAddToCart(t *testing.T) {
 	item := &models.CartItem{
 		CartId:      "123",
 		ProductId:   "006ae268-f2a3-4309-9fd9-ef58ca354335",
-		Quantity:    10,
+		Quantity:    15,
 		DateCreated: ti.CurrentTime(),
 		DateUpdated: ti.CurrentTime(),
 	}
@@ -35,6 +35,7 @@ func TestAddToCart(t *testing.T) {
 	tests := []struct {
 		name    string
 		item    *models.CartItem
+		userId  string
 		wantErr bool
 	}{
 		// TODO: Add test cases.
@@ -45,7 +46,8 @@ func TestAddToCart(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := c.Add(tt.item); (err != nil) != tt.wantErr {
+			_, err := c.AddItem(tt.item, tt.userId)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("cartSql.Add() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -68,7 +70,7 @@ func TestGetItem(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := c.Get(tt.productId, tt.cartId)
+			_, err := c.GetItem(tt.productId, tt.cartId)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("cartSql.Get() error = %v, wantErr %v", err, tt.wantErr)
@@ -80,16 +82,20 @@ func TestGetItem(t *testing.T) {
 func TestGetCart(t *testing.T) {
 	tests := []struct {
 		name    string
-		cartId  string
+		userId  string
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{name: "Test with correct cart id", cartId: "123", wantErr: false},
+		{name: "Test with correct user id", userId: "4567", wantErr: false},
+		{name: "Test with correct user id", userId: "7d4b4910-9472-4003-8454-ba09d91ac4d7", wantErr: false},
+		{name: "Test with incorrect user id", userId: "7d4b4910-9472", wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			carts, err := c.GetCart(tt.cartId)
-			fmt.Println(carts)
+			cart, err := c.GetCart(tt.userId)
+			if cart != nil {
+				fmt.Println(cart.TotalPrice)
+			}
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("cartSql.GetCart() error = %v, wantErr %v", err, tt.wantErr)

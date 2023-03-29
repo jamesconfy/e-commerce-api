@@ -2,6 +2,8 @@ package utils
 
 import "github.com/spf13/viper"
 
+// import "github.com/spf13/viper"
+
 type Config struct {
 	DATA_SOURCE_NAME string `mapstructure:"DATA_SOURCE_NAME"`
 	ADDR             string `mapstructure:"ADDR"`

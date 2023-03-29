@@ -15,8 +15,8 @@ type ProductService interface {
 	Add(req *forms.Product, userId string) (*models.Product, *se.ServiceError)
 	GetAll(page int) ([]*models.ProductRating, *se.ServiceError)
 	Get(productId string) (*models.ProductRating, *se.ServiceError)
-	Edit(req *forms.EditProduct, product *models.ProductRating) (*models.Product, *se.ServiceError)
-	Delete(productId string) *se.ServiceError
+	Edit(req *forms.EditProduct, productId, userId string) (*models.Product, *se.ServiceError)
+	Delete(productId, userId string) *se.ServiceError
 	AddRating(req *forms.Rating, userId string) (*models.Rating, *se.ServiceError)
 	// VerifyUserRatings(userId, productId string) *responseModels.ResponseMessage
 }
@@ -46,32 +46,27 @@ func (p *productSrv) Add(req *forms.Product, userId string) (*models.Product, *s
 	var product models.Product
 
 	product.Id = uuid.New().String()
+	product.Name = req.Name
+	product.Description = req.Description
+	product.Price = req.Price
+	product.Image = req.Image
 	product.UserId = userId
 	product.DateCreated = p.timeSrv.CurrentTime()
 	product.DateUpdated = p.timeSrv.CurrentTime()
 
-	err := p.repo.Add(&product)
+	result, err := p.repo.Add(&product)
 	if err != nil {
 		// p.loggerSrv.Fatal(p.message.AddProductRepoError(req, err))
 		return nil, se.Internal(err)
 	}
 
 	// p.loggerSrv.Info(p.message.AddProductSuccess(req))
-	return &models.Product{
-		Id:          product.Id,
-		UserId:      userId,
-		Name:        product.Name,
-		Description: product.Description,
-		Price:       product.Price,
-		Image:       product.Image,
-		DateCreated: product.DateCreated,
-		DateUpdated: product.DateUpdated,
-	}, nil
+	return result, nil
 }
 
 func (p *productSrv) GetAll(page int) ([]*models.ProductRating, *se.ServiceError) {
 	products, err := p.repo.GetAll(page)
-	if err != nil {
+	if err != nil && products == nil {
 		// p.loggerSrv.Fatal(p.message.InternalServerError(err))
 		return nil, se.Internal(err)
 	}
@@ -82,46 +77,54 @@ func (p *productSrv) GetAll(page int) ([]*models.ProductRating, *se.ServiceError
 
 func (p *productSrv) Get(productId string) (*models.ProductRating, *se.ServiceError) {
 	product, err := p.repo.GetId(productId)
-	if product != nil && err != nil {
-		// p.loggerSrv.Fatal(p.message.GetProductNotFound(productId, err))
-		return product, se.NotFound("No product with that id")
-	}
+	// p.loggerSrv.Fatal(p.message.GetProductNotFound(productId, err))
 
-	if product == nil && err != nil {
+	if err != nil {
 		// p.loggerSrv.Fatal(p.message.InternalServerError(err))
-		return nil, se.Internal(err)
+		return nil, se.NotFoundOrInternal(err)
 	}
 
 	// p.loggerSrv.Info(p.message.GetProductSuccess(product))
 	return product, nil
 }
 
-func (p *productSrv) Edit(req *forms.EditProduct, product *models.ProductRating) (*models.Product, *se.ServiceError) {
+func (p *productSrv) Edit(req *forms.EditProduct, productId, userId string) (*models.Product, *se.ServiceError) {
 	if err := p.Validate(req); err != nil {
 		return nil, se.Validating(err)
 	}
 
+	product, err := p.repo.GetId(productId)
+	if err != nil {
+		return nil, se.NotFoundOrInternal(err)
+	}
+
+	if product.Product.UserId != userId {
+		return nil, se.Forbidden("You are not able to modify that resource")
+	}
+
 	editProduct := p.updateProduct(req, product)
 
-	err := p.repo.Edit(editProduct)
+	returnProduct, err := p.repo.Edit(editProduct)
 	if err != nil {
 		// p.loggerSrv.Fatal(p.message.InternalServerError(err))
 		return nil, se.Internal(err)
 	}
 
 	// p.loggerSrv.Info(p.message.EditProductSuccess(editProduct))
-	return &models.Product{
-		Id:          editProduct.Id,
-		Name:        editProduct.Name,
-		Description: editProduct.Description,
-		Price:       editProduct.Price,
-		DateUpdated: editProduct.DateUpdated,
-		Image:       editProduct.Image,
-	}, nil
+	return returnProduct, nil
 }
 
-func (p *productSrv) Delete(productId string) *se.ServiceError {
-	err := p.repo.Delete(productId)
+func (p *productSrv) Delete(productId, userId string) *se.ServiceError {
+	product, err := p.repo.GetId(productId)
+	if err != nil {
+		return se.NotFoundOrInternal(err)
+	}
+
+	if product.Product.UserId != userId {
+		return se.Forbidden("You are not able to modify that resource")
+	}
+
+	err = p.repo.Delete(productId)
 	if err != nil {
 		// p.loggerSrv.Fatal(p.message.DeleteProductRepoError(productId, err))
 		return se.Internal(err)
@@ -136,6 +139,15 @@ func (p *productSrv) AddRating(req *forms.Rating, userId string) (*models.Rating
 		return nil, se.Internal(err)
 	}
 
+	product, err := p.repo.GetId(req.ProductId)
+	if err != nil {
+		return nil, se.NotFoundOrInternal(err)
+	}
+
+	if product.Product.UserId == userId {
+		return nil, se.Forbidden("You cannot rate your own product")
+	}
+
 	var rating models.Rating
 
 	rating.Value = req.Value
@@ -144,14 +156,14 @@ func (p *productSrv) AddRating(req *forms.Rating, userId string) (*models.Rating
 	rating.DateCreated = p.timeSrv.CurrentTime()
 	rating.DateUpdated = p.timeSrv.CurrentTime()
 
-	err := p.repo.AddRating(&rating)
+	result, err := p.repo.AddRating(&rating)
 	if err != nil {
 		// p.loggerSrv.Fatal(p.message.AddRatingRepoError(req))
 		return nil, se.Internal(err)
 	}
 
 	// p.loggerSrv.Info(p.message.AddRatingSuccess(data))
-	return &rating, nil
+	return result, nil
 }
 
 // func (p *productSrv) VerifyUserRatings(userId, productId string) *responseModels.ResponseMessage {

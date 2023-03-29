@@ -1,21 +1,23 @@
 package handler
 
 import (
-	"e-commerce/internal/models/cartModels"
-	"e-commerce/internal/models/responseModels"
+	"e-commerce/internal/forms"
 	"e-commerce/internal/response"
 	"e-commerce/internal/service"
 	se "e-commerce/internal/serviceerror"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type CartHanlder interface {
-	AddToCart(c *gin.Context)
-	UpdateCart(c *gin.Context)
+	// Cart
+	GetCart(c *gin.Context)
+	ClearCart(c *gin.Context)
+
+	// Item
+	AddItem(c *gin.Context)
+	// UpdateCart(c *gin.Context)
 	GetItem(c *gin.Context)
-	EditItem(c *gin.Context)
 	DeleteItem(c *gin.Context)
 }
 
@@ -23,158 +25,83 @@ type cartHandler struct {
 	cartSrv service.CartService
 }
 
-func (ch *cartHandler) AddToCart(c *gin.Context) {
-	var req cartModels.Cart
+func (ch *cartHandler) GetCart(c *gin.Context) {
+	userId := c.GetString("userId")
 
-	if err := c.ShouldBind(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
+	carts, err := ch.cartSrv.GetCart(userId)
+	if err != nil {
+		response.Error(c, *err)
 		return
 	}
 
-	if err := ch.cartSrv.Validate(req); err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+	response.Success(c, "Cart gotten successfully", carts)
+}
+
+func (ch *cartHandler) ClearCart(c *gin.Context) {
+	userId := c.GetString("userId")
+
+	err := ch.cartSrv.ClearCart(userId)
+	if err != nil {
+		response.Error(c, *err)
+		return
+	}
+
+	response.Success202(c, "Cart cleared successfully")
+}
+
+func (ch *cartHandler) AddItem(c *gin.Context) {
+	var req forms.CartItem
+
+	if err := c.ShouldBind(&req); err != nil {
+		response.Error(c, *se.Validating(err))
 		return
 	}
 
 	userId := c.GetString("userId")
-	user, err := ch.cartSrv.GetUser(userId)
+
+	item, err := ch.cartSrv.AddItem(&req, userId)
 	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+		response.Error(c, *err)
 		return
 	}
 
-	product, err := ch.cartSrv.CheckProduct(req.ProductId)
-	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-
-	if product.UserId == user.UserId {
-		response.Error(c, *se.Conflict())
-		return
-	}
-
-	err = ch.cartSrv.CheckIfProductInCart(product.ProductId, user.CartId)
-	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-
-	item, err := ch.cartSrv.AddToCart(&req, product, user)
-	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Item added to cart successfully", item, nil))
-}
-
-func (ch *cartHandler) UpdateCart(c *gin.Context) {
-	var req []*cartModels.AddToCartReq
-
-	if err := c.ShouldBind(&req); err != nil {
-
-	}
+	response.Success(c, "Item added successfully", item)
 }
 
 func (ch *cartHandler) GetItem(c *gin.Context) {
-	itemId := c.Param("itemId")
-	if itemId == "" {
-		c.AbortWithStatusJSON(http.StatusNotFound, responseModels.BuildErrorResponse(http.StatusNotFound, "No cart item id was provided", nil, nil))
+	productId := c.Param("productId")
+	if productId == "" {
+		response.Error(c, *se.BadRequest("No product id was provided"))
 		return
 	}
 
 	userId := c.GetString("userId")
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You need to be logged in to access this resource", nil, nil))
-		return
-	}
 
-	item, err := ch.cartSrv.GetItem(itemId)
+	item, err := ch.cartSrv.GetItem(productId, userId)
 	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+		response.Error(c, *err)
 		return
 	}
 
-	if item.UserId != userId {
-		c.AbortWithStatusJSON(http.StatusForbidden, responseModels.BuildErrorResponse(http.StatusForbidden, "You are not authorized to view this product", nil, nil))
-		return
-	}
-
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Item fetched successfully", item, nil))
-}
-
-func (ch *cartHandler) EditItem(c *gin.Context) {
-	var req cartModels.EditItemReq
-
-	if err := c.ShouldBind(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
-		return
-	}
-
-	if err := ch.cartSrv.Validate(req); err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-
-	userId := c.GetString("userId")
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You need to be logged in to access this resource", nil, nil))
-		return
-	}
-
-	req.CartItemId = c.Param("itemId")
-	item, err := ch.cartSrv.GetItem(req.CartItemId)
-	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-
-	if item.UserId != userId {
-		c.AbortWithStatusJSON(http.StatusForbidden, responseModels.BuildErrorResponse(http.StatusForbidden, "You are not allowed to edit that resource", nil, nil))
-		return
-	}
-
-	editRes, err := ch.cartSrv.EditItem(&req, item)
-	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Cart item edited successfully", editRes, nil))
+	response.Success(c, "Item fetched successfully", item)
 }
 
 func (ch *cartHandler) DeleteItem(c *gin.Context) {
-	itemId := c.Param("itemId")
-	if itemId == "" {
-		c.AbortWithStatusJSON(http.StatusNotFound, responseModels.BuildErrorResponse(http.StatusNotFound, "No cart item id was provided", nil, nil))
+	productId := c.Param("productId")
+	if productId == "" {
+		response.Error(c, *se.BadRequest("No product id was provided"))
 		return
 	}
 
 	userId := c.GetString("userId")
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You need to be logged in to access this resource", nil, nil))
-		return
-	}
 
-	item, err := ch.cartSrv.GetItem(itemId)
+	err := ch.cartSrv.DeleteItem(productId, userId)
 	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+		response.Error(c, *err)
 		return
 	}
 
-	if item.UserId != userId {
-		c.AbortWithStatusJSON(http.StatusForbidden, responseModels.BuildErrorResponse(http.StatusForbidden, "You are not authorized to delete this resource", nil, nil))
-		return
-	}
-
-	err = ch.cartSrv.DeleteItem(itemId)
-	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Item deleted successfully", item, nil))
+	response.Success202(c, "Product deleted successfully")
 }
 
 func NewCartHandler(cartSrv service.CartService) CartHanlder {

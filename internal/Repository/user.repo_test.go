@@ -38,13 +38,13 @@ func TestAddUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// u := &userSql{
-			// 	conn: DB,
-			// }
-			if err := u.Register(tt.usercart, "", ""); (err != nil) != tt.wantErrUser {
+			_, err := u.Register(tt.usercart, "", "")
+			if (err != nil) != tt.wantErrUser {
 				t.Errorf("userSql.Register() error = %v, wantErr %v", err, tt.wantErrUser)
 			}
-			if err := u.CreateCart(tt.usercart); (err != nil) != tt.wantErrCart {
+
+			_, err = c.CreateCart(tt.usercart)
+			if (err != nil) != tt.wantErrCart {
 				t.Errorf("userSql.CreateCart() error = %v, wantErr %v", err, tt.wantErrCart)
 			}
 		})

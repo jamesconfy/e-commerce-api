@@ -17,7 +17,7 @@ type tokenSql struct {
 func (t *tokenSql) Confirm(userId string) (*models.Auth, error) {
 	var token models.Auth
 
-	stmt := fmt.Sprintf(`SELECT access_token, refresh_token FROM users WHERE user_id = "%s"`, userId)
+	stmt := fmt.Sprintf(`SELECT access_token, refresh_token FROM users WHERE id = "%s"`, userId)
 	row := t.conn.QueryRow(stmt)
 
 	if err := row.Scan(&token.AccessToken, &token.RefreshToken); err != nil {

@@ -143,7 +143,8 @@ func TestAddProduct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := p.Add(tt.product); (err != nil) != tt.wantErr {
+			_, err := p.Add(tt.product)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("productSql.Add() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -202,7 +203,11 @@ func TestGetProducts(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := p.GetAll(tt.page)
+			products, err := p.GetAll(tt.page)
+			for _, product := range products {
+				fmt.Println(product.Rating)
+			}
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("productSql.GetAll() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -256,7 +261,10 @@ func TestEditProduct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := p.Edit(tt.product); (err != nil) != tt.wantErr {
+			product, err := p.Edit(tt.product)
+			fmt.Println(product)
+
+			if (err != nil) != tt.wantErr {
 				fmt.Println(err)
 				t.Errorf("productSql.Edit() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -319,7 +327,9 @@ func TestAddRating(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := p.AddRating(tt.rating); (err != nil) != tt.wantErr {
+			rating, err := p.AddRating(tt.rating)
+			fmt.Println(rating)
+			if (err != nil) != tt.wantErr {
 				fmt.Println(err)
 				t.Errorf("productSql.AddRating() error = %v, wantErr %v", err, tt.wantErr)
 			}

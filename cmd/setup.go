@@ -121,7 +121,7 @@ func Setup() {
 	homeSrv := service.NewHomeService(loggerSrv)
 
 	// User Service
-	userSrv := service.NewUserService(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv, message)
+	userSrv := service.NewUserService(userRepo, cartRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv, message)
 
 	// Product Service
 	productSrv := service.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv, message)

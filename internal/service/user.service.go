@@ -6,9 +6,6 @@ import (
 	repo "e-commerce/internal/repository"
 	"e-commerce/internal/serviceerror"
 	"e-commerce/utils"
-	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -25,6 +22,7 @@ type UserService interface {
 
 type userSrv struct {
 	repo      repo.UserRepo
+	cartRepo  repo.CartRepo
 	validator ValidationSrv
 	crypto    CryptoSrv
 	token     TokenSrv
@@ -94,19 +92,22 @@ func (u *userSrv) Create(req *forms.Signup) (*models.UserCart, *serviceerror.Ser
 		return nil, serviceerror.New("Error when creating token", err, serviceerror.ErrServer) // serviceerror.New("Error when creating token", err)
 	}
 
-	err = u.repo.Register(userCart, auth.AccessToken, auth.RefreshToken)
+	resultUser, err := u.repo.Register(userCart, auth.AccessToken, auth.RefreshToken)
 	if err != nil {
 		// u.logSrv.Fatal(u.message.CreateUserAddToRepo(user, err))
-		return nil, serviceerror.Internal(err)
+		return nil, serviceerror.NotFoundOrInternal(err)
 	}
 
-	err = u.repo.CreateCart(userCart)
+	resultCart, err := u.cartRepo.CreateCart(userCart)
 	if err != nil {
-		return nil, serviceerror.Internal(err)
+		return nil, serviceerror.NotFoundOrInternal(err)
 	}
 
 	// u.logSrv.Info(u.message.CreateUserSuccess(user))
-	return userCart, nil
+	return &models.UserCart{
+		User: resultUser,
+		Cart: resultCart,
+	}, nil
 }
 
 func (u *userSrv) Login(req *forms.Login) (*models.Auth, *serviceerror.ServiceError) {
@@ -115,7 +116,6 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *serviceerror.ServiceEr
 	}
 
 	var auth models.Auth
-
 	if !u.repo.ExistsEmail(req.Email) {
 		return nil, serviceerror.NotFound("User does not exist")
 	}
@@ -123,7 +123,7 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *serviceerror.ServiceEr
 	user, err := u.repo.GetByEmail(req.Email)
 	if err != nil {
 		// u.logSrv.Error(u.message.LoginUserGetByEmailError(req))
-		return nil, serviceerror.Internal(err) //.NewInternalServiceError(err)
+		return nil, serviceerror.NotFoundOrInternal(err)
 	}
 
 	ok := u.crypto.ComparePassword(user.Password, req.Password)
@@ -287,25 +287,25 @@ func (u *userSrv) GetById(userId string) (*models.User, *serviceerror.ServiceErr
 // 	return nil
 // }
 
-func NewUserService(repo repo.UserRepo, validator ValidationSrv, crypto CryptoSrv, token TokenSrv, email EmailService, logSrv LogSrv, timeSrv TimeService, message utils.Messages) UserService {
-	return &userSrv{repo: repo, validator: validator, crypto: crypto, token: token, email: email, logSrv: logSrv, timeSrv: timeSrv, message: message}
+func NewUserService(repo repo.UserRepo, cartRepo repo.CartRepo, validator ValidationSrv, crypto CryptoSrv, token TokenSrv, email EmailService, logSrv LogSrv, timeSrv TimeService, message utils.Messages) UserService {
+	return &userSrv{repo: repo, cartRepo: cartRepo, validator: validator, crypto: crypto, token: token, email: email, logSrv: logSrv, timeSrv: timeSrv, message: message}
 }
 
 // Auxillary Function
-func GenerateToken(tokenLength int) string {
-	rand.Seed(time.Now().UnixNano())
-	const charset = "0123456789"
-	b := make([]byte, tokenLength)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
-}
+// func GenerateToken(tokenLength int) string {
+// 	rand.Seed(time.Now().UnixNano())
+// 	const charset = "0123456789"
+// 	b := make([]byte, tokenLength)
+// 	for i := range b {
+// 		b[i] = charset[rand.Intn(len(charset))]
+// 	}
+// 	return string(b)
+// }
 
-func CreateMessageBody(firstName, lastName, token string) string {
-	subject := fmt.Sprintf("Hi %v %v, \n\n", firstName, lastName)
-	mainBody := fmt.Sprintf("You have requested to reset your password, this is your otp code %v\nBut if you did not request for a change of password, you can ignore this email.\n\nLink expires in 30 minutes!", token)
+// func CreateMessageBody(firstName, lastName, token string) string {
+// 	subject := fmt.Sprintf("Hi %v %v, \n\n", firstName, lastName)
+// 	mainBody := fmt.Sprintf("You have requested to reset your password, this is your otp code %v\nBut if you did not request for a change of password, you can ignore this email.\n\nLink expires in 30 minutes!", token)
 
-	message := subject + mainBody
-	return string(message)
-}
+// 	message := subject + mainBody
+// 	return string(message)
+// }

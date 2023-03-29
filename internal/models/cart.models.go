@@ -8,6 +8,15 @@ type Cart struct {
 	Items       []*CartItem `json:"cart_items"`
 }
 
+func (c *Cart) Total() float64 {
+	var total float64 = 0
+	for _, cartItem := range c.Items {
+		total += cartItem.Product.Price * float64(cartItem.Quantity)
+	}
+
+	return total
+}
+
 type CartItem struct {
 	// Id          string   `json:"id"`
 	CartId      string   `json:"cart_id"`

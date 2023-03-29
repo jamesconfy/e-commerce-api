@@ -15,11 +15,11 @@ func ProductRoutes(v1 *gin.RouterGroup, productSrv service.ProductService, token
 	product := v1.Group("/products")
 	product.Use(jwtMiddleWare.CheckJWT())
 	{
-		product.POST("", handler.AddProduct)
-		product.GET("", handler.GetProducts)
-		product.GET("/:product_id", handler.GetProduct)
-		product.PATCH("/:product_id", handler.EditProduct)
-		product.DELETE("/:product_id", handler.DeleteProduct)
+		product.POST("", handler.Add)
+		product.GET("", handler.GetAll)
+		product.GET("/:product_id", handler.Get)
+		product.PATCH("/:product_id", handler.Edit)
+		product.DELETE("/:product_id", handler.Delete)
 		product.POST("/:product_id/ratings", handler.AddRating)
 	}
 }

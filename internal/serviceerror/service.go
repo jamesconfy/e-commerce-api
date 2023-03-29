@@ -14,18 +14,21 @@ const (
 	ErrNotFound
 	ErrServer
 	ErrBadRequest
+	ErrForbidden
 )
 
 func (t Type) String() string {
 	switch t {
 	case ErrConflict:
-		return "ErrConflict"
+		return "Conflict"
 	case ErrNotFound:
-		return "ErrNotFound"
+		return "NotFound"
 	case ErrServer:
-		return "ErrServer"
+		return "InternalServer"
 	case ErrBadRequest:
 		return "BadRequest"
+	case ErrForbidden:
+		return "Forbidden"
 	default:
 		return "Unknown"
 
@@ -55,6 +58,10 @@ func Validating(err error) *ServiceError {
 	return New("Bad input request", err, ErrBadRequest)
 }
 
+func Forbidden(description string) *ServiceError {
+	return New(description, nil, ErrForbidden)
+}
+
 func Conflict(description string) *ServiceError {
 	return New(description, nil, ErrConflict)
 }
@@ -62,6 +69,11 @@ func Conflict(description string) *ServiceError {
 func NotFound(description string) *ServiceError {
 	return New(description, nil, ErrNotFound)
 }
+
+func BadRequest(description string) *ServiceError {
+	return New(description, nil, ErrBadRequest)
+}
+
 func NotFoundOrInternal(err error, descriptions ...string) *ServiceError {
 	description := "not found"
 	if len(descriptions) > 0 {

@@ -9,9 +9,7 @@ import (
 type UserRepo interface {
 	ExistsEmail(email string) bool
 	ExistsId(userId string) bool
-	Register(user *models.UserCart, accessToken, refreshToken string) error
-	CreateCart(cart *models.UserCart) error
-	GetCartId(userId string) (*string, error)
+	Register(user *models.UserCart, accessToken, refreshToken string) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	GetById(userId string) (*models.User, error)
 	UpdateTokens(auth *models.Auth) error
@@ -44,7 +42,7 @@ func (u *userSql) ExistsId(userId string) bool {
 	return err != sql.ErrNoRows
 }
 
-func (u *userSql) Register(user *models.UserCart, accessToken, refreshToken string) error {
+func (u *userSql) Register(user *models.UserCart, accessToken, refreshToken string) (*models.User, error) {
 	query := `INSERT INTO users(id, first_name, last_name, email, phone_number, password, date_created, access_token, refresh_token, cart_id) VALUES ('%[1]v', '%[2]v', '%[3]v', '%[4]v', '%[5]v', '%[6]v', '%[7]v', '%[8]v', '%[9]v', '%[10]v')`
 
 	stmt := fmt.Sprintf(query,
@@ -52,35 +50,10 @@ func (u *userSql) Register(user *models.UserCart, accessToken, refreshToken stri
 
 	_, err := u.conn.Exec(stmt)
 	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (u *userSql) CreateCart(cart *models.UserCart) error {
-	query := `INSERT INTO carts(id, user_id, date_created) VALUES ('%[1]v', '%[2]v', '%[3]v')`
-
-	stmt1 := fmt.Sprintf(query, cart.Cart.Id, cart.User.Id, cart.Cart.DateCreated)
-
-	_, err := u.conn.Exec(stmt1)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (u *userSql) GetCartId(userId string) (*string, error) {
-	query := `SELECT id FROM carts WHERE user_id = '%[1]v'`
-	stmt := fmt.Sprintf(query, userId)
-
-	var cartId string
-	if err := u.conn.QueryRow(stmt).Scan(&cartId); err != nil {
 		return nil, err
 	}
 
-	return &cartId, nil
+	return u.GetById(user.User.Id)
 }
 
 func (u *userSql) GetByEmail(email string) (*models.User, error) {
@@ -110,7 +83,7 @@ func (u *userSql) GetByEmail(email string) (*models.User, error) {
 
 func (u *userSql) GetById(userId string) (*models.User, error) {
 	var user models.User
-	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_created FROM users WHERE user_id = '%[1]s'`
+	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_created FROM users WHERE id = '%[1]s'`
 
 	stmt := fmt.Sprintf(query, userId)
 
@@ -126,9 +99,9 @@ func (u *userSql) GetById(userId string) (*models.User, error) {
 	)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return &models.User{}, err
-		}
+		// if err == sql.ErrNoRows {
+		// 	return &models.User{}, err
+		// }
 		return nil, err
 	}
 

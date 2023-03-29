@@ -25,24 +25,40 @@ func NewDecodingError(err error) *Message {
 	}
 }
 
-func Success(message string, data any, extra ...any) *Message {
-	return &Message{
+func Success(c *gin.Context, message string, data any, extra ...any) {
+	msg := &Message{
 		Status:       "success",
 		ResponseCode: http.StatusOK,
 		Message:      message,
 		Data:         data,
 		Extra:        extra,
 	}
+
+	c.JSON(http.StatusOK, msg)
 }
 
-func Success201(message string, data any, extra ...any) *Message {
-	return &Message{
+func Success201(c *gin.Context, message string, data any, extra ...any) {
+	msg := &Message{
 		Status:       "success",
 		ResponseCode: http.StatusCreated,
 		Message:      message,
 		Data:         data,
 		Extra:        extra,
 	}
+
+	c.JSON(http.StatusOK, msg)
+}
+
+func Success202(c *gin.Context, message string) {
+	msg := &Message{
+		Status:       "success",
+		ResponseCode: http.StatusAccepted,
+		Message:      message,
+		Data:         nil,
+		Extra:        nil,
+	}
+
+	c.JSON(http.StatusOK, msg)
 }
 
 func Error(c *gin.Context, sErr se.ServiceError) {
@@ -69,6 +85,8 @@ func getStatusCodeFromSE(errorType se.Type) int {
 		return http.StatusConflict
 	case se.ErrNotFound:
 		return http.StatusNotFound
+	case se.ErrForbidden:
+		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
 	}

@@ -14,10 +14,12 @@ func CartRoute(router *gin.RouterGroup, cartSrv service.CartService, tokenSrv se
 	cart := router.Group("/carts")
 	cart.Use(jwt.CheckJWT())
 	{
-		cart.POST("", handler.AddToCart)
-		cart.PUT("/update", handler.UpdateCart)
-		cart.GET("/:itemId", handler.GetItem)
-		cart.PATCH("/:itemId", handler.EditItem)
-		cart.DELETE("/:itemId", handler.DeleteItem)
+		cart.GET("", handler.GetCart)
+		cart.DELETE("", handler.ClearCart)
+		cart.POST("/item", handler.AddItem)
+		// cart.PUT("/update", handler.AddItem)
+		cart.GET("/item/:productId", handler.GetItem)
+		// cart.PATCH("/:itemId", handler)
+		cart.DELETE("/item/:productId", handler.DeleteItem)
 	}
 }

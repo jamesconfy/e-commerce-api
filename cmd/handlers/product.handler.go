@@ -1,21 +1,21 @@
 package handler
 
 import (
-	"e-commerce/internal/models"
-	"e-commerce/internal/models/responseModels"
+	"e-commerce/internal/forms"
+	"e-commerce/internal/response"
 	"e-commerce/internal/service"
-	"net/http"
+	"e-commerce/internal/serviceerror"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ProductHandler interface {
-	AddProduct(c *gin.Context)
-	GetProducts(c *gin.Context)
-	GetProduct(c *gin.Context)
-	EditProduct(c *gin.Context)
-	DeleteProduct(c *gin.Context)
+	Add(c *gin.Context)
+	GetAll(c *gin.Context)
+	Get(c *gin.Context)
+	Edit(c *gin.Context)
+	Delete(c *gin.Context)
 	AddRating(c *gin.Context)
 }
 
@@ -23,169 +23,109 @@ type productHanlder struct {
 	productSrv service.ProductService
 }
 
-func (p *productHanlder) AddProduct(c *gin.Context) {
-	var req productModels.AddProductReq
+func (p *productHanlder) Add(c *gin.Context) {
+	var req forms.Product
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
+		response.Error(c, *serviceerror.Validating(err))
 		return
 	}
 
-	if err := p.productSrv.Validate(req); err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
+	userId := c.GetString("userId")
 
-	req.UserId = c.GetString("userId")
-	if req.UserId == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You are not authorized to do that", nil, nil))
-		return
-	}
-
-	product, err := p.productSrv.AddProduct(&req)
+	product, err := p.productSrv.Add(&req, userId)
 	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+		response.Error(c, *err)
 		return
 	}
 
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Product added successfully", product, nil))
+	response.Success(c, "Product added successfully", product)
 }
 
-func (p *productHanlder) GetProducts(c *gin.Context) {
+func (p *productHanlder) GetAll(c *gin.Context) {
 	page := c.Query("page")
 	if page == "" {
 		page = "1"
 	}
 
-	pagei, errp := strconv.Atoi(page)
-	if errp != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when converting string page to integer", errp, nil))
-		return
-	}
-
-	products, err := p.productSrv.GetProducts(pagei)
+	pagei, err := strconv.Atoi(page)
 	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+		response.Error(c, *serviceerror.New("Error when converting string to integer", err, serviceerror.ErrServer))
 		return
 	}
 
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Products fetched successfully", products, nil))
+	products, errI := p.productSrv.GetAll(pagei)
+	if err != nil {
+		response.Error(c, *errI)
+		return
+	}
+
+	response.Success(c, "Products fetched successfully", products)
 }
 
-func (p *productHanlder) GetProduct(c *gin.Context) {
+func (p *productHanlder) Get(c *gin.Context) {
 	productId := c.Param("product_id")
 
-	product, err := p.productSrv.GetProduct(productId)
+	product, err := p.productSrv.Get(productId)
 	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+		response.Error(c, *err)
 		return
 	}
 
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Product fetched successfully", product, nil))
+	response.Success(c, "Product fetched successfully", product, nil)
 }
 
-func (p *productHanlder) EditProduct(c *gin.Context) {
-	var req models.Product
+func (p *productHanlder) Edit(c *gin.Context) {
+	var req forms.EditProduct
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
+		response.Error(c, *serviceerror.Validating(err))
 		return
 	}
 
-	if err := p.productSrv.Validate(req); err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
+	productId := c.Param("product_id")
+	userId := c.GetString("userId")
 
-	req.Id = c.Param("product_id")
-	product, err := p.productSrv.GetProduct(req.Id)
+	product, err := p.productSrv.Edit(&req, productId, userId)
 	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+		response.Error(c, *err)
 		return
 	}
 
-	if product.UserId != c.GetString("userId") {
-		c.AbortWithStatusJSON(http.StatusForbidden, responseModels.BuildErrorResponse(http.StatusForbidden, "You are not allowed to edit this resource", nil, nil))
-		return
-	}
-
-	updatedProduct, err := p.productSrv.EditProduct(&req, product)
-	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Product updated successfully", updatedProduct, nil))
+	response.Success(c, "Product updated successfully", product, nil)
 }
 
-func (p *productHanlder) DeleteProduct(c *gin.Context) {
+func (p *productHanlder) Delete(c *gin.Context) {
 	productId := c.Param("product_id")
-
 	userId := c.GetString("userId")
-	if userId == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You need to be logged in to access this resource", nil, nil))
-		return
-	}
 
-	product, err := p.productSrv.GetProduct(productId)
+	err := p.productSrv.Delete(productId, userId)
 	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-	if product.UserId != userId {
-		c.AbortWithStatusJSON(http.StatusForbidden, responseModels.BuildErrorResponse(http.StatusForbidden, "You are not authorized to delete this resource", nil, nil))
+		response.Error(c, *err)
 		return
 	}
 
-	err = p.productSrv.DeleteProduct(productId)
-	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Product deleted successfully", product, nil))
+	response.Success202(c, "Product deleted successfully")
 }
 
 func (p *productHanlder) AddRating(c *gin.Context) {
-	var req models.Rating
+	var req forms.Rating
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
-		return
-	}
-
-	if err := p.productSrv.Validate(req); err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+		response.Error(c, *serviceerror.Validating(err))
 		return
 	}
 
 	req.ProductId = c.Param("product_id")
+	userId := c.GetString("userId")
 
-	_, err := p.productSrv.GetProduct(req.ProductId)
+	rating, err := p.productSrv.AddRating(&req, userId)
 	if err != nil {
-		c.AbortWithStatusJSON(err.ResponseCode, err)
+		response.Error(c, *err)
 		return
 	}
 
-	req.UserId = c.GetString("userId")
-	if req.UserId == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, responseModels.BuildErrorResponse(http.StatusUnauthorized, "You are not authorized to do that", nil, nil))
-		return
-	}
-
-	err = p.productSrv.VerifyUserRatings(req.UserId, req.ProductId)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusConflict, responseModels.BuildErrorResponse(http.StatusConflict, "You have already rated this product before, try another product", err, nil))
-		return
-	}
-
-	rating, err := p.productSrv.AddRating(&req)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when adding rating to product", err, nil))
-		return
-	}
-
-	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Product rated successfully", rating, nil))
+	response.Success(c, "Product rated successfully", rating)
 }
 
 func NewProductHandler(productSrv service.ProductService) ProductHandler {

@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"errors"
-
 	"e-commerce/internal/forms"
 	"e-commerce/internal/service"
 
@@ -41,7 +39,7 @@ func (u *userHandler) Create(c *gin.Context) {
 	var req forms.Signup
 
 	if err := c.ShouldBind(&req); err != nil {
-		response.Error(c, *se.Validating(errors.New("Details not found")))
+		response.Error(c, *se.Validating(err))
 		return
 	}
 
@@ -56,7 +54,7 @@ func (u *userHandler) Create(c *gin.Context) {
 		return
 	}
 
-	response.Success("User created successfully", user)
+	response.Success(c, "User created successfully", user)
 }
 
 // Login User godoc
@@ -85,7 +83,7 @@ func (u *userHandler) Login(c *gin.Context) {
 		return
 	}
 
-	response.Success("User logged in successfully", auth, nil)
+	response.Success(c, "User logged in successfully", auth)
 }
 
 func (u *userHandler) GetById(c *gin.Context) {
@@ -95,7 +93,7 @@ func (u *userHandler) GetById(c *gin.Context) {
 		return
 	}
 
-	response.Success("User gotten successfully", user, nil)
+	response.Success(c, "User gotten successfully", user, nil)
 }
 
 // func (h *userHandler) ResetPassword(c *gin.Context) {
