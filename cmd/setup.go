@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"e-commerce/cmd/middleware"
 	route "e-commerce/cmd/routes"
@@ -17,6 +18,7 @@ import (
 	_ "e-commerce/docs"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-co-op/gocron"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -135,6 +137,11 @@ func Setup() {
 	route.ProductRoutes(v1, productSrv, tokenSrv)
 	route.CartRoute(v1, cartSrv, tokenSrv)
 	route.ErrorRoute(router)
+
+	s := gocron.NewScheduler(time.UTC)
+	s.Every(1).Day().Do(func() {
+		conn.Ping()
+	})
 
 	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
