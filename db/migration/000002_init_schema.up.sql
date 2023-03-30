@@ -2,7 +2,7 @@ USE e_commerce_api;
 
 CREATE TABLE IF NOT EXISTS `users`(
 	`id` VARCHAR(250) NOT NULL UNIQUE,
-    `cart_id` VARCHAR(250) NOT NULL UNIQUE DEFAULT '',
+    -- `cart_id` VARCHAR(250) NOT NULL UNIQUE DEFAULT '',
     `first_name` VARCHAR(250) NULL,
     `last_name` VARCHAR(250) NULL,
     `email` VARCHAR(250) NOT NULL UNIQUE,
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `users`(
 
 CREATE TABLE IF NOT EXISTS `deleted_users`(
 	`id` VARCHAR(250),
-    `cart_id` VARCHAR(250),
+    -- `cart_id` VARCHAR(250),
     `first_name` VARCHAR(250),
     `last_name` VARCHAR(250),
     `email` VARCHAR(250),

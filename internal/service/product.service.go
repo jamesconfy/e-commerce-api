@@ -2,10 +2,10 @@ package service
 
 import (
 	"e-commerce/internal/forms"
+	"e-commerce/internal/logger"
 	"e-commerce/internal/models"
 	repo "e-commerce/internal/repository"
 	se "e-commerce/internal/serviceerror"
-	"e-commerce/utils"
 
 	"github.com/google/uuid"
 )
@@ -26,7 +26,7 @@ type productSrv struct {
 	validatorSrv ValidationSrv
 	loggerSrv    LogSrv
 	timeSrv      TimeService
-	message      utils.Messages
+	message      logger.Messages
 }
 
 func (p *productSrv) Validate(req any) error {
@@ -136,7 +136,7 @@ func (p *productSrv) Delete(productId, userId string) *se.ServiceError {
 
 func (p *productSrv) AddRating(req *forms.Rating, userId string) (*models.Rating, *se.ServiceError) {
 	if err := p.Validate(req); err != nil {
-		return nil, se.Internal(err)
+		return nil, se.Validating(err)
 	}
 
 	product, err := p.repo.GetId(req.ProductId)
@@ -177,7 +177,7 @@ func (p *productSrv) AddRating(req *forms.Rating, userId string) (*models.Rating
 // 	return nil
 // }
 
-func NewProductService(productRepo repo.ProductRepo, validatorSrv ValidationSrv, loggerSrv LogSrv, timeSrv TimeService, message utils.Messages) ProductService {
+func NewProductService(productRepo repo.ProductRepo, validatorSrv ValidationSrv, loggerSrv LogSrv, timeSrv TimeService, message logger.Messages) ProductService {
 	return &productSrv{repo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv, timeSrv: timeSrv, message: message}
 }
 

@@ -47,7 +47,7 @@ func (se *ServiceError) Type() Type {
 }
 
 func New(description string, err error, errType Type) *ServiceError {
-	return &ServiceError{Time: time.Now().Format(time.RFC3339), Description: description, Error: err, ErrorType: errType}
+	return &ServiceError{Time: time.Now().Format(time.RFC3339), Description: description, Error: err.Error(), ErrorType: errType}
 }
 
 func Internal(err error) *ServiceError {

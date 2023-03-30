@@ -75,7 +75,7 @@ func Setup() {
 	conn := connection.GetConn()
 
 	gin.SetMode(gin.DebugMode)
-	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
+	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.File())
 	gin.DisableConsoleColor()
 
 	router := gin.New()
@@ -99,7 +99,7 @@ func Setup() {
 	cartRepo := repo.NewCartRepo(conn)
 
 	// Message Utility
-	message := utils.New()
+	message := logger.Message()
 
 	// Logger Service
 	loggerSrv := service.NewLoggerService()
