@@ -57,9 +57,10 @@ func (ch *cartHandler) AddItem(c *gin.Context) {
 		return
 	}
 
+	productId := c.Param("productId")
 	userId := c.GetString("userId")
 
-	item, err := ch.cartSrv.AddItem(&req, userId)
+	item, err := ch.cartSrv.AddItem(&req, productId, userId)
 	if err != nil {
 		response.Error(c, *err)
 		return

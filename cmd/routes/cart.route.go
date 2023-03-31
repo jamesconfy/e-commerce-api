@@ -16,10 +16,10 @@ func CartRoute(router *gin.RouterGroup, cartSrv service.CartService, tokenSrv se
 	{
 		cart.GET("", handler.GetCart)
 		cart.DELETE("", handler.ClearCart)
-		cart.POST("/item", handler.AddItem)
+		cart.POST("/items/:productId", handler.AddItem)
 		// cart.PUT("/update", handler.AddItem)
-		cart.GET("/item/:productId", handler.GetItem)
+		cart.GET("/items/:productId", handler.GetItem)
 		// cart.PATCH("/:itemId", handler)
-		cart.DELETE("/item/:productId", handler.DeleteItem)
+		cart.DELETE("/items/:productId", handler.DeleteItem)
 	}
 }

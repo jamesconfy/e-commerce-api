@@ -17,8 +17,7 @@ type ProductService interface {
 	Get(productId string) (*models.ProductRating, *se.ServiceError)
 	Edit(req *forms.EditProduct, productId, userId string) (*models.Product, *se.ServiceError)
 	Delete(productId, userId string) *se.ServiceError
-	AddRating(req *forms.Rating, userId string) (*models.Rating, *se.ServiceError)
-	// VerifyUserRatings(userId, productId string) *responseModels.ResponseMessage
+	AddRating(req *forms.Rating, productId, userId string) (*models.Rating, *se.ServiceError)
 }
 
 type productSrv struct {
@@ -32,6 +31,7 @@ type productSrv struct {
 func (p *productSrv) Validate(req any) error {
 	err := p.validatorSrv.Validate(req)
 	if err != nil {
+		p.loggerSrv.Error(p.message.ValidationError(req, err))
 		return err
 	}
 
@@ -56,35 +56,34 @@ func (p *productSrv) Add(req *forms.Product, userId string) (*models.Product, *s
 
 	result, err := p.repo.Add(&product)
 	if err != nil {
-		// p.loggerSrv.Fatal(p.message.AddProductRepoError(req, err))
+		p.loggerSrv.Fatal(p.message.AddRepoError(&product, err))
 		return nil, se.Internal(err)
 	}
 
-	// p.loggerSrv.Info(p.message.AddProductSuccess(req))
+	p.loggerSrv.Info(p.message.AddSuccess(result))
 	return result, nil
 }
 
 func (p *productSrv) GetAll(page int) ([]*models.ProductRating, *se.ServiceError) {
 	products, err := p.repo.GetAll(page)
 	if err != nil && products == nil {
-		// p.loggerSrv.Fatal(p.message.InternalServerError(err))
+		p.loggerSrv.Fatal(p.message.GetAllRepoError(err))
 		return nil, se.Internal(err)
 	}
 
-	// p.loggerSrv.Info(p.message.GetProductsSuccess())
+	p.loggerSrv.Info(p.message.GetAllSuccess(products))
 	return products, nil
 }
 
 func (p *productSrv) Get(productId string) (*models.ProductRating, *se.ServiceError) {
 	product, err := p.repo.GetId(productId)
-	// p.loggerSrv.Fatal(p.message.GetProductNotFound(productId, err))
 
 	if err != nil {
-		// p.loggerSrv.Fatal(p.message.InternalServerError(err))
+		p.loggerSrv.Fatal(p.message.GetProductRepoError(productId, err))
 		return nil, se.NotFoundOrInternal(err)
 	}
 
-	// p.loggerSrv.Info(p.message.GetProductSuccess(product))
+	p.loggerSrv.Info(p.message.GetProductSuccess(product.Product))
 	return product, nil
 }
 
@@ -95,10 +94,12 @@ func (p *productSrv) Edit(req *forms.EditProduct, productId, userId string) (*mo
 
 	product, err := p.repo.GetId(productId)
 	if err != nil {
+		p.loggerSrv.Fatal(p.message.GetProductRepoError(productId, err))
 		return nil, se.NotFoundOrInternal(err)
 	}
 
 	if product.Product.UserId != userId {
+		p.loggerSrv.Fatal(p.message.EditCompareUser(product.Product.UserId, userId))
 		return nil, se.Forbidden("You are not able to modify that resource")
 	}
 
@@ -106,79 +107,72 @@ func (p *productSrv) Edit(req *forms.EditProduct, productId, userId string) (*mo
 
 	returnProduct, err := p.repo.Edit(editProduct)
 	if err != nil {
-		// p.loggerSrv.Fatal(p.message.InternalServerError(err))
+		p.loggerSrv.Fatal(p.message.EditProductRepoError(editProduct, err))
 		return nil, se.Internal(err)
 	}
 
-	// p.loggerSrv.Info(p.message.EditProductSuccess(editProduct))
+	p.loggerSrv.Info(p.message.EditProductSuccess(editProduct))
 	return returnProduct, nil
 }
 
 func (p *productSrv) Delete(productId, userId string) *se.ServiceError {
 	product, err := p.repo.GetId(productId)
 	if err != nil {
+		p.loggerSrv.Error(p.message.GetProductRepoError(productId, err))
 		return se.NotFoundOrInternal(err)
 	}
 
 	if product.Product.UserId != userId {
+		p.loggerSrv.Fatal(p.message.EditCompareUser(product.Product.UserId, userId))
 		return se.Forbidden("You are not able to modify that resource")
 	}
 
 	err = p.repo.Delete(productId)
 	if err != nil {
-		// p.loggerSrv.Fatal(p.message.DeleteProductRepoError(productId, err))
+		p.loggerSrv.Fatal(p.message.DeleteProductRepoError(productId, err))
 		return se.Internal(err)
 	}
 
-	// p.loggerSrv.Info(p.message.DeleteProductSuccess(productId))
+	p.loggerSrv.Info(p.message.DeleteProductSuccess(productId))
 	return nil
 }
 
-func (p *productSrv) AddRating(req *forms.Rating, userId string) (*models.Rating, *se.ServiceError) {
+func (p *productSrv) AddRating(req *forms.Rating, productId, userId string) (*models.Rating, *se.ServiceError) {
 	if err := p.Validate(req); err != nil {
 		return nil, se.Validating(err)
 	}
 
-	product, err := p.repo.GetId(req.ProductId)
+	product, err := p.repo.GetId(productId)
 	if err != nil {
+		p.loggerSrv.Error(p.message.GetProductRepoError(productId, err))
 		return nil, se.NotFoundOrInternal(err)
 	}
 
 	if product.Product.UserId == userId {
+		p.loggerSrv.Fatal(p.message.AddRatingCompareUser(req, product.Product.UserId, userId))
 		return nil, se.Forbidden("You cannot rate your own product")
 	}
 
 	var rating models.Rating
 
 	rating.Value = req.Value
-	rating.ProductId = req.ProductId
+	rating.ProductId = productId
 	rating.UserId = userId
 	rating.DateCreated = p.timeSrv.CurrentTime()
 	rating.DateUpdated = p.timeSrv.CurrentTime()
 
 	result, err := p.repo.AddRating(&rating)
 	if err != nil {
-		// p.loggerSrv.Fatal(p.message.AddRatingRepoError(req))
+		p.loggerSrv.Fatal(p.message.AddRatingRepoError(&rating, err))
 		return nil, se.Internal(err)
 	}
 
-	// p.loggerSrv.Info(p.message.AddRatingSuccess(data))
+	p.loggerSrv.Info(p.message.AddRatingSuccess(result))
 	return result, nil
 }
 
-// func (p *productSrv) VerifyUserRatings(userId, productId string) *responseModels.ResponseMessage {
-// 	err := p.repo.VerifyRating(userId, productId)
-// 	if err != nil {
-// 		// p.loggerSrv.Error(p.message.VerifyUserRatingsRepoError(userId, productId))
-// 		return responseModels.BuildErrorResponse(http.StatusConflict, "You cannot re-rate this product", err, nil)
-// 	}
-
-// 	// p.loggerSrv.Info(p.message.VerifyUserRatingsSucess(userId, productId))
-// 	return nil
-// }
-
-func NewProductService(productRepo repo.ProductRepo, validatorSrv ValidationSrv, loggerSrv LogSrv, timeSrv TimeService, message logger.Messages) ProductService {
-	return &productSrv{repo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv, timeSrv: timeSrv, message: message}
+func NewProductService(productRepo repo.ProductRepo, validatorSrv ValidationSrv, loggerSrv LogSrv, timeSrv TimeService) ProductService {
+	return &productSrv{repo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv, timeSrv: timeSrv}
 }
 
 // Auxillary Function

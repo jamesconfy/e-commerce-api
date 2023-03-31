@@ -116,10 +116,10 @@ func (p *productHanlder) AddRating(c *gin.Context) {
 		return
 	}
 
-	req.ProductId = c.Param("product_id")
+	productId := c.Param("product_id")
 	userId := c.GetString("userId")
 
-	rating, err := p.productSrv.AddRating(&req, userId)
+	rating, err := p.productSrv.AddRating(&req, productId, userId)
 	if err != nil {
 		response.Error(c, *err)
 		return

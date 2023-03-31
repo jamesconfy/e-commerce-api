@@ -3,21 +3,8 @@ package logger
 import (
 	"e-commerce/internal/forms"
 	"e-commerce/internal/models"
-	se "e-commerce/internal/serviceerror"
 	"fmt"
 )
-
-// Internal server error
-func (m Messages) InternalServerError(err *se.ServiceError) (str string) {
-	str = fmt.Sprintf("Internal server error occurred || Error: %v", err)
-	return
-}
-
-// Create user validation error
-func (m Messages) CreateValidationError(user *forms.Signup, err error) (str string) {
-	str = fmt.Sprintf("Error when validating create user request || Email: %s || First Name: %s || Last Name: %s || Password: %s || Phone Number: %s || Address: %s || Error: %s", user.Email, user.FirstName, user.LastName, user.Password, user.PhoneNumber, user.PhoneNumber, err)
-	return
-}
 
 // Error when creating hashed password for provided password
 func (m Messages) CreatePasswordError(user *models.User, err error) (str string) {
@@ -40,12 +27,6 @@ func (m Messages) CreateAddToRepo(user *models.User, err error) (str string) {
 // Create user success Messages
 func (m Messages) CreateSuccess(user *models.User, accessToken, refreshToken string) (str string) {
 	str = fmt.Sprintf("User created successfully || UserId: %s || Email: %s || Access_Token: %s || Refresh_Token: %s || Date_Created: %s", user.Id, user.Email, accessToken, refreshToken, user.DateCreated)
-	return
-}
-
-// Login user validation error
-func (m Messages) LoginValidationError(req *forms.Login, err error) (str string) {
-	str = fmt.Sprintf("Error when validating login user request || Email: %s || Password: %s || Error: %v", req.Email, req.Password, err)
 	return
 }
 

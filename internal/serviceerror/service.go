@@ -59,19 +59,19 @@ func Validating(err error) *ServiceError {
 }
 
 func Forbidden(description string) *ServiceError {
-	return New(description, nil, ErrForbidden)
+	return New(description, errors.New("forbidden"), ErrForbidden)
 }
 
 func Conflict(description string) *ServiceError {
-	return New(description, nil, ErrConflict)
+	return New(description, errors.New("conflict"), ErrConflict)
 }
 
 func NotFound(description string) *ServiceError {
-	return New(description, nil, ErrNotFound)
+	return New(description, errors.New("not found"), ErrNotFound)
 }
 
 func BadRequest(description string) *ServiceError {
-	return New(description, nil, ErrBadRequest)
+	return New(description, errors.New("bad request"), ErrBadRequest)
 }
 
 func NotFoundOrInternal(err error, descriptions ...string) *ServiceError {
