@@ -19,7 +19,7 @@ func (m Messages) CreateUserExists(email string) (str string) {
 }
 
 // Error when adding user to database
-func (m Messages) CreateAddToRepo(user *models.User, err error) (str string) {
+func (m Messages) CreateRepoError(user *models.User, err error) (str string) {
 	str = fmt.Sprintf("Error when adding created user to database || UserId: %s || Email: %s || Password: %s || Date_Created: %s || Error: %s", user.Id, user.Email, user.Password, user.DateCreated, err)
 	return
 }

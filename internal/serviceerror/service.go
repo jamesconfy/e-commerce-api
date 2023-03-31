@@ -50,8 +50,13 @@ func New(description string, err error, errType Type) *ServiceError {
 	return &ServiceError{Time: time.Now().Format(time.RFC3339), Description: description, Error: err.Error(), ErrorType: errType}
 }
 
-func Internal(err error) *ServiceError {
-	return New("Internal server error", err, ErrServer)
+func Internal(err error, descriptions ...string) *ServiceError {
+	description := "Internal server error"
+
+	if len(descriptions) > 0 {
+		description = descriptions[0]
+	}
+	return New(description, err, ErrServer)
 }
 
 func Validating(err error) *ServiceError {

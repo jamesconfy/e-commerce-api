@@ -53,8 +53,11 @@ func (ch *cartSrv) GetCart(userId string) (*models.Cart, *serviceerror.ServiceEr
 func (ch *cartSrv) ClearCart(userId string) *serviceerror.ServiceError {
 	err := ch.repo.ClearCart(userId)
 	if err != nil {
+		ch.loggerSrv.Error(ch.message.ClearCartRepoError(userId, err))
 		return serviceerror.Internal(err)
 	}
+
+	ch.loggerSrv.Error(ch.message.ClearCartSuccess(userId))
 	return nil
 }
 
@@ -65,15 +68,18 @@ func (ch *cartSrv) AddItem(req *forms.CartItem, productId, userId string) (*mode
 
 	cart, err := ch.repo.GetCart(userId)
 	if err != nil {
+		ch.loggerSrv.Error(ch.message.GetCartRepoErrror(userId, err))
 		return nil, serviceerror.Internal(err)
 	}
 
 	product, err := ch.productRepo.GetId(productId)
 	if err != nil {
-		return nil, serviceerror.NotFoundOrInternal(err)
+		ch.loggerSrv.Error(ch.message.GetProductRepoError(productId, err))
+		return nil, serviceerror.NotFoundOrInternal(err, "product not found")
 	}
 
 	if product.Product.UserId == userId {
+		ch.loggerSrv.Warning(ch.message.AddItemCompareUser(product.Product.UserId, userId))
 		return nil, serviceerror.Forbidden("You cannot buy your own product")
 	}
 
@@ -88,27 +94,34 @@ func (ch *cartSrv) AddItem(req *forms.CartItem, productId, userId string) (*mode
 
 	result, err := ch.repo.AddItem(&item, userId)
 	if err != nil {
-		return nil, serviceerror.NotFoundOrInternal(err)
+		ch.loggerSrv.Error(ch.message.AddItemRepoError(productId, userId, err))
+		return nil, serviceerror.NotFoundOrInternal(err, "item not found")
 	}
 
+	// result.Product = product.Product
+	ch.loggerSrv.Info(ch.message.AddItemSuccess(result))
 	return result, nil
 }
 
 func (ch *cartSrv) GetItem(productId, userId string) (*models.CartItem, *serviceerror.ServiceError) {
 	item, err := ch.repo.GetItem(productId, userId)
 	if err != nil {
-		return nil, serviceerror.NotFoundOrInternal(err)
+		ch.loggerSrv.Error(ch.message.GetItemRepoError(productId, userId, err))
+		return nil, serviceerror.NotFoundOrInternal(err, "item not found")
 	}
 
+	ch.loggerSrv.Info(ch.message.GetItemSuccess(item))
 	return item, nil
 }
 
 func (ch *cartSrv) DeleteItem(productId, userId string) *serviceerror.ServiceError {
 	err := ch.repo.DeleteItem(productId, userId)
 	if err != nil {
+		ch.loggerSrv.Error(ch.message.DeleteItemRepoError(productId, userId, err))
 		return serviceerror.Internal(err)
 	}
 
+	ch.loggerSrv.Error(ch.message.DeleteItemSuccess(productId, userId))
 	return nil
 }
 
