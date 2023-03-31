@@ -1,71 +1,70 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"e-commerce/cmd/middleware"
-	"e-commerce/cmd/routes"
-	"e-commerce/internal/Repository/userRepo"
+	route "e-commerce/cmd/routes"
 	mysql "e-commerce/internal/database"
 	"e-commerce/internal/logger"
-	"e-commerce/internal/service/cryptoService"
-	"e-commerce/internal/service/emailService"
-	"e-commerce/internal/service/homeService"
-	loggerservice "e-commerce/internal/service/loggerService"
-	"e-commerce/internal/service/tokenService"
-	"e-commerce/internal/service/userService"
-	validationService "e-commerce/internal/service/validatorService"
+	repo "e-commerce/internal/repository"
+	service "e-commerce/internal/service"
 	"e-commerce/utils"
 
 	_ "e-commerce/docs"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-co-op/gocron"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Setup() {
-	config, err := utils.LoadConfig("./")
-	if err != nil {
-		log.Println("Error loading configurations: ", err)
-	}
+	// config, err := utils.LoadConfig("./")
+	// if err != nil {
+	// 	log.Println("Error loading configurations: ", err)
+	// }
+	// utils.MyConfig.ADDR
 
-	addr := config.ADDR
+	addr := utils.AppConfig.ADDR
 	if addr == "" {
 		addr = "8000"
 	}
 
-	dsn := config.DATA_SOURCE_NAME
+	dsn := utils.AppConfig.DATA_SOURCE_NAME
 	if dsn == "" {
 		log.Println("DSN cannot be empty")
 	}
+	fmt.Println(dsn)
 
-	secret := config.SECRET_KEY_TOKEN
+	secret := utils.AppConfig.SECRET_KEY_TOKEN
 	if secret == "" {
 		log.Println("Please provide a secret key token")
 	}
 
-	host := config.HOST
-	if host == "" {
-		log.Println("Please provide an email host name")
-	}
+	// host := utils.AppConfig.HOST
+	// if host == "" {
+	// 	log.Println("Please provide an email host name")
+	// }
 
-	port := config.PORT
-	if port == "" {
-		log.Println("Please provide an email port")
-	}
+	// port := utils.AppConfig.PORT
+	// if port == "" {
+	// 	log.Println("Please provide an email port")
+	// }
 
-	passwd := config.PASSWD
-	if passwd == "" {
-		log.Println("Please provide an email password")
-	}
+	// passwd := utils.AppConfig.PASSWD
+	// if passwd == "" {
+	// 	log.Println("Please provide an email password")
+	// }
 
-	email := config.EMAIL
-	if email == "" {
-		log.Println("Please provide an email address")
-	}
+	// email := utils.AppConfig.EMAIL
+	// if email == "" {
+	// 	log.Println("Please provide an email address")
+	// }
 
 	connection, err := mysql.NewMySQLServer(dsn)
 	if err != nil {
@@ -76,7 +75,7 @@ func Setup() {
 	conn := connection.GetConn()
 
 	gin.SetMode(gin.DebugMode)
-	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.NewLogger())
+	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
 	gin.DisableConsoleColor()
 
 	router := gin.New()
@@ -88,33 +87,58 @@ func Setup() {
 	router.Use(middleware.CORS())
 
 	// User Repository
-	userRepo := userRepo.NewMySqlUserRepo(conn)
+	userRepo := repo.NewUserRepo(conn)
 
-	// Email Service
-	emailSrv := emailService.NewEmailSrv(email, passwd, host, port)
+	// Product Repository
+	productRepo := repo.NewProductRepo(conn)
 
-	// Token Service
-	tokenSrv := tokenService.NewTokenSrv(secret)
+	// Token Repository
+	tokenRepo := repo.NewTokenRepo(conn)
 
-	// Validation Service
-	validatorSrv := validationService.NewValidationStruct()
-
-	// Cryptography Service
-	cryptoSrv := cryptoService.NewCryptoSrv()
+	// Cart Repository
+	cartRepo := repo.NewCartRepo(conn)
 
 	// Logger Service
-	loggerSrv := loggerservice.NewLogger()
+	loggerSrv := service.NewLoggerService()
+
+	// Time Service
+	timeSrv := service.NewTimeService()
+
+	// Email Service
+	emailSrv := service.NewEmailService("email", "passwd", "host", "port")
+
+	// Validation Service
+	validatorSrv := service.NewValidationService()
+
+	// Cryptography Service
+	cryptoSrv := service.NewCryptoService()
+
+	// Token Service
+	tokenSrv := service.NewTokenService(secret, loggerSrv, tokenRepo)
 
 	// Home Service
-	homeSrv := homeService.NewHomeSrv(loggerSrv)
+	homeSrv := service.NewHomeService(loggerSrv)
 
 	// User Service
-	userSrv := userService.NewUserSrv(userRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv)
+	userSrv := service.NewUserService(userRepo, cartRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv)
+
+	// Product Service
+	productSrv := service.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv)
+
+	// Cart Service
+	cartSrv := service.NewCartService(cartRepo, loggerSrv, validatorSrv, timeSrv, userRepo, productRepo)
 
 	// Routes
-	routes.HomeRoute(v1, homeSrv)
-	routes.UserRoute(v1, userSrv)
-	routes.ErrorRoute(router)
+	route.HomeRoute(v1, homeSrv)
+	route.UserRoute(v1, userSrv, tokenSrv)
+	route.ProductRoutes(v1, productSrv, tokenSrv)
+	route.CartRoute(v1, cartSrv, tokenSrv)
+	route.ErrorRoute(router)
+
+	s := gocron.NewScheduler(time.UTC)
+	s.Every(1).Day().Do(func() {
+		conn.Ping()
+	})
 
 	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

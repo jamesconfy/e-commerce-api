@@ -1,1 +1,1 @@
-DROP DATABASE IF EXISTS `e-commerce-api`;
+DROP DATABASE IF EXISTS `e_commerce_api`;
