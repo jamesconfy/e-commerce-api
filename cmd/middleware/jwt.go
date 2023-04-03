@@ -34,6 +34,6 @@ func (j *jwtMiddleWare) CheckJWT() gin.HandlerFunc {
 	}
 }
 
-func NewJWTMiddleWare(tokenSrv service.TokenSrv) *jwtMiddleWare {
+func Authentication(tokenSrv service.TokenSrv) *jwtMiddleWare {
 	return &jwtMiddleWare{tokenSrv: tokenSrv}
 }
