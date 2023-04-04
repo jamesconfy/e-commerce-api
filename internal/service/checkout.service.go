@@ -47,8 +47,8 @@ func (co *checkoutSrv) Add(req *forms.Checkout, userId string) (*models.Checkout
 	return nil, nil
 }
 
-func NewCheckoutService(cartRepo repo.CartRepo) CheckoutService {
-	return &checkoutSrv{cartRepo: cartRepo}
+func NewCheckoutService(repo repo.CheckoutRepo, cartRepo repo.CartRepo, loggerSrv LogSrv, validateSrv ValidationSrv) CheckoutService {
+	return &checkoutSrv{repo: repo, cartRepo: cartRepo, loggerSrv: loggerSrv, validateSrv: validateSrv}
 }
 
 // Auxillary Function
