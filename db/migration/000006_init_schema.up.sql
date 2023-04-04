@@ -2,17 +2,15 @@ USE e_commerce_api;
 
 CREATE TABLE IF NOT EXISTS checkout (
 	id VARCHAR(250) NOT NULL,
-    amount FLOAT NOT NULL,
     quantity INT NOT NULL,
-    user_id VARCHAR(250) NOT NULL,
+    cart_id VARCHAR(250) NOT NULL,
     product_id VARCHAR(250) NOT NULL,
-    price INT NOT NULL,
     status ENUM('ACTIVE', 'ONGOING', 'COMPLETED', 'FAILED') NOT NULL DEFAULT 'ACTIVE', 
     payment_method ENUM('CARD', 'PAY-ON-DELIVERY', 'PICKUP-STATION') DEFAULT 'CARD', 
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     
     PRIMARY KEY (id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
