@@ -93,7 +93,7 @@ func (u *userSrv) Create(req *forms.Signup) (*models.UserCart, *serviceerror.Ser
 		return nil, serviceerror.New("Error when creating token", err, serviceerror.ErrServer)
 	}
 
-	resultUser, err := u.repo.Register(userCart, auth.AccessToken, auth.RefreshToken)
+	resultUser, err := u.repo.Register(&user)
 	if err != nil {
 		u.loggerSrv.Fatal(u.message.CreateRepoError(&user, err))
 		return nil, serviceerror.NotFoundOrInternal(err)

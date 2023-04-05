@@ -9,7 +9,7 @@ import (
 type UserRepo interface {
 	ExistsEmail(email string) bool
 	ExistsId(userId string) bool
-	Register(user *models.UserCart, accessToken, refreshToken string) (*models.User, error)
+	Register(user *models.User) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	GetById(userId string) (*models.User, error)
 	UpdateTokens(auth *models.Auth) error
@@ -42,18 +42,18 @@ func (u *userSql) ExistsId(userId string) bool {
 	return err != sql.ErrNoRows
 }
 
-func (u *userSql) Register(user *models.UserCart, accessToken, refreshToken string) (*models.User, error) {
-	query := `INSERT INTO users(id, first_name, last_name, email, phone_number, password, date_created, access_token, refresh_token) VALUES ('%[1]v', '%[2]v', '%[3]v', '%[4]v', '%[5]v', '%[6]v', '%[7]v', '%[8]v', '%[9]v')`
+func (u *userSql) Register(user *models.User) (*models.User, error) {
+	query := `INSERT INTO users(id, first_name, last_name, email, phone_number, password, date_created) VALUES ('%[1]v', '%[2]v', '%[3]v', '%[4]v', '%[5]v', '%[6]v', '%[7]v')`
 
 	stmt := fmt.Sprintf(query,
-		user.User.Id, user.User.FirstName, user.User.LastName, user.User.Email, user.User.PhoneNumber, user.User.Password, user.User.DateCreated, accessToken, refreshToken)
+		user.Id, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Password, user.DateCreated)
 
 	_, err := u.conn.Exec(stmt)
 	if err != nil {
 		return nil, err
 	}
 
-	return u.GetById(user.User.Id)
+	return u.GetById(user.Id)
 }
 
 func (u *userSql) GetByEmail(email string) (*models.User, error) {

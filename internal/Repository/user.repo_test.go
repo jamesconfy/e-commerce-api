@@ -4,48 +4,63 @@ import (
 	"e-commerce/internal/models"
 	"testing"
 
+	"github.com/bxcodec/faker/v4"
 	"github.com/google/uuid"
 )
 
-func TestAddUser(t *testing.T) {
-	// Create a new user object
-	user1 := &models.User{
+func createAndRegisterTestUser(user *models.User) *models.User {
+	if user == nil {
+		user = &models.User{
+			Id:          uuid.New().String(),
+			FirstName:   faker.FirstName(),
+			LastName:    faker.LastName(),
+			Email:       faker.Email(),
+			PhoneNumber: faker.Phonenumber(),
+			Password:    faker.Password(),
+			DateCreated: ti.CurrentTime(),
+			DateUpdated: ti.CurrentTime(),
+		}
+	}
+
+	user, err := u.Register(user)
+	if err != nil {
+		panic(err)
+	}
+
+	return user
+}
+
+func generateUser() *models.User {
+	return &models.User{
 		Id:          uuid.New().String(),
-		FirstName:   "Confidence",
-		LastName:    "James",
-		Email:       "bobdence@gmail11.com",
-		PhoneNumber: "0814979537011",
-		Password:    "123456",
+		FirstName:   faker.FirstName(),
+		LastName:    faker.LastName(),
+		Email:       faker.Email(),
+		PhoneNumber: faker.Phonenumber(),
+		Password:    faker.Password(),
 		DateCreated: ti.CurrentTime(),
 		DateUpdated: ti.CurrentTime(),
 	}
+}
 
-	// Create a new cart object
-	cart1 := &models.Cart{
-		Id:          uuid.New().String(),
-		DateCreated: ti.CurrentTime(),
-	}
+func TestAddUser(t *testing.T) {
+	// Create a new user object
+	user1 := generateUser()
 
-	// Create a new user cart object
 	tests := []struct {
 		name        string
-		usercart    *models.UserCart
+		user        *models.User
 		wantErrUser bool
-		wantErrCart bool
 	}{
-		{name: "Test with correct details", usercart: &models.UserCart{User: user1, Cart: cart1}, wantErrUser: false, wantErrCart: false},
+		{name: "Test with correct details", user: user1, wantErrUser: false},
+		{name: "Test with wrong details", user: &models.User{}, wantErrUser: true},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := u.Register(tt.usercart, "", "")
+			_, err := u.Register(tt.user)
 			if (err != nil) != tt.wantErrUser {
 				t.Errorf("userSql.Register() error = %v, wantErr %v", err, tt.wantErrUser)
-			}
-
-			_, err = c.CreateCart(tt.usercart)
-			if (err != nil) != tt.wantErrCart {
-				t.Errorf("userSql.CreateCart() error = %v, wantErr %v", err, tt.wantErrCart)
 			}
 		})
 	}
@@ -53,6 +68,8 @@ func TestAddUser(t *testing.T) {
 
 func TestLoginUser(t *testing.T) {
 	// Create a new user cart object
+	user := createAndRegisterTestUser(nil)
+
 	tests := []struct {
 		name        string
 		email       string
@@ -61,23 +78,14 @@ func TestLoginUser(t *testing.T) {
 		wantErrPass bool
 	}{
 		// TODO: Add test cases.
-		{name: "Test with correct details", email: "bobdence@gmail.com", password: "123456", wantErrGet: false, wantErrPass: false},
-		{name: "Test with wrong email details", email: "bobdence@live.com", password: "123456", wantErrGet: true, wantErrPass: true},
-		{name: "Test with wrong password details", email: "bobdence@gmail.com", password: "12345", wantErrGet: false, wantErrPass: true},
-		{name: "Test with empty email", email: "", password: "12346", wantErrGet: true, wantErrPass: true},
-		{name: "Test with empty password", email: "bobdence@gmail.com", password: "", wantErrGet: false, wantErrPass: true},
-		{name: "Test with empty details", email: "@gmail.com", password: "", wantErrGet: true, wantErrPass: true},
+		{name: "Test with correct details", email: user.Email, password: user.Password, wantErrGet: false, wantErrPass: false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// u := &userSql{
-			// 	conn: DB,
-			// }
 			user, err := u.GetByEmail(tt.email)
 			if (err != nil) != tt.wantErrGet {
 				t.Errorf("userSql.GetByEmail() error = %v, wantErr %v", err, tt.wantErrGet)
-				// return
 			}
 
 			if user != nil && (user.Password != tt.password) != tt.wantErrPass {

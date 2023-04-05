@@ -64,12 +64,13 @@ func (co *checkoutSrv) addToDatabase(carts *models.Cart, req *forms.Checkout) {
 			checkout.ProductId = item.ProductId
 			checkout.PaymentMethod = req.PaymentMethod
 
-			_, err := co.repo.Add(checkout)
+			result, err := co.repo.Add(checkout)
 			if err != nil {
 				co.loggerSrv.Warning(fmt.Sprintf("Error when adding product to database || Id: %v || CartId: %v || ProductId: %v || Error: %v", checkout.Id, checkout.CartId, checkout.ProductId, err))
 			}
 
 			checkout.Mutex.Unlock()
+			co.loggerSrv.Info(fmt.Sprintf("Product added to checkout table || Id: %v || ProductId: %v || Quantity: %v", result.Id, result.ProductId, result.Quantity))
 		}(item)
 	}
 }
