@@ -25,8 +25,8 @@ func (m Messages) CreateRepoError(user *models.User, err error) (str string) {
 }
 
 // Create user success Messages
-func (m Messages) CreateSuccess(user *models.User, accessToken, refreshToken string) (str string) {
-	str = fmt.Sprintf("User created successfully || UserId: %s || Email: %s || Access_Token: %s || Refresh_Token: %s || Date_Created: %s", user.Id, user.Email, accessToken, refreshToken, user.DateCreated)
+func (m Messages) CreateSuccess(user *models.User) (str string) {
+	str = fmt.Sprintf("User created successfully || UserId: %s || Email: %s || Date_Created: %s", user.Id, user.Email, user.DateCreated)
 	return
 }
 

@@ -8,7 +8,7 @@ import (
 
 type CartRepo interface {
 	// Cart
-	CreateCart(cart *models.UserCart) (*models.Cart, error)
+	CreateCart(cart *models.Cart) (*models.Cart, error)
 	GetCart(userId string) (*models.Cart, error)
 	ClearCart(userId string) error
 
@@ -22,17 +22,17 @@ type cartSql struct {
 	conn *sql.DB
 }
 
-func (c *cartSql) CreateCart(cart *models.UserCart) (*models.Cart, error) {
+func (c *cartSql) CreateCart(cart *models.Cart) (*models.Cart, error) {
 	query := `INSERT INTO carts(id, user_id, date_created) VALUES ('%[1]v', '%[2]v', '%[3]v')`
 
-	stmt := fmt.Sprintf(query, cart.Cart.Id, cart.User.Id, cart.Cart.DateCreated)
+	stmt := fmt.Sprintf(query, cart.Id, cart.UserId, cart.DateCreated)
 
 	_, err := c.conn.Exec(stmt)
 	if err != nil {
 		return nil, err
 	}
 
-	return c.GetCart(cart.User.Id)
+	return c.GetCart(cart.UserId)
 }
 
 func (c *cartSql) GetCart(userId string) (*models.Cart, error) {
