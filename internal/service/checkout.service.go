@@ -5,14 +5,14 @@ import (
 	"e-commerce/internal/logger"
 	"e-commerce/internal/models"
 	repo "e-commerce/internal/repository"
-	"e-commerce/internal/serviceerror"
+	"e-commerce/internal/se"
 	"fmt"
 
 	"github.com/google/uuid"
 )
 
 type CheckoutService interface {
-	Add(req *forms.Checkout, userId string) (*models.Checkout, *serviceerror.ServiceError)
+	Add(req *forms.Checkout, userId string) (*models.Checkout, *se.ServiceError)
 }
 
 type checkoutSrv struct {
@@ -32,14 +32,14 @@ func (co *checkoutSrv) Validate(req any) error {
 	return nil
 }
 
-func (co *checkoutSrv) Add(req *forms.Checkout, userId string) (*models.Checkout, *serviceerror.ServiceError) {
+func (co *checkoutSrv) Add(req *forms.Checkout, userId string) (*models.Checkout, *se.ServiceError) {
 	if err := co.Validate(&req); err != nil {
-		return nil, serviceerror.Validating(err)
+		return nil, se.Validating(err)
 	}
 
 	carts, err := co.cartRepo.GetCart(userId)
 	if err != nil {
-		return nil, serviceerror.NotFoundOrInternal(err)
+		return nil, se.NotFoundOrInternal(err)
 	}
 
 	defer co.addToDatabase(carts, req)

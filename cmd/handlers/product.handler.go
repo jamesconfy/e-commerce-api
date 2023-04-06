@@ -3,8 +3,8 @@ package handler
 import (
 	"e-commerce/internal/forms"
 	"e-commerce/internal/response"
+	"e-commerce/internal/se"
 	"e-commerce/internal/service"
-	"e-commerce/internal/serviceerror"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +27,7 @@ func (p *productHanlder) Add(c *gin.Context) {
 	var req forms.Product
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, *serviceerror.Validating(err))
+		response.Error(c, *se.Validating(err))
 		return
 	}
 
@@ -50,7 +50,7 @@ func (p *productHanlder) GetAll(c *gin.Context) {
 
 	pagei, err := strconv.Atoi(page)
 	if err != nil {
-		response.Error(c, *serviceerror.New("Error when converting string to integer", err, serviceerror.ErrServer))
+		response.Error(c, *se.New("Error when converting string to integer", err, se.ErrServer))
 		return
 	}
 
@@ -79,7 +79,7 @@ func (p *productHanlder) Edit(c *gin.Context) {
 	var req forms.EditProduct
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, *serviceerror.Validating(err))
+		response.Error(c, *se.Validating(err))
 		return
 	}
 
@@ -112,7 +112,7 @@ func (p *productHanlder) AddRating(c *gin.Context) {
 	var req forms.Rating
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, *serviceerror.Validating(err))
+		response.Error(c, *se.Validating(err))
 		return
 	}
 

@@ -5,7 +5,7 @@ import (
 	"e-commerce/internal/logger"
 	"e-commerce/internal/models"
 	repo "e-commerce/internal/repository"
-	se "e-commerce/internal/serviceerror"
+	se "e-commerce/internal/se"
 	"time"
 
 	"github.com/google/uuid"

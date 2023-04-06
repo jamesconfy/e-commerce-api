@@ -1,4 +1,4 @@
-package serviceerror
+package se
 
 import (
 	"database/sql"
@@ -47,7 +47,7 @@ func (se *ServiceError) Type() Type {
 }
 
 func New(description string, err error, errType Type) *ServiceError {
-	return &ServiceError{Time: time.Now().Format(time.RFC3339), Description: description, Error: err.Error(), ErrorType: errType}
+	return &ServiceError{Time: time.Now().Local().Format(time.RFC3339), Description: description, Error: err.Error(), ErrorType: errType}
 }
 
 func Internal(err error, descriptions ...string) *ServiceError {

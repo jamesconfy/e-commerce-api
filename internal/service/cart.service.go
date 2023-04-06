@@ -5,18 +5,18 @@ import (
 	"e-commerce/internal/logger"
 	"e-commerce/internal/models"
 	repo "e-commerce/internal/repository"
-	"e-commerce/internal/serviceerror"
+	"e-commerce/internal/se"
 )
 
 type CartService interface {
 	// Cart
-	GetCart(userId string) (*models.Cart, *serviceerror.ServiceError)
-	ClearCart(userId string) *serviceerror.ServiceError
+	GetCart(userId string) (*models.Cart, *se.ServiceError)
+	ClearCart(userId string) *se.ServiceError
 
 	// CartItem
-	AddItem(req *forms.CartItem, productId, userId string) (*models.CartItem, *serviceerror.ServiceError)
-	GetItem(productId, userId string) (*models.CartItem, *serviceerror.ServiceError)
-	DeleteItem(productId, userId string) *serviceerror.ServiceError
+	AddItem(req *forms.CartItem, productId, userId string) (*models.CartItem, *se.ServiceError)
+	GetItem(productId, userId string) (*models.CartItem, *se.ServiceError)
+	DeleteItem(productId, userId string) *se.ServiceError
 }
 
 type cartSrv struct {
@@ -38,48 +38,48 @@ func (ch *cartSrv) Validate(req any) error {
 	return nil
 }
 
-func (ch *cartSrv) GetCart(userId string) (*models.Cart, *serviceerror.ServiceError) {
+func (ch *cartSrv) GetCart(userId string) (*models.Cart, *se.ServiceError) {
 	items, err := ch.repo.GetCart(userId)
 	if err != nil {
 		ch.loggerSrv.Error(ch.message.GetCartRepoErrror(userId, err))
-		return nil, serviceerror.Internal(err)
+		return nil, se.Internal(err)
 	}
 
 	ch.loggerSrv.Info(ch.message.GetCartSuccess(items))
 	return items, nil
 }
 
-func (ch *cartSrv) ClearCart(userId string) *serviceerror.ServiceError {
+func (ch *cartSrv) ClearCart(userId string) *se.ServiceError {
 	err := ch.repo.ClearCart(userId)
 	if err != nil {
 		ch.loggerSrv.Error(ch.message.ClearCartRepoError(userId, err))
-		return serviceerror.Internal(err)
+		return se.Internal(err)
 	}
 
 	ch.loggerSrv.Error(ch.message.ClearCartSuccess(userId))
 	return nil
 }
 
-func (ch *cartSrv) AddItem(req *forms.CartItem, productId, userId string) (*models.CartItem, *serviceerror.ServiceError) {
+func (ch *cartSrv) AddItem(req *forms.CartItem, productId, userId string) (*models.CartItem, *se.ServiceError) {
 	if err := ch.Validate(req); err != nil {
-		return nil, serviceerror.Validating(err)
+		return nil, se.Validating(err)
 	}
 
 	cart, err := ch.repo.GetCart(userId)
 	if err != nil {
 		ch.loggerSrv.Error(ch.message.GetCartRepoErrror(userId, err))
-		return nil, serviceerror.Internal(err)
+		return nil, se.Internal(err)
 	}
 
 	product, err := ch.productRepo.GetId(productId)
 	if err != nil {
 		ch.loggerSrv.Error(ch.message.GetProductRepoError(productId, err))
-		return nil, serviceerror.NotFoundOrInternal(err, "product not found")
+		return nil, se.NotFoundOrInternal(err, "product not found")
 	}
 
 	if product.Product.UserId == userId {
 		ch.loggerSrv.Warning(ch.message.AddItemCompareUser(product.Product.UserId, userId))
-		return nil, serviceerror.Forbidden("You cannot buy your own product")
+		return nil, se.Forbidden("You cannot buy your own product")
 	}
 
 	var item models.CartItem
@@ -92,7 +92,7 @@ func (ch *cartSrv) AddItem(req *forms.CartItem, productId, userId string) (*mode
 	result, err := ch.repo.AddItem(&item, userId)
 	if err != nil {
 		ch.loggerSrv.Error(ch.message.AddItemRepoError(productId, userId, err))
-		return nil, serviceerror.NotFoundOrInternal(err, "item not found")
+		return nil, se.NotFoundOrInternal(err, "item not found")
 	}
 
 	// result.Product = product.Product
@@ -100,22 +100,22 @@ func (ch *cartSrv) AddItem(req *forms.CartItem, productId, userId string) (*mode
 	return result, nil
 }
 
-func (ch *cartSrv) GetItem(productId, userId string) (*models.CartItem, *serviceerror.ServiceError) {
+func (ch *cartSrv) GetItem(productId, userId string) (*models.CartItem, *se.ServiceError) {
 	item, err := ch.repo.GetItem(productId, userId)
 	if err != nil {
 		ch.loggerSrv.Error(ch.message.GetItemRepoError(productId, userId, err))
-		return nil, serviceerror.NotFoundOrInternal(err, "item not found")
+		return nil, se.NotFoundOrInternal(err, "item not found")
 	}
 
 	ch.loggerSrv.Info(ch.message.GetItemSuccess(item))
 	return item, nil
 }
 
-func (ch *cartSrv) DeleteItem(productId, userId string) *serviceerror.ServiceError {
+func (ch *cartSrv) DeleteItem(productId, userId string) *se.ServiceError {
 	err := ch.repo.DeleteItem(productId, userId)
 	if err != nil {
 		ch.loggerSrv.Error(ch.message.DeleteItemRepoError(productId, userId, err))
-		return serviceerror.Internal(err)
+		return se.Internal(err)
 	}
 
 	ch.loggerSrv.Error(ch.message.DeleteItemSuccess(productId, userId))

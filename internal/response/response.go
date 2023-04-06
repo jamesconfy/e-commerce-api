@@ -1,7 +1,7 @@
 package response
 
 import (
-	se "e-commerce/internal/serviceerror"
+	se "e-commerce/internal/se"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
