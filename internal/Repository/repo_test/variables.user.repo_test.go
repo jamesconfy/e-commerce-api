@@ -4,11 +4,12 @@ import (
 	"e-commerce/internal/models"
 
 	"github.com/bxcodec/faker/v4"
+	"github.com/google/uuid"
 )
 
 func generateUser() *models.User {
 	return &models.User{
-		Id:          faker.UUIDDigit(),
+		Id:          uuid.New().String(),
 		FirstName:   faker.FirstName(),
 		LastName:    faker.LastName(),
 		Email:       faker.Email(),
@@ -17,7 +18,7 @@ func generateUser() *models.User {
 	}
 }
 
-func createAndRegisterTestUser(user *models.User) *models.User {
+func createAndRegisterUser(user *models.User) *models.User {
 	if user == nil {
 		user = generateUser()
 	}

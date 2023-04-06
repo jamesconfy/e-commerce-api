@@ -7,7 +7,7 @@ import (
 )
 
 func TestAddProduct(t *testing.T) {
-	product1 := generateProduct()
+	product1 := generateProduct(nil)
 
 	tests := []struct {
 		name    string

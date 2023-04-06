@@ -3,7 +3,6 @@ package repo
 import (
 	"database/sql"
 	"e-commerce/internal/models"
-	"fmt"
 )
 
 type CartRepo interface {
@@ -23,11 +22,9 @@ type cartSql struct {
 }
 
 func (c *cartSql) CreateCart(cart *models.Cart) (*models.Cart, error) {
-	query := `INSERT INTO carts(id, user_id, date_created) VALUES ('%[1]v', '%[2]v', CURRENT_TIMESTAMP())`
+	query := `INSERT INTO carts(id, user_id, date_created) VALUES (?, ?, CURRENT_TIMESTAMP())`
 
-	stmt := fmt.Sprintf(query, cart.Id, cart.UserId)
-
-	_, err := c.conn.Exec(stmt)
+	_, err := c.conn.Exec(query, cart.Id, cart.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -51,19 +48,17 @@ func (c *cartSql) GetCart(userId string) (*models.Cart, error) {
 		tx.Commit()
 	}()
 
-	query := `SELECT id, date_created, date_updated FROM carts WHERE user_id = '%v'`
-	stmt := fmt.Sprintf(query, userId)
+	query := `SELECT id, user_id, date_created, date_updated FROM carts WHERE user_id = ?`
 
-	row := tx.QueryRow(stmt)
-	err = row.Scan(&cart.Id, &cart.DateCreated, &cart.DateUpdated)
+	row := tx.QueryRow(query, userId)
+	err = row.Scan(&cart.Id, &cart.UserId, &cart.DateCreated, &cart.DateUpdated)
 	if err != nil {
 		return nil, err
 	}
 
-	query = `SELECT ct.cart_id, ct.product_id, ct.quantity, ct.date_created, ct.date_updated, p.id "product_id", p.user_id, p.name, p.description, p.price, p.date_created "product_date_created", p.date_updated "product_date_updated", p.image FROM cart_item ct LEFT JOIN products p ON p.id=ct.product_id WHERE ct.cart_id = '%[1]v';`
-	stmt = fmt.Sprintf(query, cart.Id)
+	query = `SELECT ct.cart_id, ct.product_id, ct.quantity, ct.date_created, ct.date_updated, p.id "product_id", p.user_id, p.name, p.description, p.price, p.date_created "product_date_created", p.date_updated "product_date_updated", p.image FROM cart_item ct LEFT JOIN products p ON p.id=ct.product_id WHERE ct.cart_id = ?;`
 
-	rows, err := tx.Query(stmt)
+	rows, err := tx.Query(query, cart.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -91,10 +86,9 @@ func (c *cartSql) ClearCart(userId string) error {
 		return err
 	}
 
-	query := `DELETE FROM cart_item WHERE cart_id = '%v'`
-	stmt := fmt.Sprintf(query, cart.Id)
+	query := `DELETE FROM cart_item WHERE cart_id = ?`
 
-	_, err = c.conn.Exec(stmt)
+	_, err = c.conn.Exec(query, cart.Id)
 	if err != nil {
 		return err
 	}
@@ -102,20 +96,18 @@ func (c *cartSql) ClearCart(userId string) error {
 	return nil
 }
 
-func (c *cartSql) AddItem(req *models.CartItem, userId string) (*models.CartItem, error) {
+func (c *cartSql) AddItem(item *models.CartItem, userId string) (*models.CartItem, error) {
 	// SQL – Add item to cart on conflict update item quantity
-	query := `INSERT INTO cart_item (cart_id, product_id, quantity, date_created, date_updated)
-	VALUES ('%[1]v', '%[2]v', '%[3]v', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())
-	ON DUPLICATE KEY UPDATE quantity = %[3]v, date_updated = CURRENT_TIMESTAMP()`
+	query := `INSERT INTO cart_item (cart_id, product_id, quantity)
+				VALUES (?, ?, ?)
+				ON DUPLICATE KEY UPDATE quantity = ?, date_updated = CURRENT_TIMESTAMP()`
 
-	stmt := fmt.Sprintf(query, req.CartId, req.ProductId, req.Quantity)
-
-	_, err := c.conn.Exec(stmt)
+	_, err := c.conn.Exec(query, item.CartId, item.ProductId, item.Quantity, item.Quantity)
 	if err != nil {
 		return nil, err
 	}
 
-	return c.GetItem(req.ProductId, userId)
+	return c.GetItem(item.ProductId, userId)
 }
 
 func (c *cartSql) GetItem(productId, userId string) (*models.CartItem, error) {
@@ -126,11 +118,9 @@ func (c *cartSql) GetItem(productId, userId string) (*models.CartItem, error) {
 		return nil, err
 	}
 
-	query := `SELECT cart_id, product_id, quantity, date_created, date_updated FROM cart_item WHERE product_id = '%[1]v' AND cart_id = '%[2]v'`
+	query := `SELECT cart_id, product_id, quantity, date_created, date_updated FROM cart_item WHERE product_id = ? AND cart_id = ?`
 
-	stmt := fmt.Sprintf(query, productId, cart.Id)
-
-	err = c.conn.QueryRow(stmt).Scan(
+	err = c.conn.QueryRow(query, productId, cart.Id).Scan(
 		&item.CartId,
 		&item.ProductId,
 		&item.Quantity,
@@ -139,14 +129,9 @@ func (c *cartSql) GetItem(productId, userId string) (*models.CartItem, error) {
 	)
 
 	if err != nil {
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return &models.CartItem{}, err
-			}
-
-			return nil, err
-		}
+		return nil, err
 	}
+
 	return &item, nil
 }
 
@@ -156,9 +141,9 @@ func (c *cartSql) DeleteItem(productId, userId string) error {
 		return err
 	}
 
-	query := `DELETE FROM cart_item WHERE product_id = '%[1]v' AND cart_id = '%[2]v'`
-	stmt := fmt.Sprintf(query, productId, cart.Id)
-	_, err = c.conn.Exec(stmt)
+	query := `DELETE FROM cart_item WHERE product_id = ? AND cart_id = ?`
+
+	_, err = c.conn.Exec(query, productId, cart.Id)
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,6 @@ package repo
 import (
 	"database/sql"
 	"e-commerce/internal/models"
-	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -26,9 +25,9 @@ type userSql struct {
 func (u *userSql) ExistsEmail(email string) bool {
 	var userId string
 
-	stmt := fmt.Sprintf(`SELECT id FROM users WHERE email = '%[1]v'`, email)
+	query := `SELECT id FROM users WHERE email = ?`
 
-	err := u.conn.QueryRow(stmt).Scan(&userId)
+	err := u.conn.QueryRow(query, email).Scan(&userId)
 
 	return err != sql.ErrNoRows
 }
@@ -36,20 +35,19 @@ func (u *userSql) ExistsEmail(email string) bool {
 func (u *userSql) ExistsId(userId string) bool {
 	var email string
 
-	stmt := fmt.Sprintf(`SELECT email FROM users WHERE id = '%[1]v'`, userId)
+	query := `SELECT email FROM users WHERE id = ?`
 
-	err := u.conn.QueryRow(stmt).Scan(&email)
+	err := u.conn.QueryRow(query, userId).Scan(&email)
 
 	return err != sql.ErrNoRows
 }
 
 func (u *userSql) Register(user *models.User) (*models.User, error) {
-	query := `INSERT INTO users(id, first_name, last_name, email, phone_number, password) VALUES ('%[1]v', '%[2]v', '%[3]v', '%[4]v', '%[5]v', '%[6]v')`
+	query := `INSERT INTO users(id, first_name, last_name, email, phone_number, password) 
+				VALUES(?, ?, ?, ?, ?, ?)`
 
-	stmt := fmt.Sprintf(query,
+	_, err := u.conn.Exec(query,
 		user.Id, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Password)
-
-	_, err := u.conn.Exec(stmt)
 	if err != nil {
 		return nil, err
 	}
@@ -60,11 +58,9 @@ func (u *userSql) Register(user *models.User) (*models.User, error) {
 func (u *userSql) GetByEmail(email string) (*models.User, error) {
 	var user models.User
 
-	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE email = '%s'`
+	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE email = ?`
 
-	stmt := fmt.Sprintf(query, email)
-
-	err := u.conn.QueryRow(stmt).Scan(
+	err := u.conn.QueryRow(query, email).Scan(
 		&user.Id,
 		&user.Email,
 		&user.Password,
@@ -84,11 +80,9 @@ func (u *userSql) GetByEmail(email string) (*models.User, error) {
 
 func (u *userSql) GetById(userId string) (*models.User, error) {
 	var user models.User
-	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE id = '%[1]s'`
+	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE id = ?`
 
-	stmt := fmt.Sprintf(query, userId)
-
-	err := u.conn.QueryRow(stmt).Scan(
+	err := u.conn.QueryRow(query, userId).Scan(
 		&user.Id,
 		&user.Email,
 		&user.Password,

@@ -6,13 +6,16 @@ import (
 	"math/rand"
 
 	"github.com/bxcodec/faker/v4"
+	"github.com/google/uuid"
 )
 
-func generateProduct() *models.Product {
-	user := createAndRegisterTestUser(nil)
+func generateProduct(user *models.User) *models.Product {
+	if user == nil {
+		user = createAndRegisterUser(nil)
+	}
 
 	return &models.Product{
-		Id:          faker.UUIDDigit(),
+		Id:          uuid.New().String(),
 		UserId:      user.Id,
 		Name:        faker.Name(),
 		Description: faker.Word(),
@@ -21,9 +24,11 @@ func generateProduct() *models.Product {
 	}
 }
 
-func createAndAddProduct(product *models.Product) *models.Product {
-	if product == nil {
-		product = generateProduct()
+func createAndAddProduct(user *models.User) *models.Product {
+	var product *models.Product
+
+	if user == nil {
+		product = generateProduct(nil)
 	}
 
 	product, err := p.Add(product)
@@ -57,7 +62,7 @@ func generateRating(rating []int, product *models.Product, user *models.User) *m
 	}
 
 	if user == nil {
-		user = createAndRegisterTestUser(nil)
+		user = createAndRegisterUser(nil)
 	}
 
 	if product == nil {

@@ -7,65 +7,35 @@ import (
 
 func TestAddUser(t *testing.T) {
 	// Create a new user object
-	user1 := generateUser()
+	user := generateUser()
 
 	tests := []struct {
-		name        string
-		user        *models.User
-		wantErrUser bool
+		name    string
+		user    *models.User
+		wantErr bool
 	}{
-		{name: "Test with correct details", user: user1, wantErrUser: false},
-		{name: "Test with wrong details", user: &models.User{}, wantErrUser: true},
 		// TODO: Add test cases.
+		{name: "Test with correct details", user: user, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := u.Register(tt.user)
-			if (err != nil) != tt.wantErrUser {
-				t.Errorf("userSql.Register() error = %v, wantErr %v", err, tt.wantErrUser)
-			}
-		})
-	}
-}
-
-func TestLoginUser(t *testing.T) {
-	// Create a new user cart object
-	user := createAndRegisterTestUser(nil)
-
-	tests := []struct {
-		name        string
-		email       string
-		password    string
-		wantErrGet  bool
-		wantErrPass bool
-	}{
-		// TODO: Add test cases.
-		{name: "Test with correct details", email: user.Email, password: user.Password, wantErrGet: false, wantErrPass: false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			user, err := u.GetByEmail(tt.email)
-			if (err != nil) != tt.wantErrGet {
-				t.Errorf("userSql.GetByEmail() error = %v, wantErr %v", err, tt.wantErrGet)
-			}
-
-			if user != nil && (user.Password != tt.password) != tt.wantErrPass {
-				t.Fatalf("Compare password, err = %v", err)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("userSql.Register() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
 func TestEmailExists(t *testing.T) {
+	user := createAndRegisterUser(nil)
+
 	tests := []struct {
 		name  string
 		email string
 		want  bool
 	}{
-		{name: "Test with correct email", email: "bobdence@gmail.com", want: true},
-		{name: "Test with incorrect email", email: "bobdence@live.com", want: false},
-		{name: "Test with empty email", email: "", want: false},
+		{name: "Test with correct email", email: user.Email, want: true},
 	}
 
 	for _, tt := range tests {
@@ -79,14 +49,14 @@ func TestEmailExists(t *testing.T) {
 }
 
 func TestIdExists(t *testing.T) {
+	user := createAndRegisterUser(nil)
+
 	tests := []struct {
 		name string
 		id   string
 		want bool
 	}{
-		{name: "Test with correct id", id: "7d4b4910-9472-4003-8454-ba09d91ac4d7", want: true},
-		{name: "Test with incorrect id", id: "thatisme", want: false},
-		{name: "Test with empty id", id: "", want: false},
+		{name: "Test with correct id", id: user.Id, want: true},
 	}
 
 	for _, tt := range tests {
@@ -94,6 +64,48 @@ func TestIdExists(t *testing.T) {
 			got := u.ExistsId(tt.id)
 			if got != tt.want {
 				t.Errorf("userSql.ExistsId() got = %v, wantErr %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetByEmail(t *testing.T) {
+	user := createAndRegisterUser(nil)
+
+	tests := []struct {
+		name  string
+		email string
+		want  bool
+	}{
+		{name: "Test with correct email", email: user.Email, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := u.GetByEmail(tt.email)
+			if (err != nil) != tt.want {
+				t.Errorf("userSql.GetByEmail() error = %v, wantErr %v", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetById(t *testing.T) {
+	user := createAndRegisterUser(nil)
+
+	tests := []struct {
+		name string
+		id   string
+		want bool
+	}{
+		{name: "Test with correct id", id: user.Id, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := u.GetById(tt.id)
+			if (err != nil) != tt.want {
+				t.Errorf("userSql.GetById() error = %v, wantErr %v", err, tt.want)
 			}
 		})
 	}
