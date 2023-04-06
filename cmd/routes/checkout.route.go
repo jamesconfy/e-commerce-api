@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CheckoutRoutes(v1 *gin.RouterGroup, checkoutSrv service.CheckoutService, tokenSrv service.TokenSrv) {
+func CheckoutRoutes(v1 *gin.RouterGroup, checkoutSrv service.CheckoutService, tokenSrv service.AuthSrv) {
 	_ = handler.NewCheckoutHandler(checkoutSrv)
 	auth := middleware.Authentication(tokenSrv)
 	checkout := v1.Group("/checkout")

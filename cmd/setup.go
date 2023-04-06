@@ -93,16 +93,13 @@ func Setup() {
 	productRepo := repo.NewProductRepo(conn)
 
 	// Token Repository
-	tokenRepo := repo.NewTokenRepo(conn)
+	authRepo := repo.NewAuthRepo(conn)
 
 	// Cart Repository
 	cartRepo := repo.NewCartRepo(conn)
 
 	// Logger Service
 	loggerSrv := service.NewLoggerService()
-
-	// Time Service
-	timeSrv := service.NewTimeService()
 
 	// Email Service
 	emailSrv := service.NewEmailService("email", "passwd", "host", "port")
@@ -114,19 +111,19 @@ func Setup() {
 	cryptoSrv := service.NewCryptoService()
 
 	// Token Service
-	tokenSrv := service.NewTokenService(secret, loggerSrv, tokenRepo)
+	tokenSrv := service.NewAuthService(secret, loggerSrv, authRepo)
 
 	// Home Service
 	homeSrv := service.NewHomeService(loggerSrv)
 
 	// User Service
-	userSrv := service.NewUserService(userRepo, cartRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv, timeSrv)
+	userSrv := service.NewUserService(userRepo, authRepo, cartRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv)
 
 	// Product Service
-	productSrv := service.NewProductService(productRepo, validatorSrv, loggerSrv, timeSrv)
+	productSrv := service.NewProductService(productRepo, validatorSrv, loggerSrv)
 
 	// Cart Service
-	cartSrv := service.NewCartService(cartRepo, loggerSrv, validatorSrv, timeSrv, userRepo, productRepo)
+	cartSrv := service.NewCartService(cartRepo, loggerSrv, validatorSrv, userRepo, productRepo)
 
 	// Routes
 	route.HomeRoute(v1, homeSrv)

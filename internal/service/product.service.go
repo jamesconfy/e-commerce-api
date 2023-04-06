@@ -6,6 +6,7 @@ import (
 	"e-commerce/internal/models"
 	repo "e-commerce/internal/repository"
 	se "e-commerce/internal/serviceerror"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -24,7 +25,6 @@ type productSrv struct {
 	repo         repo.ProductRepo
 	validatorSrv ValidationSrv
 	loggerSrv    LogSrv
-	timeSrv      TimeService
 	message      logger.Messages
 }
 
@@ -51,8 +51,6 @@ func (p *productSrv) Add(req *forms.Product, userId string) (*models.Product, *s
 	product.Price = req.Price
 	product.Image = req.Image
 	product.UserId = userId
-	product.DateCreated = p.timeSrv.CurrentTime()
-	product.DateUpdated = p.timeSrv.CurrentTime()
 
 	result, err := p.repo.Add(&product)
 	if err != nil {
@@ -158,8 +156,6 @@ func (p *productSrv) AddRating(req *forms.Rating, productId, userId string) (*mo
 	rating.Value = req.Value
 	rating.ProductId = productId
 	rating.UserId = userId
-	rating.DateCreated = p.timeSrv.CurrentTime()
-	rating.DateUpdated = p.timeSrv.CurrentTime()
 
 	result, err := p.repo.AddRating(&rating)
 	if err != nil {
@@ -171,8 +167,8 @@ func (p *productSrv) AddRating(req *forms.Rating, productId, userId string) (*mo
 	return result, nil
 }
 
-func NewProductService(productRepo repo.ProductRepo, validatorSrv ValidationSrv, loggerSrv LogSrv, timeSrv TimeService) ProductService {
-	return &productSrv{repo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv, timeSrv: timeSrv}
+func NewProductService(productRepo repo.ProductRepo, validatorSrv ValidationSrv, loggerSrv LogSrv) ProductService {
+	return &productSrv{repo: productRepo, validatorSrv: validatorSrv, loggerSrv: loggerSrv}
 }
 
 // Auxillary Function
@@ -193,7 +189,7 @@ func (p *productSrv) updateProduct(req *forms.EditProduct, product *models.Produ
 		product.Product.Image = req.Image
 	}
 
-	product.Product.DateUpdated = p.timeSrv.CurrentTime()
+	product.Product.DateUpdated = time.Now().Local()
 
 	return &models.Product{
 		Id:          product.Product.Id,

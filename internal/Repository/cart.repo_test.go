@@ -9,27 +9,21 @@ import (
 
 func TestAddToCart(t *testing.T) {
 	item := &models.CartItem{
-		CartId:      "123",
-		ProductId:   "006ae268-f2a3-4309-9fd9-ef58ca354335",
-		Quantity:    15,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
+		CartId:    "123",
+		ProductId: "006ae268-f2a3-4309-9fd9-ef58ca354335",
+		Quantity:  15,
 	}
 
 	item1 := &models.CartItem{
-		CartId:      "12345",
-		ProductId:   "006ae268-f2a3-4309-9fd9-ef58ca354335",
-		Quantity:    10,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
+		CartId:    "12345",
+		ProductId: "006ae268-f2a3-4309-9fd9-ef58ca354335",
+		Quantity:  10,
 	}
 
 	item2 := &models.CartItem{
-		CartId:      "12345",
-		ProductId:   "006ae268-f2a3-4309",
-		Quantity:    10,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
+		CartId:    "12345",
+		ProductId: "006ae268-f2a3-4309",
+		Quantity:  10,
 	}
 
 	tests := []struct {

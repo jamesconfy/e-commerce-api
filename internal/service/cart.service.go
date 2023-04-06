@@ -23,7 +23,6 @@ type cartSrv struct {
 	loggerSrv    LogSrv
 	message      logger.Messages
 	validatorSrv ValidationSrv
-	timeSrv      TimeService
 	repo         repo.CartRepo
 	userRepo     repo.UserRepo
 	productRepo  repo.ProductRepo
@@ -89,8 +88,6 @@ func (ch *cartSrv) AddItem(req *forms.CartItem, productId, userId string) (*mode
 	item.ProductId = productId
 	item.Product = product.Product
 	item.Quantity = req.Quantity
-	item.DateCreated = ch.timeSrv.CurrentTime()
-	item.DateUpdated = ch.timeSrv.CurrentTime()
 
 	result, err := ch.repo.AddItem(&item, userId)
 	if err != nil {
@@ -125,6 +122,6 @@ func (ch *cartSrv) DeleteItem(productId, userId string) *serviceerror.ServiceErr
 	return nil
 }
 
-func NewCartService(repo repo.CartRepo, loggerSrv LogSrv, validatorSrv ValidationSrv, timeSrv TimeService, userRepo repo.UserRepo, productRepo repo.ProductRepo) CartService {
-	return &cartSrv{loggerSrv: loggerSrv, validatorSrv: validatorSrv, timeSrv: timeSrv, repo: repo, userRepo: userRepo, productRepo: productRepo}
+func NewCartService(repo repo.CartRepo, loggerSrv LogSrv, validatorSrv ValidationSrv, userRepo repo.UserRepo, productRepo repo.ProductRepo) CartService {
+	return &cartSrv{loggerSrv: loggerSrv, validatorSrv: validatorSrv, repo: repo, userRepo: userRepo, productRepo: productRepo}
 }

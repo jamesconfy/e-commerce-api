@@ -14,7 +14,6 @@ type ProductRepo interface {
 	Delete(productId string) error
 	AddRating(rating *models.Rating) (*models.Rating, error)
 	GetRating(productId, userId string) (*models.Rating, error)
-	// VerifyRating(userId, productId string) error
 }
 
 type productSql struct {
@@ -22,9 +21,9 @@ type productSql struct {
 }
 
 func (p *productSql) Add(product *models.Product) (*models.Product, error) {
-	query := `INSERT INTO products(id, user_id, name, description, price, date_created, date_updated, image) VALUES ('%[1]v', '%[2]v', '%[3]v', '%[4]v', %[5]v, '%[6]v', '%[7]v', '%[8]v')`
+	query := `INSERT INTO products(id, user_id, name, description, price, image) VALUES ('%[1]v', '%[2]v', '%[3]v', '%[4]v', %[5]v, '%[6]v')`
 
-	stmt := fmt.Sprintf(query, product.Id, product.UserId, product.Name, product.Description, product.Price, product.DateCreated, product.DateUpdated, product.Image)
+	stmt := fmt.Sprintf(query, product.Id, product.UserId, product.Name, product.Description, product.Price, product.Image)
 
 	_, err := p.conn.Exec(stmt)
 	if err != nil {
@@ -86,15 +85,6 @@ func (p *productSql) GetAll(page int) ([]*models.ProductRating, error) {
 		products = append(products, &product)
 	}
 
-	// for _, product := range products {
-	// 	query2 := `SELECT IFNULL(AVG(rating), 0.00) AS rating FROM ratings WHERE product_id = '%[1]v'`
-	// 	stmt2 := fmt.Sprintf(query2, product.ProductId)
-
-	// 	if err := tx.QueryRow(stmt2).Scan(&product.Rating); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
 	return products, nil
 }
 
@@ -134,9 +124,9 @@ func (p *productSql) GetId(productId string) (*models.ProductRating, error) {
 }
 
 func (p *productSql) Edit(product *models.Product) (*models.Product, error) {
-	query := `UPDATE products SET name = '%[1]v', description = '%[2]v', price = %[3]v, date_updated = '%[4]v', image = '%[5]v' WHERE user_id = '%[6]v' AND id = '%[7]v'`
+	query := `UPDATE products SET name = '%[1]v', description = '%[2]v', price = %[3]v, date_updated = CURRENT_TIMESTAMP(), image = '%[4]v' WHERE user_id = '%[5]v' AND id = '%[6]v'`
 
-	stmt := fmt.Sprintf(query, product.Name, product.Description, product.Price, product.DateUpdated, product.Image, product.UserId, product.Id)
+	stmt := fmt.Sprintf(query, product.Name, product.Price, product.Description, product.Image, product.UserId, product.Id)
 
 	_, err := p.conn.Exec(stmt)
 	if err != nil {

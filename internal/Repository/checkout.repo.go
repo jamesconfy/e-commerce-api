@@ -15,18 +15,6 @@ type checkoutSql struct {
 }
 
 func (co *checkoutSql) Add(checkout *models.Checkout) (*models.Checkout, error) {
-	// tx, err := co.conn.Begin()
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// defer func() {
-	// 	if err != nil {
-	// 		tx.Rollback()
-	// 	}
-	// 	tx.Commit()
-	// }()
-
 	query := `INSERT INTO checkout(id, quantity, cart_id, product_id, payment_method, date_created, date_updated, status) VALUES('%v', %v, '%v', '%v', '%v', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), 'ACTIVE')`
 	stmt := fmt.Sprintf(query, checkout.Id, checkout.Quantity, checkout.CartId, checkout.ProductId, checkout.PaymentMethod)
 

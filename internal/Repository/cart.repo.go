@@ -23,9 +23,9 @@ type cartSql struct {
 }
 
 func (c *cartSql) CreateCart(cart *models.Cart) (*models.Cart, error) {
-	query := `INSERT INTO carts(id, user_id, date_created) VALUES ('%[1]v', '%[2]v', '%[3]v')`
+	query := `INSERT INTO carts(id, user_id, date_created) VALUES ('%[1]v', '%[2]v', CURRENT_TIMESTAMP())`
 
-	stmt := fmt.Sprintf(query, cart.Id, cart.UserId, cart.DateCreated)
+	stmt := fmt.Sprintf(query, cart.Id, cart.UserId)
 
 	_, err := c.conn.Exec(stmt)
 	if err != nil {

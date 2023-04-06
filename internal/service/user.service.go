@@ -6,6 +6,7 @@ import (
 	"e-commerce/internal/models"
 	repo "e-commerce/internal/repository"
 	"e-commerce/internal/serviceerror"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -22,13 +23,13 @@ type UserService interface {
 
 type userSrv struct {
 	repo      repo.UserRepo
+	authRepo  repo.AuthRepo
 	cartRepo  repo.CartRepo
 	validator ValidationSrv
 	crypto    CryptoSrv
-	token     TokenSrv
+	token     AuthSrv
 	email     EmailService
 	loggerSrv LogSrv
-	timeSrv   TimeService
 	message   logger.Messages
 }
 
@@ -47,51 +48,52 @@ func (u *userSrv) Create(req *forms.Signup) (*models.UserCart, *serviceerror.Ser
 		return nil, serviceerror.Validating(err)
 	}
 
-	var user models.User
-
-	userId := uuid.New().String()
-	user.Email = req.Email
-	user.FirstName = req.FirstName
-	user.LastName = req.LastName
-	user.Password = req.Password
-	user.PhoneNumber = req.PhoneNumber
-
+	// Check if email already exists in the database
 	if u.repo.ExistsEmail(req.Email) {
 		u.loggerSrv.Error(u.message.CreateUserExists(req.Email))
 		return nil, serviceerror.Conflict("User already exists")
 	}
 
-	password, err := u.crypto.HashPassword(user.Password)
+	// Create a hash of the user password
+	password, err := u.crypto.HashPassword(req.Password)
 	if err != nil {
-		u.loggerSrv.Error(u.message.CreatePasswordError(&user, err))
+		u.loggerSrv.Error(u.message.CreatePasswordError(req, err))
 		return nil, serviceerror.Internal(err)
 	}
 
-	// User
-	user.Id = userId
-	user.Password = password
-	user.DateCreated = u.timeSrv.CurrentTime()
+	// Creating User model
+	var user models.User
 
+	user.Id = uuid.New().String()
+	user.Email = req.Email
+	user.FirstName = req.FirstName
+	user.LastName = req.LastName
+	user.Password = req.Password
+	user.PhoneNumber = req.PhoneNumber
+	user.Password = password
+	user.DateCreated = time.Now().Local()
+
+	// Register user
 	resultUser, err := u.repo.Register(&user)
 	if err != nil {
 		u.loggerSrv.Fatal(u.message.CreateRepoError(&user, err))
 		return nil, serviceerror.NotFoundOrInternal(err)
 	}
 
-	// Cart
+	// Create a Cart for the user
 	var cart models.Cart
 
-	cartId := uuid.New().String()
-	cart.Id = cartId
+	cart.Id = uuid.New().String()
 	cart.UserId = resultUser.Id
-	cart.DateCreated = u.timeSrv.CurrentTime()
 
+	// Add cart to the database
 	resultCart, err := u.cartRepo.CreateCart(&cart)
 	if err != nil {
 		u.loggerSrv.Fatal(u.message.AddCartRepoError(&cart, err))
 		return nil, serviceerror.NotFoundOrInternal(err)
 	}
 
+	// User created successfully return both user and user cart
 	u.loggerSrv.Info(u.message.CreateSuccess(&user))
 	return &models.UserCart{
 		User: resultUser,
@@ -104,41 +106,49 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *serviceerror.ServiceEr
 		return nil, serviceerror.Validating(err)
 	}
 
-	var auth models.Auth
+	// Check if provided email exists in the database
 	if !u.repo.ExistsEmail(req.Email) {
 		u.loggerSrv.Error(u.message.LoginEmailExists(req.Email))
 		return nil, serviceerror.NotFound("User does not exist")
 	}
 
+	// Get user by email
 	user, err := u.repo.GetByEmail(req.Email)
 	if err != nil {
 		u.loggerSrv.Error(u.message.LoginGetError(req))
 		return nil, serviceerror.NotFoundOrInternal(err, "user not found")
 	}
 
+	// Compare provided password and database password
 	ok := u.crypto.ComparePassword(user.Password, req.Password)
 	if !ok {
-		u.loggerSrv.Error(u.message.LoginPasswordError(req, user.Id))
+		// u.loggerSrv.Error(u.message.LoginPasswordError(req, user.Id))
 		return nil, serviceerror.BadRequest("Passwords do not match")
 	}
 
-	auth.User = user
-	auth.UserId = user.Id
-	auth.DateUpdated = u.timeSrv.CurrentTime()
+	// Creating auth models
+	var auth models.Auth
 
-	auth.AccessToken, auth.RefreshToken, err = u.token.CreateToken(user.Id, user.Email)
+	auth.Id = uuid.New().String()
+	auth.UserId = user.Id
+
+	// Create access and refresh token
+	auth.AccessToken, auth.RefreshToken, err = u.token.Create(user.Id, user.Email)
 	if err != nil {
-		u.loggerSrv.Error(u.message.CreateTokenError(user.Id, req.Email))
+		// u.loggerSrv.Error(u.message.CreateTokenError(user.Id, req.Email))
 		return nil, serviceerror.Internal(err, "Error when creating tokens")
 	}
 
-	if err := u.repo.UpdateTokens(&auth); err != nil {
-		u.loggerSrv.Error(u.message.UpdateTokensError(&auth))
-		return nil, serviceerror.Internal(err, "Error when updating users token")
+	// Create/Update auth table
+	resultAuth, err := u.authRepo.Create(&auth)
+	if err != nil {
+		// u.loggerSrv.Error(u.message.CreateTokenRepoError(resultAuth))
+		return nil, serviceerror.Internal(err, "Error when adding/updating user token")
 	}
 
-	u.loggerSrv.Info(u.message.LoginSuccess(&auth))
-	return &auth, nil
+	// User logged in successfully return user recently updated auth
+	// u.loggerSrv.Info(u.message.LoginSuccess(resultAuth))
+	return resultAuth, nil
 }
 
 func (u *userSrv) GetById(userId string) (*models.User, *serviceerror.ServiceError) {
@@ -157,6 +167,6 @@ func (u *userSrv) GetById(userId string) (*models.User, *serviceerror.ServiceErr
 	return user, nil
 }
 
-func NewUserService(repo repo.UserRepo, cartRepo repo.CartRepo, validator ValidationSrv, crypto CryptoSrv, token TokenSrv, email EmailService, logSrv LogSrv, timeSrv TimeService) UserService {
-	return &userSrv{repo: repo, cartRepo: cartRepo, validator: validator, crypto: crypto, token: token, email: email, loggerSrv: logSrv, timeSrv: timeSrv}
+func NewUserService(repo repo.UserRepo, authRepo repo.AuthRepo, cartRepo repo.CartRepo, validator ValidationSrv, crypto CryptoSrv, token AuthSrv, email EmailService, logSrv LogSrv) UserService {
+	return &userSrv{repo: repo, authRepo: authRepo, cartRepo: cartRepo, validator: validator, crypto: crypto, token: token, email: email, loggerSrv: logSrv}
 }

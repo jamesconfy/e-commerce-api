@@ -15,21 +15,24 @@ type Token struct {
 	jwt.RegisteredClaims
 }
 
-type TokenSrv interface {
-	CreateToken(id, email string) (string, string, error)
-	ValidateToken(token string) (*Token, error)
+type AuthSrv interface {
+	Create(id, email string) (string, string, error)
+	Validate(token string) (*Token, error)
 }
 
-type tokenSrv struct {
+type authSrv struct {
 	SecretKey string
 	logSrv    LogSrv
-	repo      repo.TokenRepo
+	repo      repo.AuthRepo
 }
 
-func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
+func (t *authSrv) Create(id, email string) (string, string, error) {
 	tokenDetails := &Token{
+		// User Email
 		Email: email,
-		Id:    id,
+		// User Id
+		Id: id,
+		// Registered Claims
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Local().Add(time.Hour * time.Duration(24))),
 		},
@@ -59,7 +62,7 @@ func (t *tokenSrv) CreateToken(id, email string) (string, string, error) {
 	return token, refreshToken, err
 }
 
-func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
+func (t *authSrv) Validate(tokenUrl string) (*Token, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenUrl,
 		&Token{},
@@ -100,10 +103,14 @@ func (t *tokenSrv) ValidateToken(tokenUrl string) (*Token, error) {
 		return nil, fmt.Errorf("outdated token")
 	}
 
+	if row.ExpiresAt.Before(time.Now().Local()) {
+		return nil, fmt.Errorf("token is expired")
+	}
+
 	// t.logSrv.Info(fmt.Sprintf("Access token validated for UserId: %s with Email: %s and Expires At: %s", claims.Id, claims.Email, claims.ExpiresAt))
 	return claims, err
 }
 
-func NewTokenService(secret string, logSrv LogSrv, tokenRepo repo.TokenRepo) TokenSrv {
-	return &tokenSrv{SecretKey: secret, logSrv: logSrv, repo: tokenRepo}
+func NewAuthService(secret string, logSrv LogSrv, repo repo.AuthRepo) AuthSrv {
+	return &authSrv{SecretKey: secret, logSrv: logSrv, repo: repo}
 }

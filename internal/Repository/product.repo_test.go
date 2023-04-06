@@ -15,8 +15,6 @@ func TestAddProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
 		Image:       "test.png",
 	}
 
@@ -26,9 +24,8 @@ func TestAddProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test.png",
+
+		Image: "test.png",
 	}
 
 	product3 := &models.Product{
@@ -36,9 +33,8 @@ func TestAddProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test.png",
+
+		Image: "test.png",
 	}
 
 	product4 := &models.Product{
@@ -46,9 +42,8 @@ func TestAddProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test.png",
+
+		Image: "test.png",
 	}
 
 	product5 := &models.Product{
@@ -56,19 +51,17 @@ func TestAddProduct(t *testing.T) {
 		UserId:      "4567",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test.png",
+
+		Image: "test.png",
 	}
 
 	product6 := &models.Product{
-		Id:          uuid.New().String(),
-		UserId:      "4567",
-		Name:        "Test Product",
-		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test.png",
+		Id:     uuid.New().String(),
+		UserId: "4567",
+		Name:   "Test Product",
+		Price:  9.99,
+
+		Image: "test.png",
 	}
 
 	product7 := &models.Product{
@@ -76,9 +69,8 @@ func TestAddProduct(t *testing.T) {
 		UserId:      "4567",
 		Name:        "Test Product",
 		Description: "This is a test product.",
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test.png",
+
+		Image: "test.png",
 	}
 
 	product8 := &models.Product{
@@ -87,7 +79,6 @@ func TestAddProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateUpdated: ti.CurrentTime(),
 		Image:       "test.png",
 	}
 
@@ -97,7 +88,6 @@ func TestAddProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
 		Image:       "test.png",
 	}
 
@@ -107,8 +97,6 @@ func TestAddProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
 	}
 
 	product11 := &models.Product{
@@ -117,9 +105,8 @@ func TestAddProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       -9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test.png",
+
+		Image: "test.png",
 	}
 
 	tests := []struct {
@@ -222,9 +209,8 @@ func TestEditProduct(t *testing.T) {
 		Name:        "Test Product 1",
 		Description: "This is a from testedit to test product.",
 		Price:       20.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test1.png",
+
+		Image: "test1.png",
 	}
 
 	product2 := &models.Product{
@@ -233,9 +219,8 @@ func TestEditProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test.png",
+
+		Image: "test.png",
 	}
 
 	product3 := &models.Product{
@@ -243,9 +228,8 @@ func TestEditProduct(t *testing.T) {
 		Name:        "Test Product",
 		Description: "This is a test product.",
 		Price:       9.99,
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
-		Image:       "test.png",
+
+		Image: "test.png",
 	}
 
 	tests := []struct {
@@ -274,41 +258,31 @@ func TestEditProduct(t *testing.T) {
 
 func TestAddRating(t *testing.T) {
 	rating1 := &models.Rating{
-		Value:       4,
-		ProductId:   "006ae268-f2a3-4309-9fd9-ef58ca354335",
-		UserId:      "4567",
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
+		Value:     4,
+		ProductId: "006ae268-f2a3-4309-9fd9-ef58ca354335",
+		UserId:    "4567",
 	}
 
 	rating2 := &models.Rating{
-		Value:       6,
-		ProductId:   "006ae268-f2a3-4309-9fd9-ef58ca354335",
-		UserId:      "4567",
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
+		Value:     6,
+		ProductId: "006ae268-f2a3-4309-9fd9-ef58ca354335",
+		UserId:    "4567",
 	}
 
 	rating3 := &models.Rating{
-		Value:       -1,
-		ProductId:   "006ae268-f2a3-4309-9fd9-ef58ca354335",
-		UserId:      "4567",
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
+		Value:     -1,
+		ProductId: "006ae268-f2a3-4309-9fd9-ef58ca354335",
+		UserId:    "4567",
 	}
 
 	rating4 := &models.Rating{
-		Value:       0,
-		UserId:      "4567",
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
+		Value:  0,
+		UserId: "4567",
 	}
 
 	rating5 := &models.Rating{
-		Value:       4,
-		ProductId:   "006ae268-f2a3-4309-9fd9-ef58ca354335",
-		DateCreated: ti.CurrentTime(),
-		DateUpdated: ti.CurrentTime(),
+		Value:     4,
+		ProductId: "006ae268-f2a3-4309-9fd9-ef58ca354335",
 	}
 
 	tests := []struct {
