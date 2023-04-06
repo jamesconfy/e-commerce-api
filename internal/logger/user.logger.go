@@ -7,7 +7,7 @@ import (
 )
 
 // Error when creating hashed password for provided password
-func (m Messages) CreatePasswordError(user *models.User, err error) (str string) {
+func (m Messages) CreatePasswordError(user *forms.Signup, err error) (str string) {
 	str = fmt.Sprintf("Error when hashing password || Email: %s || Password: %s || Error: %s", user.Email, user.Password, err)
 	return str
 }
@@ -25,8 +25,8 @@ func (m Messages) CreateRepoError(user *models.User, err error) (str string) {
 }
 
 // Create user success Messages
-func (m Messages) CreateSuccess(user *models.User, accessToken, refreshToken string) (str string) {
-	str = fmt.Sprintf("User created successfully || UserId: %s || Email: %s || Access_Token: %s || Refresh_Token: %s || Date_Created: %s", user.Id, user.Email, accessToken, refreshToken, user.DateCreated)
+func (m Messages) CreateSuccess(user *models.User) (str string) {
+	str = fmt.Sprintf("User created successfully || UserId: %s || Email: %s || Date_Created: %s", user.Id, user.Email, user.DateCreated)
 	return
 }
 
@@ -48,7 +48,7 @@ func (m Messages) LoginPasswordError(req *forms.Login, userId string) (str strin
 	return str
 }
 
-func (m Messages) UpdateTokensError(auth *models.Auth) (str string) {
+func (m Messages) CreateTokenRepoError(auth *models.Auth) (str string) {
 	str = fmt.Sprintf("Error when trying to update users access and refresh token || UserId: %s || AccessToken: %s || RefreshToken: %s || DateUpdated: %s", auth.UserId, auth.AccessToken, auth.RefreshToken, auth.DateUpdated)
 	return
 }
@@ -61,7 +61,7 @@ func (m Messages) CreateTokenError(userId, email string) (str string) {
 
 // Login user success Messages
 func (m Messages) LoginSuccess(auth *models.Auth) (str string) {
-	str = fmt.Sprintf("User logged in successfully || UserId: %s || Email: %s || Access_Token: %s || Refresh_Token: %s || Date_Created: %s", auth.UserId, auth.User.Email, auth.AccessToken, auth.RefreshToken, auth.DateUpdated)
+	str = fmt.Sprintf("User logged in successfully || UserId: %s || Access_Token: %s || Refresh_Token: %s || Date_Created: %s || DateUpdated: %v || ExpiresAt: %v", auth.UserId, auth.AccessToken, auth.RefreshToken, auth.DateUpdated, auth.DateUpdated, auth.ExpiresAt)
 	return
 }
 

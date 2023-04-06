@@ -1,7 +1,7 @@
 package response
 
 import (
-	se "e-commerce/internal/serviceerror"
+	se "e-commerce/internal/se"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -31,7 +31,6 @@ func Success(c *gin.Context, message string, data any, extra ...any) {
 		ResponseCode: http.StatusOK,
 		Message:      message,
 		Data:         data,
-		Extra:        extra,
 	}
 
 	c.JSON(http.StatusOK, msg)
@@ -43,7 +42,6 @@ func Success201(c *gin.Context, message string, data any, extra ...any) {
 		ResponseCode: http.StatusCreated,
 		Message:      message,
 		Data:         data,
-		Extra:        extra,
 	}
 
 	c.JSON(http.StatusOK, msg)
@@ -55,7 +53,6 @@ func Success202(c *gin.Context, message string) {
 		ResponseCode: http.StatusAccepted,
 		Message:      message,
 		Data:         nil,
-		Extra:        nil,
 	}
 
 	c.JSON(http.StatusOK, msg)

@@ -3,16 +3,16 @@ package repo
 import (
 	"database/sql"
 	"e-commerce/internal/models"
-	"fmt"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type UserRepo interface {
 	ExistsEmail(email string) bool
 	ExistsId(userId string) bool
-	Register(user *models.UserCart, accessToken, refreshToken string) (*models.User, error)
+	Register(user *models.User) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	GetById(userId string) (*models.User, error)
-	UpdateTokens(auth *models.Auth) error
 	// CreateToken(token *userModels.ResetPasswordRes) error
 	// ValidateToken(userId, tokenId string) (*userModels.ValidateTokenRes, error)
 	// ChangePassword(userId, newPassword string) error
@@ -25,9 +25,9 @@ type userSql struct {
 func (u *userSql) ExistsEmail(email string) bool {
 	var userId string
 
-	stmt := fmt.Sprintf(`SELECT id FROM users WHERE email = '%[1]v'`, email)
+	query := `SELECT id FROM users WHERE email = ?`
 
-	err := u.conn.QueryRow(stmt).Scan(&userId)
+	err := u.conn.QueryRow(query, email).Scan(&userId)
 
 	return err != sql.ErrNoRows
 }
@@ -35,35 +35,32 @@ func (u *userSql) ExistsEmail(email string) bool {
 func (u *userSql) ExistsId(userId string) bool {
 	var email string
 
-	stmt := fmt.Sprintf(`SELECT email FROM users WHERE id = '%[1]v'`, userId)
+	query := `SELECT email FROM users WHERE id = ?`
 
-	err := u.conn.QueryRow(stmt).Scan(&email)
+	err := u.conn.QueryRow(query, userId).Scan(&email)
 
 	return err != sql.ErrNoRows
 }
 
-func (u *userSql) Register(user *models.UserCart, accessToken, refreshToken string) (*models.User, error) {
-	query := `INSERT INTO users(id, first_name, last_name, email, phone_number, password, date_created, access_token, refresh_token) VALUES ('%[1]v', '%[2]v', '%[3]v', '%[4]v', '%[5]v', '%[6]v', '%[7]v', '%[8]v', '%[9]v')`
+func (u *userSql) Register(user *models.User) (*models.User, error) {
+	query := `INSERT INTO users(id, first_name, last_name, email, phone_number, password) 
+				VALUES(?, ?, ?, ?, ?, ?)`
 
-	stmt := fmt.Sprintf(query,
-		user.User.Id, user.User.FirstName, user.User.LastName, user.User.Email, user.User.PhoneNumber, user.User.Password, user.User.DateCreated, accessToken, refreshToken)
-
-	_, err := u.conn.Exec(stmt)
+	_, err := u.conn.Exec(query,
+		user.Id, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	return u.GetById(user.User.Id)
+	return u.GetById(user.Id)
 }
 
 func (u *userSql) GetByEmail(email string) (*models.User, error) {
 	var user models.User
 
-	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE email = '%s'`
+	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE email = ?`
 
-	stmt := fmt.Sprintf(query, email)
-
-	err := u.conn.QueryRow(stmt).Scan(
+	err := u.conn.QueryRow(query, email).Scan(
 		&user.Id,
 		&user.Email,
 		&user.Password,
@@ -83,11 +80,9 @@ func (u *userSql) GetByEmail(email string) (*models.User, error) {
 
 func (u *userSql) GetById(userId string) (*models.User, error) {
 	var user models.User
-	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_created FROM users WHERE id = '%[1]s'`
+	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE id = ?`
 
-	stmt := fmt.Sprintf(query, userId)
-
-	err := u.conn.QueryRow(stmt).Scan(
+	err := u.conn.QueryRow(query, userId).Scan(
 		&user.Id,
 		&user.Email,
 		&user.Password,
@@ -99,26 +94,10 @@ func (u *userSql) GetById(userId string) (*models.User, error) {
 	)
 
 	if err != nil {
-		// if err == sql.ErrNoRows {
-		// 	return &models.User{}, err
-		// }
 		return nil, err
 	}
 
 	return &user, nil
-}
-
-func (u *userSql) UpdateTokens(auth *models.Auth) error {
-	query := `UPDATE users SET access_token = '%[1]v', refresh_token = '%[2]v', date_updated = '%[3]v' WHERE id = '%[4]v'`
-
-	stmt := fmt.Sprintf(query, auth.AccessToken, auth.RefreshToken, auth.DateUpdated, auth.UserId)
-
-	_, err := u.conn.Exec(stmt)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // func (m *userSql) CreateToken(token *userModels.ResetPasswordRes) error {

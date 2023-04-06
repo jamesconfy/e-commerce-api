@@ -5,7 +5,7 @@ import (
 	"e-commerce/internal/service"
 
 	"e-commerce/internal/response"
-	se "e-commerce/internal/serviceerror"
+	se "e-commerce/internal/se"
 
 	"github.com/gin-gonic/gin"
 )

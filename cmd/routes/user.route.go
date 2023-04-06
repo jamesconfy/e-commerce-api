@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UserRoute(router *gin.RouterGroup, userSrv service.UserService, tokenSrv service.TokenSrv) {
+func UserRoute(router *gin.RouterGroup, userSrv service.UserService, tokenSrv service.AuthSrv) {
 	handler := handler.NewUserHandler(userSrv)
 	user := router.Group("/users")
 	{

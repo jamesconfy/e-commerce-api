@@ -7,7 +7,7 @@ import (
 
 // Add to cart repo error
 func (m Messages) AddCartRepoError(cart *models.Cart, err error) (str string) {
-	str = fmt.Sprintf("Error when creating user cart || Id: %v || DateCreated: %v || Error: %v", cart.Id, cart.DateCreated, err)
+	str = fmt.Sprintf("Error when creating user cart || Id: %v || UserId: %v || DateCreated: %v || Error: %v", cart.Id, cart.UserId, cart.DateCreated, err)
 	return
 }
 
