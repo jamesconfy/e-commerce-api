@@ -18,12 +18,12 @@ func generateUser() *models.User {
 	}
 }
 
-func createAndRegisterUser(user *models.User) *models.User {
+func createAndAddUser(user *models.User) *models.User {
 	if user == nil {
 		user = generateUser()
 	}
 
-	user, err := u.Register(user)
+	user, err := u.Add(user)
 	if err != nil {
 		panic(err)
 	}

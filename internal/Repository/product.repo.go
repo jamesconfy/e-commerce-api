@@ -172,11 +172,9 @@ func (p *productSql) GetRating(productId, userId string) (*models.Rating, error)
 	query := `SELECT rating, product_id, user_id, date_created, date_updated 
 			FROM ratings WHERE product_id = ? AND user_id = ?`
 
-	row := p.conn.QueryRow(query, productId, userId)
-
 	var rating models.Rating
 
-	err := row.Scan(&rating.Value, &rating.ProductId, &rating.UserId, &rating.DateCreated, &rating.DateUpdated)
+	err := p.conn.QueryRow(query, productId, userId).Scan(&rating.Value, &rating.ProductId, &rating.UserId, &rating.DateCreated, &rating.DateUpdated)
 	if err != nil {
 		return nil, err
 	}

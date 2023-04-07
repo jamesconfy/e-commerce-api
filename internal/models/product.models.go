@@ -10,5 +10,5 @@ type Product struct {
 	Price       float64   `json:"price"`
 	DateCreated time.Time `json:"date_created"`
 	DateUpdated time.Time `json:"date_updated"`
-	Image       string    `json:"product_image"`
+	Image       string    `json:"image"`
 }

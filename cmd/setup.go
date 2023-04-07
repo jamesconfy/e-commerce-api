@@ -98,6 +98,9 @@ func Setup() {
 	// Cart Repository
 	cartRepo := repo.NewCartRepo(conn)
 
+	// Cart Item Repository
+	cartItemRepo := repo.NewCartItemRepo(conn)
+
 	// Logger Service
 	loggerSrv := service.NewLoggerService()
 
@@ -110,26 +113,30 @@ func Setup() {
 	// Cryptography Service
 	cryptoSrv := service.NewCryptoService()
 
-	// Token Service
-	tokenSrv := service.NewAuthService(secret, loggerSrv, authRepo)
+	// Auth Service
+	authSrv := service.NewAuthService(authRepo, secret, loggerSrv)
 
 	// Home Service
 	homeSrv := service.NewHomeService(loggerSrv)
 
 	// User Service
-	userSrv := service.NewUserService(userRepo, authRepo, cartRepo, validatorSrv, cryptoSrv, tokenSrv, emailSrv, loggerSrv)
+	userSrv := service.NewUserService(userRepo, authRepo, cartRepo, validatorSrv, cryptoSrv, authSrv, emailSrv, loggerSrv)
 
 	// Product Service
 	productSrv := service.NewProductService(productRepo, validatorSrv, loggerSrv)
 
 	// Cart Service
-	cartSrv := service.NewCartService(cartRepo, loggerSrv, validatorSrv, userRepo, productRepo)
+	cartSrv := service.NewCartService(cartRepo, userRepo, productRepo, loggerSrv, validatorSrv)
+
+	// Cart Item Service
+	cartItemSrv := service.NewCartItemService(cartItemRepo, cartRepo, userRepo, productRepo, loggerSrv, validatorSrv)
 
 	// Routes
 	route.HomeRoute(v1, homeSrv)
-	route.UserRoute(v1, userSrv, tokenSrv)
-	route.ProductRoutes(v1, productSrv, tokenSrv)
-	route.CartRoute(v1, cartSrv, tokenSrv)
+	route.UserRoute(v1, userSrv, authSrv)
+	route.ProductRoutes(v1, productSrv, authSrv)
+	route.CartRoute(v1, cartSrv, authSrv)
+	route.CartItemRoute(v1, cartItemSrv, authSrv)
 	route.ErrorRoute(router)
 
 	s := gocron.NewScheduler(time.UTC)

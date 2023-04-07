@@ -15,12 +15,7 @@ func CartRoute(router *gin.RouterGroup, cartSrv service.CartService, tokenSrv se
 
 	cart.Use(auth.CheckJWT())
 	{
-		cart.GET("", handler.GetCart)
-		cart.DELETE("", handler.ClearCart)
-		cart.POST("/items/:productId", handler.AddItem)
-		// cart.PUT("/update", handler.AddItem)
-		cart.GET("/items/:productId", handler.GetItem)
-		// cart.PATCH("/:itemId", handler)
-		cart.DELETE("/items/:productId", handler.DeleteItem)
+		cart.GET("", handler.Get)
+		cart.DELETE("", handler.Clear)
 	}
 }
