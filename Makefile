@@ -41,4 +41,4 @@ test_handler:
 	cd tests/handler_test && go test -v
 
 add_commit:
-	git add . && git commit -m "$(message)"
+	git add . && git commit -m $(message)
