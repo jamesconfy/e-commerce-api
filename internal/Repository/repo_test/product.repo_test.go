@@ -140,3 +140,32 @@ func TestAddRating(t *testing.T) {
 		})
 	}
 }
+
+func TestGetRating(t *testing.T) {
+	user := createAndAddUser(nil)
+	//	_ = createAndAddCart(user)
+
+	product := createAndAddProduct(nil)
+
+	_ = createAndAddRating(nil, product, user)
+
+	tests := []struct {
+		name      string
+		userId    string
+		productId string
+		wantErr   bool
+	}{
+		// TODO: Add test cases.
+		{name: "Test with correct rating", userId: user.Id, productId: product.Id, wantErr: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := p.GetRating(tt.productId, tt.userId)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("productSql.GetRating() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

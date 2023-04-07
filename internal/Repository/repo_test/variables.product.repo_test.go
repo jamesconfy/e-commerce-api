@@ -11,7 +11,7 @@ import (
 
 func generateProduct(user *models.User) *models.Product {
 	if user == nil {
-		user = createAndRegisterUser(nil)
+		user = createAndAddUser(nil)
 	}
 
 	return &models.Product{
@@ -62,7 +62,7 @@ func generateRating(rating []int, product *models.Product, user *models.User) *m
 	}
 
 	if user == nil {
-		user = createAndRegisterUser(nil)
+		user = createAndAddUser(nil)
 	}
 
 	if product == nil {
@@ -74,4 +74,15 @@ func generateRating(rating []int, product *models.Product, user *models.User) *m
 		ProductId: product.Id,
 		UserId:    user.Id,
 	}
+}
+
+func createAndAddRating(value []int, product *models.Product, user *models.User) *models.Rating {
+	rating := generateRating(value, product, user)
+
+	rating, err := p.AddRating(rating)
+	if err != nil {
+		panic(err)
+	}
+
+	return rating
 }

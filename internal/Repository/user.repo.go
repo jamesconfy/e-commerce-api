@@ -10,7 +10,7 @@ import (
 type UserRepo interface {
 	ExistsEmail(email string) bool
 	ExistsId(userId string) bool
-	Register(user *models.User) (*models.User, error)
+	Add(user *models.User) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	GetById(userId string) (*models.User, error)
 	// CreateToken(token *userModels.ResetPasswordRes) error
@@ -42,7 +42,7 @@ func (u *userSql) ExistsId(userId string) bool {
 	return err != sql.ErrNoRows
 }
 
-func (u *userSql) Register(user *models.User) (*models.User, error) {
+func (u *userSql) Add(user *models.User) (*models.User, error) {
 	query := `INSERT INTO users(id, first_name, last_name, email, phone_number, password) 
 				VALUES(?, ?, ?, ?, ?, ?)`
 

@@ -21,9 +21,9 @@ type AuthSrv interface {
 }
 
 type authSrv struct {
+	authRepo  repo.AuthRepo
 	SecretKey string
 	logSrv    LogSrv
-	repo      repo.AuthRepo
 }
 
 func (t *authSrv) Create(id, email string) (string, string, error) {
@@ -92,7 +92,7 @@ func (t *authSrv) Validate(tokenUrl string) (*Token, error) {
 		return nil, fmt.Errorf("expired token, please login again || expired time: %s", claims.ExpiresAt.Time)
 	}
 
-	row, err := t.repo.Confirm(claims.Id)
+	row, err := t.authRepo.Get(claims.Id)
 	if err != nil {
 		// t.logSrv.Fatal(fmt.Sprintf("Internal server error, when trying to get token associated with user || UserId: %s", claims.Id))
 		return nil, err
@@ -111,6 +111,6 @@ func (t *authSrv) Validate(tokenUrl string) (*Token, error) {
 	return claims, err
 }
 
-func NewAuthService(secret string, logSrv LogSrv, repo repo.AuthRepo) AuthSrv {
-	return &authSrv{SecretKey: secret, logSrv: logSrv, repo: repo}
+func NewAuthService(repo repo.AuthRepo, secret string, logSrv LogSrv) AuthSrv {
+	return &authSrv{authRepo: repo, SecretKey: secret, logSrv: logSrv}
 }

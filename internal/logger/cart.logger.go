@@ -19,7 +19,7 @@ func (m Messages) GetCartRepoErrror(userId string, err error) (str string) {
 
 // Get cart success message
 func (m Messages) GetCartSuccess(items *models.Cart) (str string) {
-	str = fmt.Sprintf("Cart gotten successfully || Id: %v || DateCreated: %v || DateUpdated: %v || Total: %v", items.Id, items.DateCreated, items.DateUpdated, items.TotalPrice)
+	str = fmt.Sprintf("Cart gotten successfully || Id: %v || DateCreated: %v || DateUpdated: %v", items.Id, items.DateCreated, items.DateUpdated)
 	return
 }
 
@@ -48,8 +48,8 @@ func (m Messages) AddItemRepoError(productId, userId string, err error) (str str
 }
 
 // Add item to cart success message
-func (m Messages) AddItemSuccess(item *models.CartItem) (str string) {
-	str = fmt.Sprintf("Item successfully added to cart || CartId: %v || ProductId: %v || Quantity: %v || DateCreated: %v || DateUpdated: %v", item.CartId, item.ProductId, item.Quantity, item.DateCreated, item.DateUpdated)
+func (m Messages) AddItemSuccess(item *models.Item) (str string) {
+	str = fmt.Sprintf("Item successfully added to cart || ProductId: %v || Quantity: %v || DateCreated: %v || DateUpdated: %v", item.ProductId, item.Quantity, item.DateCreated, item.DateUpdated)
 	return
 }
 
@@ -60,8 +60,8 @@ func (m Messages) GetItemRepoError(productId, userId string, err error) (str str
 }
 
 // Get item success message
-func (m Messages) GetItemSuccess(item *models.CartItem) (str string) {
-	str = fmt.Sprintf("Item gotten successfully || CartId: %v || ProductId: %v || DateCreated: %v || DateUpdated: %v", item.CartId, item.ProductId, item.DateCreated, item.DateUpdated)
+func (m Messages) GetItemSuccess(item *models.Item) (str string) {
+	str = fmt.Sprintf("Item gotten successfully || ProductId: %v || DateCreated: %v || DateUpdated: %v", item.ProductId, item.DateCreated, item.DateUpdated)
 	return
 }
 

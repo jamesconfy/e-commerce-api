@@ -16,11 +16,12 @@ type CheckoutService interface {
 }
 
 type checkoutSrv struct {
-	repo        repo.CheckoutRepo
-	cartRepo    repo.CartRepo
-	loggerSrv   LogSrv
-	validateSrv ValidationSrv
-	message     logger.Messages
+	checkoutRepo repo.CheckoutRepo
+	cartRepo     repo.CartRepo
+	cartItemRepo repo.CartItemRepo
+	loggerSrv    LogSrv
+	validateSrv  ValidationSrv
+	message      logger.Messages
 }
 
 func (co *checkoutSrv) Validate(req any) error {
@@ -37,34 +38,39 @@ func (co *checkoutSrv) Add(req *forms.Checkout, userId string) (*models.Checkout
 		return nil, se.Validating(err)
 	}
 
-	carts, err := co.cartRepo.GetCart(userId)
+	cart, err := co.cartRepo.Get(userId)
 	if err != nil {
 		return nil, se.NotFoundOrInternal(err)
 	}
 
-	defer co.addToDatabase(carts, req)
+	cartItems, err := co.cartItemRepo.GetItems(cart)
+	if err != nil {
+		return nil, se.NotFoundOrInternal(err)
+	}
+
+	defer co.addToDatabase(cartItems, req)
 
 	return nil, nil
 }
 
-func NewCheckoutService(repo repo.CheckoutRepo, cartRepo repo.CartRepo, loggerSrv LogSrv, validateSrv ValidationSrv) CheckoutService {
-	return &checkoutSrv{repo: repo, cartRepo: cartRepo, loggerSrv: loggerSrv, validateSrv: validateSrv}
+func NewCheckoutService(checkoutRepo repo.CheckoutRepo, cartRepo repo.CartRepo, cartItemRepo repo.CartItemRepo, loggerSrv LogSrv, validateSrv ValidationSrv) CheckoutService {
+	return &checkoutSrv{checkoutRepo: checkoutRepo, cartRepo: cartRepo, cartItemRepo: cartItemRepo, loggerSrv: loggerSrv, validateSrv: validateSrv}
 }
 
 // Auxillary Function
-func (co *checkoutSrv) addToDatabase(carts *models.Cart, req *forms.Checkout) {
+func (co *checkoutSrv) addToDatabase(carts *models.CartItem, req *forms.Checkout) {
 	for _, item := range carts.Items {
-		go func(item *models.CartItem) {
+		go func(item *models.Item) {
 			var checkout *models.Checkout
 
 			checkout.Mutex.Lock()
 			checkout.Id = uuid.New().String()
-			checkout.CartId = item.CartId
+			checkout.CartId = carts.CartId
 			checkout.Quantity = item.Quantity
 			checkout.ProductId = item.ProductId
 			checkout.PaymentMethod = req.PaymentMethod
 
-			result, err := co.repo.Add(checkout)
+			result, err := co.checkoutRepo.Add(checkout)
 			if err != nil {
 				co.loggerSrv.Warning(fmt.Sprintf("Error when adding product to database || Id: %v || CartId: %v || ProductId: %v || Error: %v", checkout.Id, checkout.CartId, checkout.ProductId, err))
 			}

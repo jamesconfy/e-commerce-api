@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestCreateCart(t *testing.T) {
+func TestAddCart(t *testing.T) {
 	cart1 := generateCart(nil)
 
 	tests := []struct {
@@ -19,7 +19,7 @@ func TestCreateCart(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := c.CreateCart(tt.cart)
+			_, err := c.Add(tt.cart)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("cartSql.CreateCart() error = %v, wantErr %v", err, tt.wantErr)
@@ -41,7 +41,7 @@ func TestGetCart(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := c.GetCart(tt.userId)
+			_, err := c.Get(tt.userId)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("cartSql.GetCart() error = %v, wantErr %v", err, tt.wantErr)
@@ -50,49 +50,27 @@ func TestGetCart(t *testing.T) {
 	}
 }
 
-func TestAddToCart(t *testing.T) {
-	item := generateItem(nil, nil)
+func TestClearCart(t *testing.T) {
+	user := createAndAddUser(nil)
+	cart := createAndAddCart(user)
+
+	for i := 0; i < 10; i++ {
+		product := createAndAddProduct(nil)
+		_ = createAndAddItem(cart, product)
+	}
 
 	tests := []struct {
 		name    string
-		item    *models.CartItem
-		userId  string
+		user    *models.User
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{name: "Test with correct details", item: item, wantErr: true},
+		{name: "Test with correct details", user: user, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := c.AddItem(tt.item, tt.userId)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("cartSql.AddItem() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestGetItem(t *testing.T) {
-	user := createAndRegisterUser(nil)
-	product := createAndAddProduct(nil)
-	_ = createAndAddItem(user, product)
-	// fmt.Println(item)
-
-	tests := []struct {
-		name      string
-		productId string
-		cartId    string
-		wantErr   bool
-	}{
-		// TODO: Add test cases.
-		{name: "Test with correct details", productId: product.Id, cartId: user.Id, wantErr: false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := c.GetItem(tt.productId, tt.cartId)
-
-			if (err != nil) != tt.wantErr {
-				t.Errorf("cartSql.GetItem() error = %v, wantErr %v", err, tt.wantErr)
+			if err := c.Clear(tt.user.Id); (err != nil) != tt.wantErr {
+				t.Errorf("cartSql.ClearCart() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

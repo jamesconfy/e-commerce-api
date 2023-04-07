@@ -19,7 +19,7 @@ func TestAddUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := u.Register(tt.user)
+			_, err := u.Add(tt.user)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("userSql.Register() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -28,7 +28,7 @@ func TestAddUser(t *testing.T) {
 }
 
 func TestEmailExists(t *testing.T) {
-	user := createAndRegisterUser(nil)
+	user := createAndAddUser(nil)
 
 	tests := []struct {
 		name  string
@@ -49,7 +49,7 @@ func TestEmailExists(t *testing.T) {
 }
 
 func TestIdExists(t *testing.T) {
-	user := createAndRegisterUser(nil)
+	user := createAndAddUser(nil)
 
 	tests := []struct {
 		name string
@@ -70,7 +70,7 @@ func TestIdExists(t *testing.T) {
 }
 
 func TestGetByEmail(t *testing.T) {
-	user := createAndRegisterUser(nil)
+	user := createAndAddUser(nil)
 
 	tests := []struct {
 		name  string
@@ -91,7 +91,7 @@ func TestGetByEmail(t *testing.T) {
 }
 
 func TestGetById(t *testing.T) {
-	user := createAndRegisterUser(nil)
+	user := createAndAddUser(nil)
 
 	tests := []struct {
 		name string
