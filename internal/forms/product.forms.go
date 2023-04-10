@@ -8,8 +8,8 @@ type Product struct {
 }
 
 type EditProduct struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
+	Name        string  `json:"name" validate:"omitempty,min=1"`
+	Description string  `json:"description" validate:"omitempty,min=10"`
+	Price       float64 `json:"price" validate:"omitempty,min=0.1"`
 	Image       string  `json:"image"`
 }

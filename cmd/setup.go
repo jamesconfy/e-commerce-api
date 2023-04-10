@@ -102,7 +102,7 @@ func Setup() {
 	cartItemRepo := repo.NewCartItemRepo(conn)
 
 	// Logger Service
-	loggerSrv := service.NewLoggerService()
+	loggerSrv := service.NewLoggerService("")
 
 	// Email Service
 	emailSrv := service.NewEmailService("email", "passwd", "host", "port")

@@ -41,7 +41,7 @@ func (l logSrv) Fatal(message string) {
 	l.logger.Log(log.FatalLevel, getSource(), fmt.Sprintf(" %s", message))
 }
 
-func NewLoggerService() LogSrv {
+func NewLoggerService(fileName string) LogSrv {
 	logger := log.New()
 	// Log as JSON instead of the default ASCII formatter.
 	log.SetFormatter(&log.JSONFormatter{})
@@ -49,7 +49,10 @@ func NewLoggerService() LogSrv {
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	// log.SetOutput(os.Stdout)
-	file, err := os.OpenFile("./logs/logrus.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if fileName == "" {
+		fileName = "./logs/logrus.log"
+	}
+	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err == nil {
 		logger.Out = file
 	} else {

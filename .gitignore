@@ -8,3 +8,4 @@ __debug_bin
 logs/*
 *init*
 *mig*
+*test.log
