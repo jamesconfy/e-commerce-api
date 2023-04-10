@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ProductRoutes(v1 *gin.RouterGroup, productSrv service.ProductService, tokenSrv service.AuthSrv) {
+func ProductRoutes(v1 *gin.RouterGroup, productSrv service.ProductService, tokenSrv service.AuthService) {
 	handler := handler.NewProductHandler(productSrv)
 	auth := middleware.Authentication(tokenSrv)
 

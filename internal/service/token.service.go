@@ -15,7 +15,7 @@ type Token struct {
 	jwt.RegisteredClaims
 }
 
-type AuthSrv interface {
+type AuthService interface {
 	Create(id, email string) (string, string, error)
 	Validate(token string) (*Token, error)
 }
@@ -111,6 +111,6 @@ func (t *authSrv) Validate(tokenUrl string) (*Token, error) {
 	return claims, err
 }
 
-func NewAuthService(repo repo.AuthRepo, secret string, logSrv LogSrv) AuthSrv {
+func NewAuthService(repo repo.AuthRepo, secret string, logSrv LogSrv) AuthService {
 	return &authSrv{authRepo: repo, SecretKey: secret, logSrv: logSrv}
 }

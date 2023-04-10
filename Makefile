@@ -37,8 +37,5 @@ test_repo:
 test_service:
 	cd tests/service_test && go test -v
 
-test_handler:
-	cd tests/handler_test && go test -v
-
 add_commit:
 	git add . && git commit -m "$(message)"

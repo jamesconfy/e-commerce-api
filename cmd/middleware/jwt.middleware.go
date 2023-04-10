@@ -10,7 +10,7 @@ import (
 )
 
 type jwtMiddleWare struct {
-	tokenSrv service.AuthSrv
+	tokenSrv service.AuthService
 }
 
 func (j *jwtMiddleWare) CheckJWT() gin.HandlerFunc {
@@ -34,6 +34,6 @@ func (j *jwtMiddleWare) CheckJWT() gin.HandlerFunc {
 	}
 }
 
-func Authentication(tokenSrv service.AuthSrv) *jwtMiddleWare {
+func Authentication(tokenSrv service.AuthService) *jwtMiddleWare {
 	return &jwtMiddleWare{tokenSrv: tokenSrv}
 }

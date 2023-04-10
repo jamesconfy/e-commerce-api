@@ -48,7 +48,7 @@ func (u *userHandler) Create(c *gin.Context) {
 	// 	return
 	// }
 
-	user, err := u.userSrv.Create(&req)
+	user, err := u.userSrv.Add(&req)
 	if err != nil {
 		response.Error(c, *err)
 		return

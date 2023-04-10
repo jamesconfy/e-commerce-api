@@ -6,5 +6,5 @@ fly.toml
 __debug_bin
 .DS_Store
 logs/*
-*init.repo_test.go
+*init*
 *mig*

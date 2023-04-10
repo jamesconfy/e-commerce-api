@@ -13,7 +13,7 @@ import (
 
 type UserService interface {
 	Validate(req any) error
-	Create(req *forms.Signup) (*models.UserCart, *se.ServiceError)
+	Add(req *forms.Signup) (*models.UserCart, *se.ServiceError)
 	Login(req *forms.Login) (*models.Auth, *se.ServiceError)
 	GetById(userId string) (*models.User, *se.ServiceError)
 	//ResetPassword(req *models.PasswordReset) (*userModels.ResetPasswordRes, *serviceerror.ServiceError)
@@ -26,9 +26,9 @@ type userSrv struct {
 	authRepo  repo.AuthRepo
 	cartRepo  repo.CartRepo
 	validator ValidationSrv
-	crypto    CryptoSrv
-	token     AuthSrv
-	email     EmailService
+	cryptoSrv CryptoSrv
+	authSrv   AuthService
+	emailSrv  EmailService
 	loggerSrv LogSrv
 	message   logger.Messages
 }
@@ -43,7 +43,7 @@ func (u *userSrv) Validate(req any) error {
 	return nil
 }
 
-func (u *userSrv) Create(req *forms.Signup) (*models.UserCart, *se.ServiceError) {
+func (u *userSrv) Add(req *forms.Signup) (*models.UserCart, *se.ServiceError) {
 	if err := u.Validate(req); err != nil {
 		return nil, se.Validating(err)
 	}
@@ -55,7 +55,7 @@ func (u *userSrv) Create(req *forms.Signup) (*models.UserCart, *se.ServiceError)
 	}
 
 	// Create a hash of the user password
-	password, err := u.crypto.HashPassword(req.Password)
+	password, err := u.cryptoSrv.HashPassword(req.Password)
 	if err != nil {
 		u.loggerSrv.Error(u.message.CreatePasswordError(req, err))
 		return nil, se.Internal(err)
@@ -120,7 +120,7 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 	}
 
 	// Compare provided password and database password
-	ok := u.crypto.ComparePassword(user.Password, req.Password)
+	ok := u.cryptoSrv.ComparePassword(user.Password, req.Password)
 	if !ok {
 		// u.loggerSrv.Error(u.message.LoginPasswordError(req, user.Id))
 		return nil, se.BadRequest("Passwords do not match")
@@ -133,7 +133,7 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 	auth.UserId = user.Id
 
 	// Create access and refresh token
-	auth.AccessToken, auth.RefreshToken, err = u.token.Create(user.Id, user.Email)
+	auth.AccessToken, auth.RefreshToken, err = u.authSrv.Create(user.Id, user.Email)
 	if err != nil {
 		// u.loggerSrv.Error(u.message.CreateTokenError(user.Id, req.Email))
 		return nil, se.Internal(err, "Error when creating tokens")
@@ -163,10 +163,10 @@ func (u *userSrv) GetById(userId string) (*models.User, *se.ServiceError) {
 		return nil, se.NotFoundOrInternal(err, "user not found")
 	}
 
-	u.loggerSrv.Error(u.message.GetFetchUserSuccess(user))
+	u.loggerSrv.Info(u.message.GetFetchUserSuccess(user))
 	return user, nil
 }
 
-func NewUserService(repo repo.UserRepo, authRepo repo.AuthRepo, cartRepo repo.CartRepo, validator ValidationSrv, crypto CryptoSrv, token AuthSrv, email EmailService, logSrv LogSrv) UserService {
-	return &userSrv{userRepo: repo, authRepo: authRepo, cartRepo: cartRepo, validator: validator, crypto: crypto, token: token, email: email, loggerSrv: logSrv}
+func NewUserService(repo repo.UserRepo, authRepo repo.AuthRepo, cartRepo repo.CartRepo, validator ValidationSrv, crypto CryptoSrv, authSrv AuthService, email EmailService, logSrv LogSrv) UserService {
+	return &userSrv{userRepo: repo, authRepo: authRepo, cartRepo: cartRepo, validator: validator, cryptoSrv: crypto, authSrv: authSrv, emailSrv: email, loggerSrv: logSrv}
 }

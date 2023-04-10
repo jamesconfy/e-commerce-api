@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CartItemRoute(router *gin.RouterGroup, cartItemSrv service.CartItemService, tokenSrv service.AuthSrv) {
+func CartItemRoute(router *gin.RouterGroup, cartItemSrv service.CartItemService, tokenSrv service.AuthService) {
 	handler := handler.NewCartItemHandler(cartItemSrv)
 	auth := middleware.Authentication(tokenSrv)
 	item := router.Group("items")
