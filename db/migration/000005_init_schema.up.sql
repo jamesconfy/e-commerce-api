@@ -3,7 +3,6 @@ USE e_commerce_api;
 CREATE TABLE IF NOT EXISTS `carts` (
     `id` VARCHAR(250) NOT NULL UNIQUE,
     `user_id` VARCHAR(250) NULL UNIQUE,
-    `total_price` FLOAT NOT NULL DEFAULT 0,
     `date_created` TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     `date_updated` TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
 
