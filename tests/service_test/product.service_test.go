@@ -3,6 +3,7 @@ package service_test
 import (
 	"e-commerce/internal/forms"
 	"e-commerce/internal/models"
+	"fmt"
 	"testing"
 )
 
@@ -140,7 +141,6 @@ func TestRateProduct(t *testing.T) {
 	user2 := createAndRegisterUser(nil)
 	// Create and add product
 	product := createAndAddProduct(nil, user2)
-	rating := generateRating()
 
 	tests := []struct {
 		name    string
@@ -150,11 +150,12 @@ func TestRateProduct(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{name: "Test with different user that created the product", product: product, user: user1, rating: rating, wantErr: false},
-		{name: "Test with same user that created the product", product: product, user: user2, rating: rating, wantErr: true},
+		{name: "Test with different user that created the product", product: product, user: user1, rating: generateRating(), wantErr: false},
+		{name: "Test with same user that created the product", product: product, user: user2, rating: generateRating(), wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fmt.Println("Value: ", tt.rating.Value)
 			_, err := productSrv.AddRating(tt.rating, tt.product.Id, tt.user.Id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("productSrv.AddRating() error = %v, wantErr %v", err, tt.wantErr)

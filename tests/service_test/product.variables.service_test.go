@@ -13,7 +13,7 @@ func generateProductForm() *forms.Product {
 		Name:        faker.Name(),
 		Description: faker.Sentence(),
 		Image:       faker.DomainName(),
-		Price:       float64(rand.Intn(5000)),
+		Price:       float64(rand.Intn(5000-1) + 1),
 	}
 }
 
@@ -22,7 +22,7 @@ func generateEditProductForm() *forms.EditProduct {
 		Name:        faker.Name(),
 		Description: faker.Sentence(),
 		Image:       faker.DomainName(),
-		Price:       float64(rand.Intn(5000)),
+		Price:       float64(rand.Intn(5000-1) + 1),
 	}
 }
 
