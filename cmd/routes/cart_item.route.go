@@ -11,7 +11,7 @@ import (
 func CartItemRoute(router *gin.RouterGroup, cartItemSrv service.CartItemService, authSrv service.AuthService) {
 	handler := handler.NewCartItemHandler(cartItemSrv)
 	auth := middleware.Authentication(authSrv)
-	item := router.Group("items")
+	item := router.Group("/items")
 
 	item.Use(auth.CheckJWT())
 	{

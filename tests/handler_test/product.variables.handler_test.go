@@ -33,3 +33,9 @@ func createAndAddProduct(user *models.User, product *forms.Product) *models.Prod
 
 	return resultProduct
 }
+
+func generateRatingForm() *forms.Rating {
+	return &forms.Rating{
+		Value: rand.Intn(5-1) + 1,
+	}
+}

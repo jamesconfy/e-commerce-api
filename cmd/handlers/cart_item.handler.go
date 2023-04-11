@@ -66,7 +66,7 @@ func (ci *cartItemHandler) Get(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "Item fetched successfully", item)
+	response.Success(c, "Item gotten successfully", item)
 }
 
 func (ci *cartItemHandler) Delete(c *gin.Context) {
@@ -84,7 +84,7 @@ func (ci *cartItemHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	response.Success202(c, "Product deleted successfully")
+	response.Success202(c, "Item deleted successfully")
 }
 
 func NewCartItemHandler(cartItemSrv service.CartItemService) CartItemHanlder {

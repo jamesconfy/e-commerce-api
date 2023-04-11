@@ -1,4 +1,4 @@
-package service_test
+package handler_test
 
 import (
 	"e-commerce/internal/forms"
@@ -6,10 +6,14 @@ import (
 	"math/rand"
 )
 
-func generateCartItem(productId string) *forms.CartItem {
+func generateCartItem(product *models.Product) *forms.CartItem {
+	if product == nil {
+		product = createAndAddProduct(nil, nil)
+	}
+
 	return &forms.CartItem{
-		ProductId: productId,
-		Quantity:  rand.Intn(100-1) + 1,
+		ProductId: product.Id,
+		Quantity:  rand.Intn(1000-1) + 1,
 	}
 }
 
@@ -22,7 +26,7 @@ func createAndAddItem(user *models.User, product *models.Product) *models.Item {
 		product = createAndAddProduct(nil, nil)
 	}
 
-	cartItem := generateCartItem(product.Id)
+	cartItem := generateCartItem(product)
 
 	item, err := cartItemSrv.Add(cartItem, user.Id)
 	if err != nil {
