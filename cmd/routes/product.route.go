@@ -15,7 +15,7 @@ func ProductRoutes(v1 *gin.RouterGroup, productSrv service.ProductService, authS
 	product := v1.Group("/products")
 	product.Use(auth.CheckJWT())
 	{
-		product.POST("/", handler.Add)
+		product.POST("", handler.Add)
 		product.GET("/:product_id", handler.Get)
 		product.PATCH("/:product_id", handler.Edit)
 		product.DELETE("/:product_id", handler.Delete)
@@ -24,6 +24,6 @@ func ProductRoutes(v1 *gin.RouterGroup, productSrv service.ProductService, authS
 
 	product1 := v1.Group("/products")
 	{
-		product1.GET("/", handler.GetAll)
+		product1.GET("", handler.GetAll)
 	}
 }

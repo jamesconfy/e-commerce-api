@@ -16,6 +16,7 @@ type UserService interface {
 	Add(req *forms.Signup) (*models.UserCart, *se.ServiceError)
 	Login(req *forms.Login) (*models.Auth, *se.ServiceError)
 	GetById(userId string) (*models.User, *se.ServiceError)
+	DeleteToken(userId string) *se.ServiceError
 	//ResetPassword(req *models.PasswordReset) (*userModels.ResetPasswordRes, *serviceerror.ServiceError)
 	// ValidateToken(userId, token string) (*userModels.ValidateTokenRes, *serviceerror.ServiceError)
 	// ChangePassword(userId string, req *models.ChangePasswordReq) *serviceerror.ServiceError
@@ -165,6 +166,15 @@ func (u *userSrv) GetById(userId string) (*models.User, *se.ServiceError) {
 
 	u.loggerSrv.Info(u.message.GetFetchUserSuccess(user))
 	return user, nil
+}
+
+func (u *userSrv) DeleteToken(userId string) *se.ServiceError {
+	err := u.authRepo.Delete(userId)
+	if err != nil {
+		return se.Internal(err)
+	}
+
+	return nil
 }
 
 func NewUserService(repo repo.UserRepo, authRepo repo.AuthRepo, cartRepo repo.CartRepo, validator ValidationSrv, crypto CryptoSrv, authSrv AuthService, email EmailService, logSrv LogSrv) UserService {

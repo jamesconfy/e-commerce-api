@@ -59,6 +59,15 @@ func (t *authSrv) Create(id, email string) (string, string, error) {
 	}
 
 	// t.logSrv.Info(fmt.Sprintf("Access and Refresh token created for UserId: %s with Email: %s", id, email))
+	// cookie := http.Cookie{
+	// 	Name:     "access_token",
+	// 	Value:    token,
+	// 	HttpOnly: true,
+	// 	Path:     "/",
+	// 	Secure:   false,
+	// }
+
+	// http.SetCookie(*c, cookie)
 	return token, refreshToken, err
 }
 

@@ -15,15 +15,13 @@ type jwtMiddleWare struct {
 
 func (j *jwtMiddleWare) CheckJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, "Invalid Token")
+		authToken := GetAuthorizationHeader(c)
+		if authToken == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization token"})
 			return
 		}
 
-		auth := strings.Split(authHeader, " ")
-
-		token, err := j.tokenSrv.Validate(auth[1])
+		token, err := j.tokenSrv.Validate(authToken)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("invalid Token: %v", err))
 			return
@@ -34,6 +32,25 @@ func (j *jwtMiddleWare) CheckJWT() gin.HandlerFunc {
 	}
 }
 
-func Authentication(tokenSrv service.AuthService) *jwtMiddleWare {
-	return &jwtMiddleWare{tokenSrv: tokenSrv}
+func GetAuthorizationHeader(c *gin.Context) string {
+	if isBrowser(c.Request.UserAgent()) {
+		authtoken, _ := c.Cookie("Authorization")
+		return authtoken
+	}
+
+	authHeader := strings.Replace(c.GetHeader("Authorization"), "Bearer ", "", 1)
+	return authHeader
+}
+
+func isBrowser(userAgent string) bool {
+	switch {
+	case strings.Contains(userAgent, "Mozilla"), strings.Contains(userAgent, "Chrome"), strings.Contains(userAgent, "Postman"), strings.Contains(userAgent, "Edge"), strings.Contains(userAgent, "Trident"):
+		return true
+	default:
+		return false
+	}
+}
+
+func Authentication(authSrv service.AuthService) *jwtMiddleWare {
+	return &jwtMiddleWare{tokenSrv: authSrv}
 }

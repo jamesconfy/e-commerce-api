@@ -25,9 +25,163 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/users": {
+        "/carts/": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get a user's cart details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Get cart route",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessMessage"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Cart"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Clear a user's cart i.e delete all items in the cart",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Clear cart route",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SuccessMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    }
+                }
+            }
+        },
+        "/items": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get all items in a user cart",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Item"
+                ],
+                "summary": "Get items route",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessMessage"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.CartItem"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    }
+                }
+            },
             "post": {
-                "description": "Register route",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Add cart item to user cart",
                 "consumes": [
                     "application/json"
                 ],
@@ -35,17 +189,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Item"
                 ],
-                "summary": "Register route",
+                "summary": "Add cart item route",
                 "parameters": [
                     {
-                        "description": "Signup Details",
+                        "description": "Cart item",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/userModels.CreateUserReq"
+                            "$ref": "#/definitions/forms.CartItem"
                         }
                     }
                 ],
@@ -53,25 +207,210 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/userModels.CreateUserRes"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessMessage"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Item"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/:productId": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get an item in a user cart using product id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Item"
+                ],
+                "summary": "Get item route",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product id",
+                        "name": "productId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessMessage"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Item"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete an item in a user cart using product id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Item"
+                ],
+                "summary": "Delete item route",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product id",
+                        "name": "productId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SuccessMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/:userId": {
+            "get": {
+                "description": "Get user by id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user by id route",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessMessage"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     }
                 }
@@ -87,7 +426,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "User"
                 ],
                 "summary": "Login route",
                 "parameters": [
@@ -97,7 +436,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/userModels.LoginReq"
+                            "$ref": "#/definitions/forms.Login"
                         }
                     }
                 ],
@@ -105,116 +444,48 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/userModels.LoginRes"
+                            "$ref": "#/definitions/response.SuccessMessage"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     }
                 }
             }
         },
-        "/users/reset-password": {
+        "/users/logout": {
             "post": {
-                "description": "Reset password route",
-                "consumes": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Logout user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "User"
                 ],
-                "summary": "Reset password route",
-                "parameters": [
-                    {
-                        "description": "Reset Password Details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/userModels.ResetPasswordReq"
-                        }
-                    }
-                ],
+                "summary": "Logout user route",
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/userModels.ResetPasswordRes"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/reset-password/change-password": {
-            "patch": {
-                "description": "Change password route",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Change password route",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User Id",
-                        "name": "user_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "description": "Reset Password Details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/userModels.ChangePasswordReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Password changed successfully",
+                        "description": "Logged out successfully",
                         "schema": {
                             "type": "string"
                         }
@@ -222,27 +493,27 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     }
                 }
             }
         },
-        "/users/reset-password/validate-token": {
+        "/users/signup": {
             "post": {
-                "description": "Validate token route",
+                "description": "Register route",
                 "consumes": [
                     "application/json"
                 ],
@@ -250,48 +521,43 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "User"
                 ],
-                "summary": "Validate token route",
+                "summary": "Register route",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Token",
-                        "name": "token",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "User Id",
-                        "name": "user_id",
-                        "in": "query",
-                        "required": true
+                        "description": "Signup Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/forms.Signup"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/userModels.ValidateTokenRes"
+                            "$ref": "#/definitions/response.SuccessMessage"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/errorModels.ServiceError"
+                            "$ref": "#/definitions/response.ErrorMessage"
                         }
                     }
                 }
@@ -299,34 +565,38 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "errorModels.ServiceError": {
+        "forms.CartItem": {
             "type": "object",
+            "required": [
+                "quantity"
+            ],
             "properties": {
-                "description": {
+                "product_id": {
                     "type": "string"
                 },
-                "error": {},
-                "time": {
-                    "type": "string"
+                "quantity": {
+                    "type": "integer",
+                    "minimum": 1
                 }
             }
         },
-        "userModels.ChangePasswordReq": {
+        "forms.Login": {
             "type": "object",
             "required": [
-                "confirm_password",
+                "email",
                 "password"
             ],
             "properties": {
-                "confirm_password": {
+                "email": {
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 6
                 }
             }
         },
-        "userModels.CreateUserReq": {
+        "forms.Signup": {
             "type": "object",
             "required": [
                 "email",
@@ -336,9 +606,6 @@ const docTemplate = `{
                 "phone_number"
             ],
             "properties": {
-                "date_created": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 },
@@ -354,16 +621,93 @@ const docTemplate = `{
                 },
                 "phone_number": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Cart": {
+            "type": "object",
+            "properties": {
+                "cart_id": {
+                    "type": "string"
+                },
+                "date_created": {
+                    "type": "string"
+                },
+                "date_updated": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CartItem": {
+            "type": "object",
+            "properties": {
+                "cart": {
+                    "$ref": "#/definitions/models.Cart"
+                },
+                "cart_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Item"
+                    }
+                },
+                "total_price": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.Item": {
+            "type": "object",
+            "properties": {
+                "date_created": {
+                    "type": "string"
+                },
+                "date_updated": {
+                    "type": "string"
+                },
+                "product": {
+                    "$ref": "#/definitions/models.Product"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Product": {
+            "type": "object",
+            "properties": {
+                "date_created": {
+                    "type": "string"
+                },
+                "date_updated": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
                 },
                 "user_id": {
                     "type": "string"
                 }
             }
         },
-        "userModels.CreateUserRes": {
+        "models.User": {
             "type": "object",
             "properties": {
-                "access_token": {
+                "date_created": {
+                    "type": "string"
+                },
+                "date_updated": {
                     "type": "string"
                 },
                 "email": {
@@ -375,7 +719,7 @@ const docTemplate = `{
                 "last_name": {
                     "type": "string"
                 },
-                "refresh_token": {
+                "phone_number": {
                     "type": "string"
                 },
                 "user_id": {
@@ -383,87 +727,39 @@ const docTemplate = `{
                 }
             }
         },
-        "userModels.LoginReq": {
+        "response.ErrorMessage": {
             "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
             "properties": {
-                "email": {
-                    "type": "string"
+                "code": {
+                    "type": "integer",
+                    "example": 400
                 },
-                "password": {
+                "error": {},
+                "message": {
                     "type": "string",
-                    "minLength": 6
+                    "example": "error when fetching"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "failure"
                 }
             }
         },
-        "userModels.LoginRes": {
+        "response.SuccessMessage": {
             "type": "object",
             "properties": {
-                "access_token": {
-                    "type": "string"
+                "code": {
+                    "type": "integer",
+                    "example": 200
                 },
-                "date_created": {
-                    "type": "string"
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "fetched successfully"
                 },
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "refresh_token": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "userModels.ResetPasswordReq": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                }
-            }
-        },
-        "userModels.ResetPasswordRes": {
-            "type": "object",
-            "properties": {
-                "expiry": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "token_id": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "userModels.ValidateTokenRes": {
-            "type": "object",
-            "properties": {
-                "expiry": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "token_id": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
+                "status": {
+                    "type": "string",
+                    "example": "success"
                 }
             }
         }
@@ -480,11 +776,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "benny-foods.fly.dev",
+	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{"http", "https"},
-	Title:            "Benny-Foods",
-	Description:      "Server for https://bennyfoodie.netlify.app/",
+	Title:            "E-Commerce-Api",
+	Description:      "An e-commerce-api.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

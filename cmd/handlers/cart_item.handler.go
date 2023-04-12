@@ -20,6 +20,19 @@ type cartItemHandler struct {
 	cartItemSrv service.CartItemService
 }
 
+// Add Cart Item godoc
+// @Summary	Add cart item route
+// @Description	Add cart item to user cart
+// @Tags	Item
+// @Produce	json
+// @Accept	json
+// @Param	request	body	forms.CartItem	true	"Cart item"
+// @Success	200  {object}	response.SuccessMessage{data=models.Item}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/items [post]
+// @Security ApiKeyAuth
 func (ci *cartItemHandler) Add(c *gin.Context) {
 	var req forms.CartItem
 
@@ -39,6 +52,17 @@ func (ci *cartItemHandler) Add(c *gin.Context) {
 	response.Success(c, "Item added successfully", item)
 }
 
+// Get Items godoc
+// @Summary	Get items route
+// @Description	Get all items in a user cart
+// @Tags	Item
+// @Produce	json
+// @Success	200  {object}	response.SuccessMessage{data=models.CartItem}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/items [get]
+// @Security ApiKeyAuth
 func (ci *cartItemHandler) GetItems(c *gin.Context) {
 	userId := c.GetString("userId")
 
@@ -51,6 +75,18 @@ func (ci *cartItemHandler) GetItems(c *gin.Context) {
 	response.Success(c, "Items gotten successfully", items)
 }
 
+// Get Item godoc
+// @Summary	Get item route
+// @Description	Get an item in a user cart using product id
+// @Tags	Item
+// @Produce	json
+// @Param	productId	path	string	true	"Product id"
+// @Success	200  {object}	response.SuccessMessage{data=models.Item}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/items/:productId [get]
+// @Security ApiKeyAuth
 func (ci *cartItemHandler) Get(c *gin.Context) {
 	productId := c.Param("productId")
 	if productId == "" {
@@ -69,6 +105,18 @@ func (ci *cartItemHandler) Get(c *gin.Context) {
 	response.Success(c, "Item gotten successfully", item)
 }
 
+// Delete Item godoc
+// @Summary	Delete item route
+// @Description	Delete an item in a user cart using product id
+// @Tags	Item
+// @Produce	json
+// @Param	productId	path	string	true	"Product id"
+// @Success	200  {object}	response.SuccessMessage
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/items/:productId [delete]
+// @Security ApiKeyAuth
 func (ci *cartItemHandler) Delete(c *gin.Context) {
 	productId := c.Param("productId")
 	if productId == "" {

@@ -3,9 +3,9 @@ package main
 import "e-commerce/cmd"
 
 func main() {
-	// @title           Benny-Foods
+	// @title           E-Commerce-Api
 	// @version         1.0
-	// @description     Server for https://bennyfoodie.netlify.app/
+	// @description     An e-commerce-api.
 	// @termsOfService  http://swagger.io/terms/
 
 	// @contact.name   Confidence James
@@ -15,7 +15,7 @@ func main() {
 	// @license.name  Apache 2.0
 	// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-	// @host      benny-foods.fly.dev
+	// @host      localhost:8080
 	// @schemes http https
 	// @BasePath  /api/v1
 
