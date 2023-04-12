@@ -103,7 +103,7 @@ func (u *userHandler) GetById(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "User gotten successfully", user, nil)
+	response.Success(c, "User gotten successfully", user, 1)
 }
 
 // Logout User godoc
@@ -125,7 +125,7 @@ func (u *userHandler) Logout(c *gin.Context) {
 	}
 
 	setCookie(c, "", -1)
-	response.Success(c, "Logged out successfully", nil, nil)
+	response.Success201(c, "Logged out successfully", nil)
 }
 
 func NewUserHandler(userSrv service.UserService) UserHandler {

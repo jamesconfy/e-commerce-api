@@ -10,6 +10,20 @@ definitions:
     required:
     - quantity
     type: object
+  forms.EditProduct:
+    properties:
+      description:
+        minLength: 10
+        type: string
+      image:
+        type: string
+      name:
+        minLength: 1
+        type: string
+      price:
+        minimum: 0.1
+        type: number
+    type: object
   forms.Login:
     properties:
       email:
@@ -20,6 +34,31 @@ definitions:
     required:
     - email
     - password
+    type: object
+  forms.Product:
+    properties:
+      description:
+        minLength: 10
+        type: string
+      image:
+        type: string
+      name:
+        minLength: 1
+        type: string
+      price:
+        minimum: 0.1
+        type: number
+    required:
+    - description
+    - name
+    - price
+    type: object
+  forms.Rating:
+    properties:
+      value:
+        maximum: 5
+        minimum: 0
+        type: integer
     type: object
   forms.Signup:
     properties:
@@ -90,6 +129,19 @@ definitions:
         type: number
       user_id:
         type: string
+    type: object
+  models.Rating:
+    properties:
+      date_created:
+        type: string
+      date_updated:
+        type: string
+      product_id:
+        type: string
+      user_id:
+        type: string
+      value:
+        type: integer
     type: object
   models.User:
     properties:
@@ -348,6 +400,238 @@ paths:
       summary: Get item route
       tags:
       - Item
+  /products:
+    get:
+      description: Provide page number to fetch products
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: asc
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessMessage'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Product'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      summary: Get all product route
+      tags:
+      - Product
+    post:
+      consumes:
+      - application/json
+      description: Add a product to the database
+      parameters:
+      - description: Product details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/forms.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessMessage'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Product'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      security:
+      - ApiKeyAuth: []
+      summary: Add product route
+      tags:
+      - Product
+  /products/:productId:
+    delete:
+      description: Delete a product by it's id
+      parameters:
+      - description: Product Id
+        in: path
+        name: productId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product deleted successfully
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete product route
+      tags:
+      - Product
+    get:
+      description: Get a product when provided with the id
+      parameters:
+      - description: Product Id
+        in: path
+        name: productId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessMessage'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Product'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      summary: Get product route
+      tags:
+      - Product
+    patch:
+      description: Edit a product by providing both a request and the product id
+      parameters:
+      - description: Product Id
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Edit product request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/forms.EditProduct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessMessage'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Product'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      security:
+      - ApiKeyAuth: []
+      summary: Edit product route
+      tags:
+      - Product
+  /products/:productId/ratings:
+    post:
+      description: Add a rating to a product
+      parameters:
+      - description: Product Id
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Add rating request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/forms.Rating'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessMessage'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Rating'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      security:
+      - ApiKeyAuth: []
+      summary: Add rating route
+      tags:
+      - Product
   /users/:userId:
     get:
       description: Get user by id

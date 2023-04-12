@@ -23,6 +23,19 @@ type productHanlder struct {
 	productSrv service.ProductService
 }
 
+// Add Product godoc
+// @Summary	Add product route
+// @Description	Add a product to the database
+// @Tags	Product
+// @Accept	json
+// @Produce	json
+// @Param	request	body	forms.Product	true "Product details"
+// @Success	200  {object}  response.SuccessMessage{data=models.Product}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/products [post]
+// @Security ApiKeyAuth
 func (p *productHanlder) Add(c *gin.Context) {
 	var req forms.Product
 
@@ -39,9 +52,20 @@ func (p *productHanlder) Add(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "Product added successfully", product)
+	response.Success(c, "Product added successfully", product, 1)
 }
 
+// Get All Product godoc
+// @Summary	Get all product route
+// @Description	Provide page number to fetch products
+// @Tags	Product
+// @Produce	json
+// @Param	page	query	string	false "Page"
+// @Success	200  {object}  response.SuccessMessage{data=[]models.Product} "asc"
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/products [get]
 func (p *productHanlder) GetAll(c *gin.Context) {
 	page := c.Query("page")
 	if page == "" {
@@ -60,9 +84,20 @@ func (p *productHanlder) GetAll(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "Products fetched successfully", products)
+	response.Success(c, "Products fetched successfully", products, len(products))
 }
 
+// Get Product godoc
+// @Summary	Get product route
+// @Description	Get a product when provided with the id
+// @Tags	Product
+// @Produce	json
+// @Param	productId	path	string	true "Product Id"
+// @Success	200  {object}  response.SuccessMessage{data=models.Product}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/products/:productId [get]
 func (p *productHanlder) Get(c *gin.Context) {
 	productId := c.Param("product_id")
 
@@ -72,9 +107,22 @@ func (p *productHanlder) Get(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "Product fetched successfully", product, nil)
+	response.Success(c, "Product fetched successfully", product, 1)
 }
 
+// Edit Product godoc
+// @Summary	Edit product route
+// @Description	Edit a product by providing both a request and the product id
+// @Tags	Product
+// @Produce	json
+// @Param	productId	path	string	true "Product Id"
+// @Param	request	body	forms.EditProduct	true "Edit product request"
+// @Success	200  {object}  response.SuccessMessage{data=models.Product}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/products/:productId [patch]
+// @Security ApiKeyAuth
 func (p *productHanlder) Edit(c *gin.Context) {
 	var req forms.EditProduct
 
@@ -92,9 +140,21 @@ func (p *productHanlder) Edit(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "Product updated successfully", product, nil)
+	response.Success(c, "Product updated successfully", product, 1)
 }
 
+// Delete Product godoc
+// @Summary	Delete product route
+// @Description	Delete a product by it's id
+// @Tags	Product
+// @Produce	json
+// @Param	productId	path	string	true "Product Id"
+// @Success	200  {string}	string	true	"Product deleted successfully"
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/products/:productId [delete]
+// @Security ApiKeyAuth
 func (p *productHanlder) Delete(c *gin.Context) {
 	productId := c.Param("product_id")
 	userId := c.GetString("userId")
@@ -108,6 +168,19 @@ func (p *productHanlder) Delete(c *gin.Context) {
 	response.Success202(c, "Product deleted successfully")
 }
 
+// Add Rating godoc
+// @Summary	Add rating route
+// @Description	Add a rating to a product
+// @Tags	Product
+// @Produce	json
+// @Param	productId	path	string	true "Product Id"
+// @Param	request	body	forms.Rating	true "Add rating request"
+// @Success	200  {object}  response.SuccessMessage{data=models.Rating}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/products/:productId/ratings [post]
+// @Security ApiKeyAuth
 func (p *productHanlder) AddRating(c *gin.Context) {
 	var req forms.Rating
 
