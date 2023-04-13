@@ -15,6 +15,7 @@ func NewMySQLServer(connStr string) (*mySQLServer, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &mySQLServer{conn: conn}, nil
 }
 

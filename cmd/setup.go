@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -24,12 +23,6 @@ import (
 )
 
 func Setup() {
-	// config, err := utils.LoadConfig("./")
-	// if err != nil {
-	// 	log.Println("Error loading configurations: ", err)
-	// }
-	// utils.MyConfig.ADDR
-
 	addr := utils.AppConfig.ADDR
 	if addr == "" {
 		addr = "8000"
@@ -39,32 +32,11 @@ func Setup() {
 	if dsn == "" {
 		log.Println("DSN cannot be empty")
 	}
-	fmt.Println(dsn)
 
 	secret := utils.AppConfig.SECRET_KEY_TOKEN
 	if secret == "" {
 		log.Println("Please provide a secret key token")
 	}
-
-	// host := utils.AppConfig.HOST
-	// if host == "" {
-	// 	log.Println("Please provide an email host name")
-	// }
-
-	// port := utils.AppConfig.PORT
-	// if port == "" {
-	// 	log.Println("Please provide an email port")
-	// }
-
-	// passwd := utils.AppConfig.PASSWD
-	// if passwd == "" {
-	// 	log.Println("Please provide an email password")
-	// }
-
-	// email := utils.AppConfig.EMAIL
-	// if email == "" {
-	// 	log.Println("Please provide an email address")
-	// }
 
 	connection, err := mysql.NewMySQLServer(dsn)
 	if err != nil {
