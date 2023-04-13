@@ -3,6 +3,7 @@ package handler
 import (
 	"e-commerce/internal/forms"
 	"e-commerce/internal/service"
+	"strconv"
 
 	"e-commerce/internal/response"
 	se "e-commerce/internal/se"
@@ -17,6 +18,7 @@ type UserHandler interface {
 	Login(c *gin.Context)
 	Get(c *gin.Context)
 	GetById(c *gin.Context)
+	GetAll(c *gin.Context)
 	Edit(c *gin.Context)
 	Delete(c *gin.Context)
 	Logout(c *gin.Context)
@@ -104,6 +106,38 @@ func (u *userHandler) Get(c *gin.Context) {
 	}
 
 	response.Success(c, "User gotten successfully", user, 1)
+}
+
+// Get User godoc
+// @Summary	Get user by id route
+// @Description	Get user by id
+// @Tags	User
+// @Produce	json
+// @Param	page	query	int	false	"Page number"
+// @Success	200  {object}  response.SuccessMessage{data=[]models.User}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/users/all [get]
+func (u *userHandler) GetAll(c *gin.Context) {
+	page, _ := c.GetQuery("page")
+	if page == "" {
+		page = "1"
+	}
+
+	pageI, er := strconv.Atoi(page)
+	if er != nil {
+		err := se.Internal(er, "Error when converting string to integer")
+		response.Error(c, *err)
+	}
+
+	users, err := u.userSrv.GetAll(pageI)
+	if err != nil {
+		response.Error(c, *err)
+		return
+	}
+
+	response.Success(c, "Users gotten successfully", users, len(users))
 }
 
 // Get User godoc

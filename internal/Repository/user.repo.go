@@ -17,6 +17,7 @@ type UserRepo interface {
 	Add(user *models.User) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	GetById(userId string) (*models.User, error)
+	GetAll(page int) ([]*models.User, error)
 	Edit(user *models.User, userId string) (*models.User, error)
 	Delete(userId string) error
 }
@@ -111,6 +112,36 @@ func (u *userSql) GetById(userId string) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (u *userSql) GetAll(page int) ([]*models.User, error) {
+	limit := 20
+	offset := limit * (page - 1)
+
+	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated
+			FROM users LIMIT ? OFFSET ?;`
+
+	rows, err := u.conn.Query(query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*models.User
+
+	for rows.Next() {
+		var user models.User
+
+		err := rows.Scan(&user.Id, &user.Email, &user.Password, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.DateCreated, &user.DateUpdated)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, &user)
+	}
+
+	return users, nil
 }
 
 func (u *userSql) Edit(user *models.User, userId string) (*models.User, error) {

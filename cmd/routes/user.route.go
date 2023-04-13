@@ -15,6 +15,7 @@ func UserRoute(router *gin.RouterGroup, userSrv service.UserService, authSrv ser
 		user.POST("/signup", handler.Create)
 		user.POST("/login", handler.Login)
 		user.GET("/:userId", handler.GetById)
+		user.GET("/all", handler.GetAll)
 	}
 
 	user1 := router.Group("/users")

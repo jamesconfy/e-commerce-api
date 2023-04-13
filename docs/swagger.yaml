@@ -668,6 +668,43 @@ paths:
       summary: Get user by id route
       tags:
       - User
+  /users/all:
+    get:
+      description: Get user by id
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessMessage'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.User'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      summary: Get user by id route
+      tags:
+      - User
   /users/login:
     post:
       consumes:

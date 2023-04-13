@@ -16,6 +16,7 @@ type UserService interface {
 	Add(req *forms.Signup) (*models.UserCart, *se.ServiceError)
 	Login(req *forms.Login) (*models.Auth, *se.ServiceError)
 	GetById(userId string) (*models.User, *se.ServiceError)
+	GetAll(pageI int) ([]*models.User, *se.ServiceError)
 	Edit(req *forms.EditUser, userId string) (*models.User, *se.ServiceError)
 	Delete(userId string) *se.ServiceError
 	DeleteToken(userId string) *se.ServiceError
@@ -168,6 +169,15 @@ func (u *userSrv) GetById(userId string) (*models.User, *se.ServiceError) {
 
 	u.loggerSrv.Info(u.message.GetFetchUserSuccess(user))
 	return user, nil
+}
+
+func (u *userSrv) GetAll(pageI int) ([]*models.User, *se.ServiceError) {
+	users, err := u.userRepo.GetAll(pageI)
+	if err != nil {
+		return nil, se.NotFoundOrInternal(err, "Could not fetch users")
+	}
+
+	return users, nil
 }
 
 func (u *userSrv) Edit(req *forms.EditUser, userId string) (*models.User, *se.ServiceError) {
