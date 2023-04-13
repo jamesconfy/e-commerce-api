@@ -10,10 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const defaultCookieName = "Authorization"
+
 type UserHandler interface {
 	Create(c *gin.Context)
 	Login(c *gin.Context)
 	GetById(c *gin.Context)
+	Logout(c *gin.Context)
 	// ResetPassword(c *gin.Context)
 	// ValidateToken(c *gin.Context)
 	// ChangePassword(c *gin.Context)
@@ -26,15 +29,15 @@ type userHandler struct {
 // Register User godoc
 // @Summary	Register route
 // @Description	Register route
-// @Tags	Users
+// @Tags	User
 // @Accept	json
 // @Produce	json
-// @Param	request	body	userModels.CreateUserReq	true "Signup Details"
-// @Success	200  {object}  userModels.CreateUserRes
-// @Failure	400  {object}  errorModels.ServiceError
-// @Failure	404  {object}  errorModels.ServiceError
-// @Failure	500  {object}  errorModels.ServiceError
-// @Router	/users [post]
+// @Param	request	body	forms.Signup	true "Signup Details"
+// @Success	200  {object}  response.SuccessMessage
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/users/signup [post]
 func (u *userHandler) Create(c *gin.Context) {
 	var req forms.Signup
 
@@ -43,12 +46,7 @@ func (u *userHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// if err := u.userSrv.Validate(req); err != nil {
-	// 	response.Error(c, *se.NewValidating(err))
-	// 	return
-	// }
-
-	user, err := u.userSrv.Create(&req)
+	user, err := u.userSrv.Add(&req)
 	if err != nil {
 		response.Error(c, *err)
 		return
@@ -60,14 +58,14 @@ func (u *userHandler) Create(c *gin.Context) {
 // Login User godoc
 // @Summary	Login route
 // @Description	Login route
-// @Tags	Users
+// @Tags	User
 // @Accept	json
 // @Produce	json
-// @Param	request	body	userModels.LoginReq	true "Login Details"
-// @Success	200  {object}  userModels.LoginRes
-// @Failure	400  {object}  errorModels.ServiceError
-// @Failure	404  {object}  errorModels.ServiceError
-// @Failure	500  {object}  errorModels.ServiceError
+// @Param	request	body	forms.Login	true "Login Details"
+// @Success	200  {object}  response.SuccessMessage
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
 // @Router	/users/login [post]
 func (u *userHandler) Login(c *gin.Context) {
 	var req forms.Login
@@ -83,9 +81,21 @@ func (u *userHandler) Login(c *gin.Context) {
 		return
 	}
 
+	setCookie(c, auth.AccessToken, 0)
 	response.Success(c, "User logged in successfully", auth)
 }
 
+// Get User godoc
+// @Summary	Get user by id route
+// @Description	Get user by id
+// @Tags	User
+// @Produce	json
+// @Param	userId	path	string	true	"User id"
+// @Success	200  {object}  response.SuccessMessage{data=models.User}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/users/:userId [get]
 func (u *userHandler) GetById(c *gin.Context) {
 	user, err := u.userSrv.GetById(c.Param("userId"))
 	if err != nil {
@@ -93,86 +103,36 @@ func (u *userHandler) GetById(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "User gotten successfully", user, nil)
+	response.Success(c, "User gotten successfully", user, 1)
 }
 
-// func (h *userHandler) ResetPassword(c *gin.Context) {
-// 	var req userModels.ResetPasswordReq
+// Logout User godoc
+// @Summary	Logout user route
+// @Description	Logout user
+// @Tags	User
+// @Produce	json
+// @Success	200  {string}	string	"Logged out successfully"
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/users/logout [post]
+// @Security ApiKeyAuth
+func (u *userHandler) Logout(c *gin.Context) {
+	userId := c.GetString("userId")
+	err := u.userSrv.DeleteToken(userId)
+	if err != nil {
+		response.Error(c, *err)
+	}
 
-// 	err := c.ShouldBindJSON(&req)
-// 	if err != nil {
-// 		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
-// 		return
-// 	}
-
-// 	token, errP := h.userSrv.ResetPassword(&req)
-// 	if errP != nil {
-// 		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error resetting password", errP, nil))
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Check your email for reset token", token, nil))
-// }
-
-// func (h *userHandler) ValidateToken(c *gin.Context) {
-// 	// err := c.ShouldBindJSON(&req)
-// 	// if err != nil {
-// 	// 	c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err, nil))
-// 	// 	return
-// 	// }
-
-// 	userId := string(c.Query("user_id"))
-// 	if userId == "" {
-// 		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "No user id provided in path", nil, nil))
-// 		return
-// 	}
-
-// 	tokenId := string(c.Query("token"))
-// 	if tokenId == "" {
-// 		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "No token provided in path", nil, nil))
-// 		return
-// 	}
-
-// 	token, errT := h.userSrv.ValidateToken(userId, tokenId) //, tokenId)
-// 	if errT != nil {
-// 		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when validating token", errT, nil))
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Token validated successfully", token, nil))
-// }
-
-// func (h *userHandler) ChangePassword(c *gin.Context) {
-// 	var req userModels.ChangePasswordReq
-
-// 	err := c.ShouldBindJSON(&req)
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Bad input data", err.Error(), nil))
-// 		return
-
-// 	}
-
-// 	userId := string(c.Query("user_id"))
-// 	if userId == "" {
-// 		c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "No user id provided in path", nil, nil))
-// 		return
-// 	}
-
-// 	errT := h.userSrv.ChangePassword(userId, &req) //, tokenId)
-// 	// if errT.Description == "Bad Input Request" {
-// 	// 	c.AbortWithStatusJSON(http.StatusBadRequest, responseModels.BuildErrorResponse(http.StatusBadRequest, "Passwords do not match", errT, nil))
-// 	// 	return
-// 	// }
-
-// 	if errT != nil {
-// 		c.AbortWithStatusJSON(http.StatusInternalServerError, responseModels.BuildErrorResponse(http.StatusInternalServerError, "Error when changing password", errT, nil))
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, responseModels.BuildSuccessResponse(http.StatusOK, "Password changed successfully", nil, nil))
-// }
+	setCookie(c, "", -1)
+	response.Success201(c, "Logged out successfully", nil)
+}
 
 func NewUserHandler(userSrv service.UserService) UserHandler {
 	return &userHandler{userSrv: userSrv}
+}
+
+// Auxillary function
+func setCookie(c *gin.Context, value string, max_age int) {
+	c.SetCookie(defaultCookieName, value, 0, "/", "", false, true)
 }

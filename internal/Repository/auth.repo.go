@@ -8,6 +8,7 @@ import (
 type AuthRepo interface {
 	Add(auth *models.Auth) (*models.Auth, error)
 	Get(userId string) (*models.Auth, error)
+	Delete(userId string) error
 }
 
 type authSql struct {
@@ -39,6 +40,16 @@ func (a *authSql) Get(userId string) (*models.Auth, error) {
 	}
 
 	return &auth, nil
+}
+
+func (a *authSql) Delete(userId string) error {
+	query := `DELETE FROM auth WHERE user_id = ?`
+	_, err := a.conn.Exec(query, userId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewAuthRepo(conn *sql.DB) AuthRepo {

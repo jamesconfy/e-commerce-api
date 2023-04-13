@@ -38,8 +38,8 @@ func (t Type) String() string {
 type ServiceError struct {
 	Time        string `json:"time"`
 	Description string `json:"description"`
-	Error       any    `json:"error"`
-	ErrorType   Type   `json:"type"`
+	Error       any    `json:"error" swaggertype:"string"`
+	ErrorType   Type   `json:"type" swaggertype:"integer"`
 }
 
 func (se *ServiceError) Type() Type {

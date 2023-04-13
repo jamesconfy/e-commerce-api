@@ -14,7 +14,7 @@ goinit:
 	go mod init
 
 swag:
-	swag init
+	swag init --generalInfo e-commerce.go
 
 migrate_init:
 	migrate create -ext sql -dir db/migration -seq init_schema
@@ -32,13 +32,13 @@ deploy:
 	flyctl deploy
 
 test_repo:
-	cd tests/repo_test && go test -v
+	go test ./tests/repo_test -v
 
 test_service:
-	cd tests/service_test && go test -v
+	go test ./tests/service_test -v
 
 test_handler:
-	cd tests/handler_test && go test -v
+	go test ./tests/handler_test -v
 
 add_commit:
 	git add . && git commit -m "$(message)"

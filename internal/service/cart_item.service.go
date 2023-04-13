@@ -6,6 +6,7 @@ import (
 	"e-commerce/internal/models"
 	repo "e-commerce/internal/repository"
 	"e-commerce/internal/se"
+	"fmt"
 )
 
 type CartItemService interface {
@@ -102,11 +103,13 @@ func (ci *cartItemSrv) GetItems(userId string) (*models.CartItem, *se.ServiceErr
 	cart, err := ci.cartRepo.Get(userId)
 	if err != nil {
 		// ci.loggerSrv.Error(ci.message.GetItemRepoError(productId, userId, err))
+		fmt.Println("Error when getting cart")
 		return nil, se.NotFoundOrInternal(err, "cart not found")
 	}
 
 	cartItems, err := ci.cartItemRepo.GetItems(cart)
 	if err != nil {
+		fmt.Println("Error when getting items")
 		return nil, se.NotFoundOrInternal(err, "cart items could not be fetched")
 	}
 
