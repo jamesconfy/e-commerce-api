@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -28,25 +29,40 @@ func Setup() {
 		addr = "8000"
 	}
 
-	dsn := utils.AppConfig.DATA_SOURCE_NAME
-	if dsn == "" {
-		log.Println("DSN cannot be empty")
+	var dsn string
+	if utils.AppConfig.MODE == "development" {
+		gin.SetMode(gin.DebugMode)
+
+		dsn = utils.AppConfig.DEVELOPMENT_DATABASE
+		if dsn == "" {
+			log.Println("DSN cannot be empty")
+		}
 	}
+
+	if utils.AppConfig.MODE == "production" {
+		gin.SetMode(gin.ReleaseMode)
+
+		dsn = utils.AppConfig.PRODUCTION_DATABASE
+		if dsn == "" {
+			log.Println("DSN cannot be empty")
+		}
+	}
+
+	fmt.Println(dsn)
 
 	secret := utils.AppConfig.SECRET_KEY_TOKEN
 	if secret == "" {
 		log.Println("Please provide a secret key token")
 	}
 
-	connection, err := mysql.NewMySQLServer(dsn)
+	db, err := mysql.New(dsn)
 	if err != nil {
 		log.Println("Error Connecting to DB: ", err)
 		return
 	}
-	defer connection.Close()
-	conn := connection.GetConn()
+	defer db.Close()
+	conn := db.Get()
 
-	gin.SetMode(gin.DebugMode)
 	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
 	gin.DisableConsoleColor()
 
@@ -113,7 +129,7 @@ func Setup() {
 
 	s := gocron.NewScheduler(time.UTC)
 	s.Every(1).Day().Do(func() {
-		conn.Ping()
+		db.Ping()
 	})
 
 	// Documentation
