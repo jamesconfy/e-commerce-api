@@ -729,6 +729,99 @@ paths:
       summary: Logout user route
       tags:
       - User
+  /users/profile:
+    delete:
+      description: Delete user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted successfully
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user route
+      tags:
+      - User
+    get:
+      description: Get user by id
+      parameters:
+      - description: User id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessMessage'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      summary: Get user by id route
+      tags:
+      - User
+    patch:
+      description: Edit user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessMessage'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      security:
+      - ApiKeyAuth: []
+      summary: Edit user route
+      tags:
+      - User
   /users/signup:
     post:
       consumes:

@@ -8,14 +8,17 @@ import (
 )
 
 type UserRepo interface {
+	// Confirmations
 	ExistsEmail(email string) bool
 	ExistsId(userId string) bool
+	ExistsPhone(phone string) bool
+
+	// Real work
 	Add(user *models.User) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	GetById(userId string) (*models.User, error)
-	// CreateToken(token *userModels.ResetPasswordRes) error
-	// ValidateToken(userId, tokenId string) (*userModels.ValidateTokenRes, error)
-	// ChangePassword(userId, newPassword string) error
+	Edit(user *models.User, userId string) (*models.User, error)
+	Delete(userId string) error
 }
 
 type userSql struct {
@@ -38,6 +41,16 @@ func (u *userSql) ExistsId(userId string) bool {
 	query := `SELECT email FROM users WHERE id = ?`
 
 	err := u.conn.QueryRow(query, userId).Scan(&email)
+
+	return err != sql.ErrNoRows
+}
+
+func (u *userSql) ExistsPhone(phone string) bool {
+	var id string
+
+	query := `SELECT id FROM users WHERE phone_number = ?`
+
+	err := u.conn.QueryRow(query, phone).Scan(&id)
 
 	return err != sql.ErrNoRows
 }
@@ -100,65 +113,27 @@ func (u *userSql) GetById(userId string) (*models.User, error) {
 	return &user, nil
 }
 
-// func (m *userSql) CreateToken(token *userModels.ResetPasswordRes) error {
-// 	ctx, cancelFunc := context.WithTimeout(context.TODO(), time.Second*30)
-// 	defer cancelFunc()
+func (u *userSql) Edit(user *models.User, userId string) (*models.User, error) {
+	query := `UPDATE users SET email = ?, first_name = ?, last_name = ?, phone_number = ?, date_updated = CURRENT_TIMESTAMP() WHERE id = ?`
 
-// 	tx, err := m.conn.BeginTx(ctx, nil)
-// 	defer func() {
-// 		if err != nil {
-// 			tx.Rollback()
-// 			return
-// 		}
-// 		tx.Commit()
-// 		// return
-// 	}()
+	_, err := u.conn.Exec(query, user.Email, user.FirstName, user.LastName, user.PhoneNumber, userId)
+	if err != nil {
+		return nil, err
+	}
 
-// 	deleteQuery := fmt.Sprintf(`DELETE FROM token WHERE user_id = '%v'`, token.UserId)
-// 	_, err = tx.ExecContext(ctx, deleteQuery)
-// 	if err != nil {
-// 		return err
-// 	}
+	return u.GetById(userId)
+}
 
-// 	addQuery := fmt.Sprintf(`INSERT INTO token(user_id, token_id, token, expiry) VALUES('%v','%v','%v','%v')`, token.UserId, token.TokenId, token.Token, token.Expiry)
-// 	_, err = tx.ExecContext(ctx, addQuery)
-// 	if err != nil {
-// 		return err
-// 	}
+func (u *userSql) Delete(userId string) error {
+	query := `DELETE FROM users WHERE id = ?`
 
-// 	return nil
-// }
+	_, err := u.conn.Exec(query, userId)
+	if err != nil {
+		return err
+	}
 
-// func (m *userSql) ValidateToken(userId, tokenId string) (*userModels.ValidateTokenRes, error) {
-// 	stmt := fmt.Sprintf(`SELECT user_id, token_id, token, expiry
-// 						FROM token
-// 						WHERE user_id = '%v' AND token = '%v'`, userId, tokenId)
-
-// 	var token userModels.ValidateTokenRes
-
-// 	err := m.conn.QueryRow(stmt).Scan(
-// 		&token.UserId,
-// 		&token.TokenId,
-// 		&token.Token,
-// 		&token.Expiry,
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return &token, nil
-// }
-
-// func (m *userSql) ChangePassword(user_id, newPassword string) error {
-// 	query := fmt.Sprintf(`UPDATE users SET password = '%v' WHERE user_id = '%v'`, newPassword, user_id)
-// 	_, err := m.conn.Exec(query)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return err
-// 	}
-
-// 	return nil
-// }
+	return nil
+}
 
 func NewUserRepo(conn *sql.DB) UserRepo {
 	return &userSql{conn: conn}
