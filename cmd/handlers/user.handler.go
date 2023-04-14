@@ -188,7 +188,7 @@ func (u *userHandler) Edit(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "User editted successfully", user)
+	response.Success(c, "User edited successfully", user)
 }
 
 // Delete User godoc

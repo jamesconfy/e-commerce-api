@@ -9,9 +9,9 @@ import (
 
 type UserRepo interface {
 	// Confirmations
-	ExistsEmail(email string) bool
-	ExistsId(userId string) bool
-	ExistsPhone(phone string) bool
+	ExistsEmail(email string) (bool, error)
+	ExistsId(email string) bool
+	ExistsPhone(phone string) (bool, error)
 
 	// Real work
 	Add(user *models.User) (*models.User, error)
@@ -26,14 +26,24 @@ type userSql struct {
 	conn *sql.DB
 }
 
-func (u *userSql) ExistsEmail(email string) bool {
+func (u *userSql) ExistsEmail(email string) (bool, error) {
 	var userId string
 
 	query := `SELECT id FROM users WHERE email = ?`
 
 	err := u.conn.QueryRow(query, email).Scan(&userId)
 
-	return err != sql.ErrNoRows
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Email does not exist
+			return false, nil
+		}
+		// An error occurred while executing the query
+		return true, err
+	}
+
+	// Email already exists
+	return true, nil
 }
 
 func (u *userSql) ExistsId(userId string) bool {
@@ -46,14 +56,24 @@ func (u *userSql) ExistsId(userId string) bool {
 	return err != sql.ErrNoRows
 }
 
-func (u *userSql) ExistsPhone(phone string) bool {
+func (u *userSql) ExistsPhone(phone string) (bool, error) {
 	var id string
 
 	query := `SELECT id FROM users WHERE phone_number = ?`
 
 	err := u.conn.QueryRow(query, phone).Scan(&id)
 
-	return err != sql.ErrNoRows
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Phone does not exist
+			return false, nil
+		}
+		// An error occurred while executing the query
+		return true, err
+	}
+
+	// Phone already exists
+	return true, nil
 }
 
 func (u *userSql) Add(user *models.User) (*models.User, error) {

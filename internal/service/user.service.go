@@ -20,9 +20,6 @@ type UserService interface {
 	Edit(req *forms.EditUser, userId string) (*models.User, *se.ServiceError)
 	Delete(userId string) *se.ServiceError
 	DeleteToken(userId string) *se.ServiceError
-	//ResetPassword(req *models.PasswordReset) (*userModels.ResetPasswordRes, *serviceerror.ServiceError)
-	// ValidateToken(userId, token string) (*userModels.ValidateTokenRes, *serviceerror.ServiceError)
-	// ChangePassword(userId string, req *models.ChangePasswordReq) *serviceerror.ServiceError
 }
 
 type userSrv struct {
@@ -53,9 +50,10 @@ func (u *userSrv) Add(req *forms.Signup) (*models.UserCart, *se.ServiceError) {
 	}
 
 	// Check if email already exists in the database
-	if u.userRepo.ExistsEmail(req.Email) {
+	ok, err := u.userRepo.ExistsEmail(req.Email)
+	if ok {
 		u.loggerSrv.Error(u.message.CreateUserExists(req.Email))
-		return nil, se.Conflict("User already exists")
+		return nil, se.ConflictOrInternal(err, "User already exists")
 	}
 
 	// Create a hash of the user password
@@ -111,7 +109,8 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 	}
 
 	// Check if provided email exists in the database
-	if !u.userRepo.ExistsEmail(req.Email) {
+	ok, _ := u.userRepo.ExistsEmail(req.Email)
+	if !ok {
 		u.loggerSrv.Error(u.message.LoginEmailExists(req.Email))
 		return nil, se.NotFound("User does not exist")
 	}
@@ -124,7 +123,7 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 	}
 
 	// Compare provided password and database password
-	ok := u.cryptoSrv.ComparePassword(user.Password, req.Password)
+	ok = u.cryptoSrv.ComparePassword(user.Password, req.Password)
 	if !ok {
 		// u.loggerSrv.Error(u.message.LoginPasswordError(req, user.Id))
 		return nil, se.BadRequest("Passwords do not match")
@@ -156,11 +155,6 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 }
 
 func (u *userSrv) GetById(userId string) (*models.User, *se.ServiceError) {
-	if !u.userRepo.ExistsId(userId) {
-		u.loggerSrv.Error(u.message.GetRepoError(userId))
-		return nil, se.NotFound("No user with that id")
-	}
-
 	user, err := u.userRepo.GetById(userId)
 	if err != nil {
 		u.loggerSrv.Error(u.message.GetFetchUserError(userId, err))
@@ -228,8 +222,9 @@ func (u *userSrv) editUser(req *forms.EditUser, userId string) (*models.User, *s
 	}
 
 	if req.Email != "" && req.Email != user.Email {
-		if u.userRepo.ExistsEmail(req.Email) {
-			return nil, se.Conflict("Email already exists")
+		ok, err := u.userRepo.ExistsEmail(req.Email)
+		if ok {
+			return nil, se.ConflictOrInternal(err, "User already exists")
 		}
 
 		user.Email = req.Email
@@ -244,8 +239,9 @@ func (u *userSrv) editUser(req *forms.EditUser, userId string) (*models.User, *s
 	}
 
 	if req.PhoneNumber != "" && req.PhoneNumber != user.PhoneNumber {
-		if u.userRepo.ExistsPhone(req.PhoneNumber) {
-			return nil, se.Conflict("Phone number already exists")
+		ok, err := u.userRepo.ExistsPhone(req.PhoneNumber)
+		if ok {
+			return nil, se.ConflictOrInternal(err, "Phone already exists")
 		}
 
 		user.PhoneNumber = req.PhoneNumber

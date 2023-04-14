@@ -91,3 +91,17 @@ func NotFoundOrInternal(err error, descriptions ...string) *ServiceError {
 		return Internal(err)
 	}
 }
+
+func ConflictOrInternal(err error, descriptions ...string) *ServiceError {
+	description := "conflict"
+	if len(descriptions) > 0 {
+		description = descriptions[0]
+	}
+
+	switch {
+	case errors.Is(err, nil):
+		return Conflict(description)
+	default:
+		return Internal(err)
+	}
+}
