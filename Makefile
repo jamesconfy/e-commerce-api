@@ -14,7 +14,7 @@ goinit:
 	go mod init
 
 swag:
-	swag init --generalInfo e-commerce.go
+	swag init -g e-commerce.go -ot go,yaml 
 
 migrate_init:
 	migrate create -ext sql -dir db/migration -seq init_schema
