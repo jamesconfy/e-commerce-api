@@ -186,7 +186,7 @@ definitions:
         example: success
         type: string
     type: object
-host: localhost:8080
+host: e-commerce-api.fly.dev
 info:
   contact:
     email: bobdence@gmail.com

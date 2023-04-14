@@ -44,3 +44,7 @@ Three different package tests was done and you can see in the [tests](/tests/) f
 ### Others
 
 You can read more about the [makefile](Makefile) on what other commands you can carryout.
+
+### Live
+
+Project is live on [live](https://e-commerce-api.fly.dev/api/v1/swagger/index.html)
