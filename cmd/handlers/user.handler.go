@@ -3,6 +3,7 @@ package handler
 import (
 	"e-commerce/internal/forms"
 	"e-commerce/internal/service"
+	"strconv"
 
 	"e-commerce/internal/response"
 	se "e-commerce/internal/se"
@@ -15,11 +16,12 @@ const defaultCookieName = "Authorization"
 type UserHandler interface {
 	Create(c *gin.Context)
 	Login(c *gin.Context)
+	Get(c *gin.Context)
 	GetById(c *gin.Context)
+	GetAll(c *gin.Context)
+	Edit(c *gin.Context)
+	Delete(c *gin.Context)
 	Logout(c *gin.Context)
-	// ResetPassword(c *gin.Context)
-	// ValidateToken(c *gin.Context)
-	// ChangePassword(c *gin.Context)
 }
 
 type userHandler struct {
@@ -95,6 +97,59 @@ func (u *userHandler) Login(c *gin.Context) {
 // @Failure	400  {object}  response.ErrorMessage
 // @Failure	404  {object}  response.ErrorMessage
 // @Failure	500  {object}  response.ErrorMessage
+// @Router	/users/profile [get]
+func (u *userHandler) Get(c *gin.Context) {
+	user, err := u.userSrv.GetById(c.GetString("userId"))
+	if err != nil {
+		response.Error(c, *err)
+		return
+	}
+
+	response.Success(c, "User gotten successfully", user, 1)
+}
+
+// Get User godoc
+// @Summary	Get user by id route
+// @Description	Get user by id
+// @Tags	User
+// @Produce	json
+// @Param	page	query	int	false	"Page number"
+// @Success	200  {object}  response.SuccessMessage{data=[]models.User}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/users/all [get]
+func (u *userHandler) GetAll(c *gin.Context) {
+	page, _ := c.GetQuery("page")
+	if page == "" {
+		page = "1"
+	}
+
+	pageI, er := strconv.Atoi(page)
+	if er != nil {
+		err := se.Internal(er, "Error when converting string to integer")
+		response.Error(c, *err)
+	}
+
+	users, err := u.userSrv.GetAll(pageI)
+	if err != nil {
+		response.Error(c, *err)
+		return
+	}
+
+	response.Success(c, "Users gotten successfully", users, len(users))
+}
+
+// Get User godoc
+// @Summary	Get user by id route
+// @Description	Get user by id
+// @Tags	User
+// @Produce	json
+// @Param	userId	path	string	true	"User id"
+// @Success	200  {object}  response.SuccessMessage{data=models.User}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
 // @Router	/users/:userId [get]
 func (u *userHandler) GetById(c *gin.Context) {
 	user, err := u.userSrv.GetById(c.Param("userId"))
@@ -104,6 +159,60 @@ func (u *userHandler) GetById(c *gin.Context) {
 	}
 
 	response.Success(c, "User gotten successfully", user, 1)
+}
+
+// Edit User godoc
+// @Summary	Edit user route
+// @Description	Edit user
+// @Tags	User
+// @Produce	json
+// @Success	200  {object}	response.SuccessMessage{data=models.User}
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/users/profile [patch]
+// @Security ApiKeyAuth
+func (u *userHandler) Edit(c *gin.Context) {
+	var req forms.EditUser
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, *se.Validating(err))
+		return
+	}
+
+	userId := c.GetString("userId")
+
+	user, err := u.userSrv.Edit(&req, userId)
+	if err != nil {
+		response.Error(c, *err)
+		return
+	}
+
+	response.Success(c, "User edited successfully", user)
+}
+
+// Delete User godoc
+// @Summary	Delete user route
+// @Description	Delete user
+// @Tags	User
+// @Produce	json
+// @Success	200  {string}	string	"User deleted successfully"
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/users/profile [delete]
+// @Security ApiKeyAuth
+func (u *userHandler) Delete(c *gin.Context) {
+	userId := c.GetString("userId")
+
+	err := u.userSrv.Delete(userId)
+	if err != nil {
+		response.Error(c, *err)
+		return
+	}
+
+	setCookie(c, "", -1)
+	response.Success202(c, "User deleted successfully")
 }
 
 // Logout User godoc

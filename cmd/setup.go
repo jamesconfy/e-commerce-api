@@ -24,21 +24,30 @@ import (
 )
 
 func Setup() {
-	// config, err := utils.LoadConfig("./")
-	// if err != nil {
-	// 	log.Println("Error loading configurations: ", err)
-	// }
-	// utils.MyConfig.ADDR
-
 	addr := utils.AppConfig.ADDR
 	if addr == "" {
 		addr = "8000"
 	}
 
-	dsn := utils.AppConfig.DATA_SOURCE_NAME
-	if dsn == "" {
-		log.Println("DSN cannot be empty")
+	var dsn string
+	if utils.AppConfig.MODE == "development" {
+		gin.SetMode(gin.DebugMode)
+
+		dsn = utils.AppConfig.DEVELOPMENT_DATABASE
+		if dsn == "" {
+			log.Println("DSN cannot be empty")
+		}
 	}
+
+	if utils.AppConfig.MODE == "production" {
+		gin.SetMode(gin.ReleaseMode)
+
+		dsn = utils.AppConfig.PRODUCTION_DATABASE
+		if dsn == "" {
+			log.Println("DSN cannot be empty")
+		}
+	}
+
 	fmt.Println(dsn)
 
 	secret := utils.AppConfig.SECRET_KEY_TOKEN
@@ -46,35 +55,14 @@ func Setup() {
 		log.Println("Please provide a secret key token")
 	}
 
-	// host := utils.AppConfig.HOST
-	// if host == "" {
-	// 	log.Println("Please provide an email host name")
-	// }
-
-	// port := utils.AppConfig.PORT
-	// if port == "" {
-	// 	log.Println("Please provide an email port")
-	// }
-
-	// passwd := utils.AppConfig.PASSWD
-	// if passwd == "" {
-	// 	log.Println("Please provide an email password")
-	// }
-
-	// email := utils.AppConfig.EMAIL
-	// if email == "" {
-	// 	log.Println("Please provide an email address")
-	// }
-
-	connection, err := mysql.NewMySQLServer(dsn)
+	db, err := mysql.New(dsn)
 	if err != nil {
 		log.Println("Error Connecting to DB: ", err)
 		return
 	}
-	defer connection.Close()
-	conn := connection.GetConn()
+	defer db.Close()
+	conn := db.Get()
 
-	gin.SetMode(gin.DebugMode)
 	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
 	gin.DisableConsoleColor()
 
@@ -141,7 +129,7 @@ func Setup() {
 
 	s := gocron.NewScheduler(time.UTC)
 	s.Every(1).Day().Do(func() {
-		conn.Ping()
+		db.Ping()
 	})
 
 	// Documentation

@@ -5,13 +5,11 @@ import "github.com/spf13/viper"
 // import "github.com/spf13/viper"
 
 type Config struct {
-	DATA_SOURCE_NAME string `mapstructure:"DATA_SOURCE_NAME"`
-	ADDR             string `mapstructure:"ADDR"`
-	SECRET_KEY_TOKEN string `mapstructure:"SECRET_KEY_TOKEN"`
-	// HOST             string `mapstructure:"HOST"`
-	// PORT             string `mapstructure:"PORT"`
-	// PASSWD           string `mapstructure:"PASSWD"`
-	// EMAIL            string `mapstructure:"EMAIL"`
+	DEVELOPMENT_DATABASE string `mapstructure:"DEVELOPMENT_DATABASE"`
+	PRODUCTION_DATABASE  string `mapstructure:"PRODUCTION_DATABASE"`
+	ADDR                 string `mapstructure:"ADDR"`
+	SECRET_KEY_TOKEN     string `mapstructure:"SECRET_KEY_TOKEN"`
+	MODE                 string `mapstructure:"MODE"`
 }
 
 var AppConfig Config
@@ -32,5 +30,4 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	// return
 }
