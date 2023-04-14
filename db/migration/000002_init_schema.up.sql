@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `users`(
     `email` VARCHAR(250) NOT NULL UNIQUE,
     `phone_number` VARCHAR(250) NOT NULL UNIQUE,
     `password` VARCHAR(250) NOT NULL,
+    `address` VARCHAR(250),
     `date_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     `date_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS `deleted_users`(
     `email` VARCHAR(250),
     `phone_number` VARCHAR(250),
     `password` VARCHAR(250),
+    `address` VARCHAR(250),
     `date_created` TIMESTAMP,
     `date_updated` TIMESTAMP,
     `date_deleted` TIMESTAMP
