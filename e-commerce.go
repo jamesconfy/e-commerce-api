@@ -1,6 +1,6 @@
 package main
 
-import "e-commerce/cmd"
+import cmd "e-commerce/cmd/setup"
 
 func main() {
 	// @title           E-Commerce-Api
