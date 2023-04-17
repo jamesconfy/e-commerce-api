@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -9,7 +8,7 @@ import (
 
 	"e-commerce/cmd/middleware"
 	route "e-commerce/cmd/routes"
-	mysql "e-commerce/internal/database"
+	db "e-commerce/internal/database"
 	"e-commerce/internal/logger"
 	repo "e-commerce/internal/repository"
 	service "e-commerce/internal/service"
@@ -23,45 +22,30 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+var (
+	addr       string
+	dsn        string
+	redis_addr string
+	mode       string
+	secret     string
+	cache      bool
+)
+
 func Setup() {
-	addr := utils.AppConfig.ADDR
-	if addr == "" {
-		addr = "8000"
-	}
-
-	var dsn string
-	if utils.AppConfig.MODE == "development" {
-		gin.SetMode(gin.DebugMode)
-
-		dsn = utils.AppConfig.DEVELOPMENT_DATABASE
-		if dsn == "" {
-			log.Println("DSN cannot be empty")
-		}
-	}
-
-	if utils.AppConfig.MODE == "production" {
-		gin.SetMode(gin.ReleaseMode)
-
-		dsn = utils.AppConfig.PRODUCTION_DATABASE
-		if dsn == "" {
-			log.Println("DSN cannot be empty")
-		}
-	}
-
-	fmt.Println(dsn)
-
-	secret := utils.AppConfig.SECRET_KEY_TOKEN
-	if secret == "" {
-		log.Println("Please provide a secret key token")
-	}
-
-	db, err := mysql.New(dsn)
+	mysqlDB, err := db.New(dsn)
 	if err != nil {
 		log.Println("Error Connecting to DB: ", err)
 		return
 	}
-	defer db.Close()
-	conn := db.Get()
+	defer mysqlDB.Close()
+	conn := mysqlDB.Get()
+
+	redisClient := db.NewRedisDB(redis_addr)
+	if redisClient == nil {
+		log.Println("Error when connecting to Redis")
+		return
+	}
+	defer redisClient.Close()
 
 	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
 	gin.DisableConsoleColor()
@@ -73,6 +57,9 @@ func Setup() {
 	v1.Use(gin.Logger())
 	v1.Use(gin.Recovery())
 	router.Use(middleware.CORS())
+
+	// Redis Repository
+	cacheRepo := repo.NewRedisCache(redisClient)
 
 	// User Repository
 	userRepo := repo.NewUserRepo(conn)
@@ -119,6 +106,12 @@ func Setup() {
 	// Cart Item Service
 	cartItemSrv := service.NewCartItemService(cartItemRepo, cartRepo, userRepo, productRepo, loggerSrv, validatorSrv)
 
+	// Check cache and implement it
+	if cache && redisClient != nil {
+		authSrv = service.NewCachedAuthService(authSrv, cacheRepo)
+		userSrv = service.NewCachedUserService(userSrv, cacheRepo)
+	}
+
 	// Routes
 	route.HomeRoute(v1, homeSrv)
 	route.UserRoute(v1, userSrv, authSrv)
@@ -129,10 +122,54 @@ func Setup() {
 
 	s := gocron.NewScheduler(time.UTC)
 	s.Every(1).Day().Do(func() {
-		db.Ping()
+		mysqlDB.Ping()
 	})
 
 	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run(":" + addr)
+}
+
+func init() {
+	addr = utils.AppConfig.ADDR
+	mode = utils.AppConfig.MODE
+	secret = utils.AppConfig.SECRET_KEY_TOKEN
+	cache = utils.AppConfig.ENABLE_CACHE
+
+	if addr == "" {
+		addr = "8000"
+	}
+
+	if mode == "development" {
+		gin.SetMode(gin.DebugMode)
+
+		dsn = utils.AppConfig.DEVELOPMENT_DATABASE
+		if dsn == "" {
+			log.Println("DSN cannot be empty")
+		}
+
+		redis_addr = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE
+		if redis_addr == "" {
+			log.Println("REDIS ADDRESS cannot be empty")
+		}
+	}
+
+	if mode == "production" {
+		gin.SetMode(gin.ReleaseMode)
+
+		dsn = utils.AppConfig.PRODUCTION_DATABASE
+		if dsn == "" {
+			log.Println("DSN cannot be empty")
+		}
+
+		redis_addr = utils.AppConfig.PRODUCTION_REDIS_DATABASE
+		if redis_addr == "" {
+			log.Println("REDIS ADDRESS cannot be empty")
+		}
+	}
+
+	if secret == "" {
+		secret = "somerandomsecret"
+		log.Println("Please provide a secret key token")
+	}
 }

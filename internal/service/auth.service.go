@@ -27,7 +27,7 @@ type authSrv struct {
 }
 
 func (t *authSrv) Create(id, email string) (string, string, error) {
-	tokenDetails := &Token{
+	accessTokenDetails := &Token{
 		// User Email
 		Email: email,
 		// User Id
@@ -46,7 +46,7 @@ func (t *authSrv) Create(id, email string) (string, string, error) {
 		},
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenDetails).SignedString([]byte(t.SecretKey))
+	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenDetails).SignedString([]byte(t.SecretKey))
 	if err != nil {
 		// t.logSrv.Warning(fmt.Sprintf("Could not create access token created for User: %s with Email: %s", id, email))
 		return "", "", err
@@ -68,7 +68,7 @@ func (t *authSrv) Create(id, email string) (string, string, error) {
 	// }
 
 	// http.SetCookie(*c, cookie)
-	return token, refreshToken, err
+	return accessToken, refreshToken, err
 }
 
 func (t *authSrv) Validate(tokenUrl string) (*Token, error) {

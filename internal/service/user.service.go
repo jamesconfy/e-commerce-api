@@ -22,6 +22,8 @@ type UserService interface {
 	DeleteToken(userId string) *se.ServiceError
 }
 
+var _ UserService = &userSrv{}
+
 type userSrv struct {
 	userRepo  repo.UserRepo
 	authRepo  repo.AuthRepo
@@ -166,6 +168,7 @@ func (u *userSrv) GetById(userId string) (*models.User, *se.ServiceError) {
 }
 
 func (u *userSrv) GetAll(pageI int) ([]*models.User, *se.ServiceError) {
+
 	users, err := u.userRepo.GetAll(pageI)
 	if err != nil {
 		return nil, se.NotFoundOrInternal(err, "Could not fetch users")
