@@ -37,8 +37,8 @@ You can start the local server by using the makefile command `make run`. This bu
 
 Three different package tests was done and you can see in the [tests](/tests/) folder. We have the [repo_test](), [service_test]() and [handler_test](). These tests are automated tests, i.e it creates a custom mysql database for you, using mysql:8.0.32 docker image (you need to have docker desktop running for it to work). It tests each package and destroys the docker mysql image after it is done, so you don't need to worry about your database integrity.
 
-- **repo_test:** This test deals on everything about the repo (user, product, cart and cart_item). To run this test just do `make test_repo`.
-- **service_test:** This test deals on everything about the service aspect (user, product, cart and cart_item). To run this test just do `make test_service`.
+- **repo_test:** This test deals on everything about the repo (user, product, cart and cart_item). Run the command `make test_repo` to run this test.
+- **service_test:** This test deals on everything about the service aspect (user, product, cart and cart_item). Run the command `make test_service` to run this test.
 - **handler_test:** This is an integration test that test the whole application as one. It first of all starts a local server that it uses to test the application. to run this test, do a `make test_handler`.
 
 ### Others
