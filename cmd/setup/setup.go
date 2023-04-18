@@ -112,6 +112,9 @@ func Setup() {
 	if cache && redisClient != nil {
 		authSrv = service.NewCachedAuthService(authSrv, cacheRepo)
 		userSrv = service.NewCachedUserService(userSrv, cacheRepo)
+		cartItemSrv = service.NewCachedCartItemService(cartItemSrv, cacheRepo)
+		cartSrv = service.NewCachedCartService(cartSrv, cacheRepo)
+		productSrv = service.NewCachedProductService(productSrv, cacheRepo)
 	}
 
 	// Routes
