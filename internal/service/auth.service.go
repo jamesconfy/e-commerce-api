@@ -17,7 +17,7 @@ type Token struct {
 
 type AuthService interface {
 	Create(id, email string) (string, string, error)
-	Validate(token string) (*Token, error)
+	Validate(url string) (*Token, error)
 }
 
 type authSrv struct {
@@ -27,14 +27,11 @@ type authSrv struct {
 }
 
 func (t *authSrv) Create(id, email string) (string, string, error) {
-	tokenDetails := &Token{
-		// User Email
+	accessTokenDetails := &Token{
 		Email: email,
-		// User Id
-		Id: id,
-		// Registered Claims
+		Id:    id,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Local().Add(time.Hour * time.Duration(24))),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Local().Add(time.Hour * time.Duration(2))),
 		},
 	}
 
@@ -46,34 +43,22 @@ func (t *authSrv) Create(id, email string) (string, string, error) {
 		},
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenDetails).SignedString([]byte(t.SecretKey))
+	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenDetails).SignedString([]byte(t.SecretKey))
 	if err != nil {
-		// t.logSrv.Warning(fmt.Sprintf("Could not create access token created for User: %s with Email: %s", id, email))
 		return "", "", err
 	}
 
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenDetails).SignedString([]byte(t.SecretKey))
 	if err != nil {
-		//t.logSrv.Warning(fmt.Sprintf("Could not create refresh token created for User: %s with Email: %s", id, email))
 		return "", "", err
 	}
 
-	// t.logSrv.Info(fmt.Sprintf("Access and Refresh token created for UserId: %s with Email: %s", id, email))
-	// cookie := http.Cookie{
-	// 	Name:     "access_token",
-	// 	Value:    token,
-	// 	HttpOnly: true,
-	// 	Path:     "/",
-	// 	Secure:   false,
-	// }
-
-	// http.SetCookie(*c, cookie)
-	return token, refreshToken, err
+	return accessToken, refreshToken, err
 }
 
-func (t *authSrv) Validate(tokenUrl string) (*Token, error) {
+func (t *authSrv) Validate(url string) (*Token, error) {
 	token, err := jwt.ParseWithClaims(
-		tokenUrl,
+		url,
 		&Token{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(t.SecretKey), nil
@@ -81,34 +66,28 @@ func (t *authSrv) Validate(tokenUrl string) (*Token, error) {
 	)
 
 	if token == nil {
-		// t.logSrv.Debug(fmt.Sprintf("Token is empty after parsing || Token String: %s", tokenUrl))
 		return nil, errors.New("check the provided token")
 	}
 
 	claims, ok := token.Claims.(*Token)
 	if !ok {
-		// t.logSrv.Debug(fmt.Sprintf("Token claims is not ok || Claims: %s", claims))
 		return nil, err
 	}
 
 	if err := claims.Valid(); err != nil {
-		// t.logSrv.Debug(fmt.Sprintf("Token claims is not valid || Claims: %s", claims))
 		return nil, err
 	}
 
 	if claims.ExpiresAt.Time.Before(time.Now().Local()) {
-		// t.logSrv.Debug(fmt.Sprintf("Token is expired || Expired Time: %s", claims.ExpiresAt))
 		return nil, fmt.Errorf("expired token, please login again || expired time: %s", claims.ExpiresAt.Time)
 	}
 
 	row, err := t.authRepo.Get(claims.Id)
 	if err != nil {
-		// t.logSrv.Fatal(fmt.Sprintf("Internal server error, when trying to get token associated with user || UserId: %s", claims.Id))
 		return nil, err
 	}
 
-	if row.AccessToken != tokenUrl {
-		// t.logSrv.Info(fmt.Sprintf("User tried to use old access token to login || UserId: %s || Latest Access Token: %s || Provided Access Token: %s", claims.Id, row.AccessToken, tokenUrl))
+	if row.AccessToken != url {
 		return nil, fmt.Errorf("outdated token")
 	}
 
@@ -116,7 +95,6 @@ func (t *authSrv) Validate(tokenUrl string) (*Token, error) {
 		return nil, fmt.Errorf("token is expired")
 	}
 
-	// t.logSrv.Info(fmt.Sprintf("Access token validated for UserId: %s with Email: %s and Expires At: %s", claims.Id, claims.Email, claims.ExpiresAt))
 	return claims, err
 }
 
