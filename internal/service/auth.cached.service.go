@@ -2,6 +2,7 @@ package service
 
 import (
 	repo "e-commerce/internal/repository"
+	"fmt"
 )
 
 type cachedAuthService struct {
@@ -15,20 +16,21 @@ func (a *cachedAuthService) Create(id string, email string) (string, string, err
 }
 
 // Validate implements AuthService
-func (a *cachedAuthService) Validate(token string) (*Token, error) {
+func (a *cachedAuthService) Validate(url string) (*Token, error) {
 	var tok *Token
 
-	err := a.cache.Get(token, &tok)
+	key := fmt.Sprintf("validate:%v", url)
+	err := a.cache.Get(key, &tok)
 	if err == nil {
 		return tok, nil
 	}
 
-	toke, er := a.authService.Validate(token)
+	toke, er := a.authService.Validate(url)
 	if er != nil {
 		return nil, er
 	}
 
-	a.cache.Add(token, toke)
+	a.cache.AddByTag(key, toke, toke.Id)
 	return toke, er
 }
 

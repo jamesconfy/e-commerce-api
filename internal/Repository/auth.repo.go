@@ -18,7 +18,7 @@ type authSql struct {
 func (a *authSql) Add(auth *models.Auth) (*models.Auth, error) {
 	query := `INSERT INTO auth (id, user_id, access_token, refresh_token, expires_at) 
 	VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))
-	ON DUPLICATE KEY UPDATE access_token = ?, refresh_token = ?, expires_at = DATE_ADD(NOW(), INTERVAL 24 HOUR), date_updated = CURRENT_TIMESTAMP()`
+	ON DUPLICATE KEY UPDATE access_token = ?, refresh_token = ?, expires_at = DATE_ADD(NOW(), INTERVAL 2 HOUR), date_updated = CURRENT_TIMESTAMP()`
 
 	_, err := a.conn.Exec(query, auth.Id, auth.UserId, auth.AccessToken, auth.RefreshToken, auth.AccessToken, auth.RefreshToken)
 	if err != nil {

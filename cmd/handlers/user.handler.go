@@ -227,8 +227,7 @@ func (u *userHandler) Delete(c *gin.Context) {
 // @Router	/users/logout [post]
 // @Security ApiKeyAuth
 func (u *userHandler) Logout(c *gin.Context) {
-	userId := c.GetString("userId")
-	err := u.userSrv.DeleteToken(userId)
+	err := u.userSrv.DeleteToken(c.GetString("userId"))
 	if err != nil {
 		response.Error(c, *err)
 	}

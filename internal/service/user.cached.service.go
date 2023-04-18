@@ -24,13 +24,13 @@ func (c *cachedUserService) Add(req *forms.Signup) (*models.UserCart, *se.Servic
 
 // Delete implements UserService
 func (c *cachedUserService) Delete(userId string) *se.ServiceError {
-	c.cache.Delete(userId)
+	c.cache.DeleteByTag(userId)
 	return c.userService.Delete(userId)
 }
 
 // DeleteToken implements UserService
 func (c *cachedUserService) DeleteToken(userId string) *se.ServiceError {
-	c.cache.Delete(userId)
+	c.cache.DeleteByTag(userId)
 	return c.userService.DeleteToken(userId)
 }
 
@@ -38,10 +38,11 @@ func (c *cachedUserService) DeleteToken(userId string) *se.ServiceError {
 func (c *cachedUserService) Edit(req *forms.EditUser, userId string) (*models.User, *se.ServiceError) {
 	u, err := c.userService.Edit(req, userId)
 	if err == nil {
-		c.cache.Delete(userId)
-	}
+		key := fmt.Sprintf("/api/v1/users/%s", userId)
 
-	defer c.GetById(userId)
+		c.cache.Delete(key)
+		c.cache.DeleteByTag("/api/v1/users")
+	}
 
 	return u, err
 }
@@ -50,7 +51,8 @@ func (c *cachedUserService) Edit(req *forms.EditUser, userId string) (*models.Us
 func (c *cachedUserService) GetAll(pageI int) ([]*models.User, *se.ServiceError) {
 	var users []*models.User
 
-	err := c.cache.Get(fmt.Sprintf("%d", pageI), &users)
+	key := fmt.Sprintf("/api/v1/users?page=%d", pageI)
+	err := c.cache.Get(key, &users)
 	if err == nil {
 		return users, nil
 	}
@@ -60,7 +62,7 @@ func (c *cachedUserService) GetAll(pageI int) ([]*models.User, *se.ServiceError)
 		return nil, er
 	}
 
-	c.cache.Add(fmt.Sprintf("%d", pageI), users)
+	c.cache.AddByTag(key, users, "/api/v1/users")
 	return users, nil
 }
 
@@ -68,7 +70,8 @@ func (c *cachedUserService) GetAll(pageI int) ([]*models.User, *se.ServiceError)
 func (c *cachedUserService) GetById(userId string) (*models.User, *se.ServiceError) {
 	var user *models.User
 
-	err := c.cache.Get(userId, &user)
+	key := fmt.Sprintf("/api/v1/users/%s", userId)
+	err := c.cache.Get(key, &user)
 	if err == nil {
 		return user, nil
 	}
@@ -78,12 +81,19 @@ func (c *cachedUserService) GetById(userId string) (*models.User, *se.ServiceErr
 		return nil, er
 	}
 
-	c.cache.Add(userId, user)
+	c.cache.AddByTag(key, user, userId)
 	return user, er
 }
 
 // Login implements UserService
 func (c *cachedUserService) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
+	// auth, err :=
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// key := fmt.Sprintf("login:%v", auth.AccessToken)
+	// c.cache.AddByTag(key, auth, auth.UserId, auth.ExpiresAt)
 	return c.userService.Login(req)
 }
 
