@@ -23,12 +23,14 @@ import (
 )
 
 var (
-	addr       string
-	dsn        string
-	redis_addr string
-	mode       string
-	secret     string
-	cache      bool
+	addr           string
+	dsn            string
+	redis_addr     string
+	redis_username string
+	redis_password string
+	mode           string
+	secret         string
+	cache          bool
 )
 
 func Setup() {
@@ -40,7 +42,7 @@ func Setup() {
 	defer mysqlDB.Close()
 	conn := mysqlDB.Get()
 
-	redisClient := db.NewRedisDB(redis_addr)
+	redisClient := db.NewRedisDB(redis_username, redis_password, redis_addr)
 	if redisClient == nil {
 		log.Println("Error when connecting to Redis")
 		return
@@ -152,6 +154,16 @@ func init() {
 		if redis_addr == "" {
 			log.Println("REDIS ADDRESS cannot be empty")
 		}
+
+		redis_username = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_USERNAME
+		if redis_username == "" {
+			log.Println("REDIS USERNAME cannot be empty")
+		}
+
+		redis_password = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_PASSWORD
+		if redis_password == "" {
+			log.Println("REDIS ADDRESS cannot be empty")
+		}
 	}
 
 	if mode == "production" {
@@ -162,8 +174,18 @@ func init() {
 			log.Println("DSN cannot be empty")
 		}
 
-		redis_addr = utils.AppConfig.PRODUCTION_REDIS_DATABASE
+		redis_addr = utils.AppConfig.PRODUCTION_REDIS_DATABASE_HOST
 		if redis_addr == "" {
+			log.Println("REDIS ADDRESS cannot be empty")
+		}
+
+		redis_username = utils.AppConfig.PRODUCTION_REDIS_DATABASE_USERNAME
+		if redis_username == "" {
+			log.Println("REDIS USERNAME cannot be empty")
+		}
+
+		redis_password = utils.AppConfig.PRODUCTION_REDIS_DATABASE_PASSWORD
+		if redis_password == "" {
 			log.Println("REDIS ADDRESS cannot be empty")
 		}
 	}
