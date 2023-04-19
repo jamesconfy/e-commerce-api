@@ -2,7 +2,6 @@ package repo
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -92,10 +91,9 @@ func (r *redisCache) DeleteByTag(tag string) error {
 	keys := make([]string, 0)
 
 	k, _ := r.client.SMembers(r.client.Context(), tag).Result()
-	// keys = append(keys, tag)
+	keys = append(keys, tag)
 	keys = append(keys, k...)
 
-	fmt.Println(keys)
 	return r.client.Del(r.client.Context(), keys...).Err()
 }
 

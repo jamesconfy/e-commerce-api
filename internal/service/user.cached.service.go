@@ -36,7 +36,7 @@ func (c *cachedUserService) DeleteToken(userId string) *se.ServiceError {
 
 // Edit implements UserService
 func (c *cachedUserService) Edit(req *forms.EditUser, userId string) (*models.User, *se.ServiceError) {
-	u, err := c.userService.Edit(req, userId)
+	user, err := c.userService.Edit(req, userId)
 	if err == nil {
 		key := fmt.Sprintf("/api/v1/users/%s", userId)
 
@@ -44,7 +44,7 @@ func (c *cachedUserService) Edit(req *forms.EditUser, userId string) (*models.Us
 		c.cache.DeleteByTag("/api/v1/users")
 	}
 
-	return u, err
+	return user, err
 }
 
 // GetAll implements UserService
@@ -87,13 +87,6 @@ func (c *cachedUserService) GetById(userId string) (*models.User, *se.ServiceErr
 
 // Login implements UserService
 func (c *cachedUserService) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
-	// auth, err :=
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// key := fmt.Sprintf("login:%v", auth.AccessToken)
-	// c.cache.AddByTag(key, auth, auth.UserId, auth.ExpiresAt)
 	return c.userService.Login(req)
 }
 

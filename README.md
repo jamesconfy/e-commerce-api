@@ -1,6 +1,6 @@
 # E-Commerce.API
 
-This is a basic e-commerce api were you can create a user, user can add products (does not implement admin authorisations) so therefore the products are added by the users, add items to a users cart and finally checkout (i.e buy the product)
+This is a basic e-commerce api were you can create a user, user can add products (does not implement admin authorisations) so therefore the products are added by the users, add items to a users cart and finally checkout (i.e buy the product). It uses Redis for caching to increase application peformance.
 
 ## Installation And Running
 
@@ -16,7 +16,14 @@ You will need to set up a mysql database as it was the database of choice in thi
 
 You then make a copy of the [app-sample.env](app-sample.env) into an [app.env](app.env) file and provide the required parameters.
 
-- **`DATABASE`** is the database name in the format `username:password@tcp(host_network:host_port(usually 3306))/database_name(e_commerce_api can be used)?parseTime=true`. Either **_`DEVELOPMENT_DATABASE`_** or **_`PRODUCTION_DATABASE`_**
+- **`MYSQL_DATABASE`** is the database name in the format `username:password@tcp(host_network:host_port(usually 3306))/database_name(e_commerce_api can be used)?parseTime=true`. Either **_`DEVELOPMENT_DATABASE`_** or **_`PRODUCTION_DATABASE`_**
+- **`REDIS_DATABASE`** is the caching database used to increase performance. You have to provide the details seperately, not like what was done for the normal mysql database. Could be **DEVELOPMENT** or **PRODUCTION**. Parameters:
+  - **_REDIS_DATABASE_USERNAME_** is the username associated with the redis database.
+  - **_REDIS_DATABASE_HOST_** is the host plus the port associated with the database seperated by a semi-colon, i.e host:port.
+  - **_REDIS_DATABASE_PASSWORD_** is the password of the database.
+
+**NB:** If you do not know how to set up redis, you can checkout their [website](https://redis.io/)
+
 - **`MODE`** is the application mode could either be production or development, this is needed to know how to configure the application as there are different settings for different mode.
 - **`ADDR`** is the port the application is running on, provided default is `8080` but can be changed to anything you prefer.
 - **`SECRET_KEY_TOKEN`** is a secret key that is used for encrypting the jwt service. Could be anything you like it to be, but you can generate a unique secret key using [Random Key Generator](https://acte.ltd/utils/randomkeygen).
