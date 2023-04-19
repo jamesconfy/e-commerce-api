@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -16,6 +17,7 @@ import (
 
 	_ "e-commerce/docs"
 
+	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/go-co-op/gocron"
 	swaggerFiles "github.com/swaggo/files"
@@ -110,6 +112,7 @@ func Setup() {
 
 	// Check cache and implement it
 	if cache && redisClient != nil {
+		fmt.Println("I got into cache: ", cache)
 		authSrv = service.NewCachedAuthService(authSrv, cacheRepo)
 		userSrv = service.NewCachedUserService(userSrv, cacheRepo)
 		cartItemSrv = service.NewCachedCartItemService(cartItemSrv, cacheRepo)
@@ -117,10 +120,13 @@ func Setup() {
 		productSrv = service.NewCachedProductService(productSrv, cacheRepo)
 	}
 
+	// Store
+	store := persistence.NewInMemoryStore(time.Second)
+
 	// Routes
 	route.HomeRoute(v1, homeSrv)
 	route.UserRoute(v1, userSrv, authSrv)
-	route.ProductRoutes(v1, productSrv, authSrv)
+	route.ProductRoutes(v1, productSrv, authSrv, store)
 	route.CartRoute(v1, cartSrv, authSrv)
 	route.CartItemRoute(v1, cartItemSrv, authSrv)
 	route.ErrorRoute(router)

@@ -12,7 +12,7 @@ type Cache interface {
 	AddByTag(key string, value interface{}, tag string, expiry ...time.Time) error
 	Get(key string, result interface{}) error
 	Delete(key string) error
-	DeleteByTag(tag string) error
+	DeleteByTag(tags ...string) error
 }
 
 var _ Cache = &redisCache{}
@@ -87,12 +87,15 @@ func (r *redisCache) Delete(key string) error {
 	return r.client.Del(r.client.Context(), key).Err()
 }
 
-func (r *redisCache) DeleteByTag(tag string) error {
+func (r *redisCache) DeleteByTag(tags ...string) error {
 	keys := make([]string, 0)
 
-	k, _ := r.client.SMembers(r.client.Context(), tag).Result()
-	keys = append(keys, tag)
-	keys = append(keys, k...)
+	for _, tag := range tags {
+		tag := tag
+		k, _ := r.client.SMembers(r.client.Context(), tag).Result()
+		keys = append(keys, tag)
+		keys = append(keys, k...)
+	}
 
 	return r.client.Del(r.client.Context(), keys...).Err()
 }
