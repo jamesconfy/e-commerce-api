@@ -1,6 +1,6 @@
 # E-Commerce.API
 
-This is a basic e-commerce api were you can create a user, user can add products (does not implement admin authorisations) so therefore the products are added by the users, add items to a users cart and finally checkout (i.e buy the product)
+This is a basic e-commerce api were you can create a user, user can add products (does not implement admin authorisations) so therefore the products are added by the users, add items to a users cart and finally checkout (i.e buy the product). It uses Redis for caching to increase application peformance.
 
 ## Installation And Running
 
