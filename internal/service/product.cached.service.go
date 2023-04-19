@@ -15,7 +15,7 @@ type cachedProductService struct {
 
 // Add implements ProductService
 func (c *cachedProductService) Add(req *forms.Product, userId string) (*models.Product, *se.ServiceError) {
-	c.cache.DeleteByTag("/api/v1/products")
+	c.cache.DeleteByTag("products")
 	return c.productService.Add(req, userId)
 }
 
@@ -26,8 +26,7 @@ func (c *cachedProductService) AddRating(req *forms.Rating, productId string, us
 
 // Delete implements ProductService
 func (c *cachedProductService) Delete(productId string, userId string) *se.ServiceError {
-	c.cache.DeleteByTag(productId)
-	c.cache.DeleteByTag("/api/v1/products")
+	c.cache.DeleteByTag(fmt.Sprintf("products:%s", productId), "products")
 	return c.productService.Delete(productId, userId)
 }
 
@@ -35,10 +34,7 @@ func (c *cachedProductService) Delete(productId string, userId string) *se.Servi
 func (c *cachedProductService) Edit(req *forms.EditProduct, productId string, userId string) (*models.Product, *se.ServiceError) {
 	product, err := c.productService.Edit(req, productId, userId)
 	if err == nil {
-		key := fmt.Sprintf("/api/v1/products/%s", productId)
-
-		c.cache.Delete(key)
-		c.cache.DeleteByTag("/api/v1/products")
+		c.cache.DeleteByTag("products", fmt.Sprintf("products:%s", productId))
 	}
 
 	return product, err
@@ -48,7 +44,7 @@ func (c *cachedProductService) Edit(req *forms.EditProduct, productId string, us
 func (c *cachedProductService) Get(productId string) (*models.ProductRating, *se.ServiceError) {
 	var product *models.ProductRating
 
-	key := fmt.Sprintf("/api/v1/products/%s", productId)
+	key := fmt.Sprintf("products:%s", productId)
 	err := c.cache.Get(key, &product)
 	if err == nil {
 		return product, nil
@@ -67,7 +63,7 @@ func (c *cachedProductService) Get(productId string) (*models.ProductRating, *se
 func (c *cachedProductService) GetAll(page int) ([]*models.ProductRating, *se.ServiceError) {
 	var products []*models.ProductRating
 
-	key := fmt.Sprintf("/api/v1/products?page=%d", page)
+	key := fmt.Sprintf("products:all:%d", page)
 	err := c.cache.Get(key, &products)
 	if err == nil {
 		return products, nil
@@ -78,7 +74,7 @@ func (c *cachedProductService) GetAll(page int) ([]*models.ProductRating, *se.Se
 		return nil, er
 	}
 
-	c.cache.AddByTag(key, products, "/api/v1/products")
+	c.cache.AddByTag(key, products, "products")
 	return products, nil
 }
 

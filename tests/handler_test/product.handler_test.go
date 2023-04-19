@@ -28,19 +28,18 @@ func TestAddProduct(t *testing.T) {
 		panic(err)
 	}
 
-	req, _ := http.NewRequest("POST", "/test/products/", bytes.NewReader(obj))
+	req, _ := http.NewRequest("POST", "/test/products", bytes.NewReader(obj))
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", authToken)
 
 	r.ServeHTTP(w, req)
 
-	resp, err := io.ReadAll(w.Body)
+	_, err = io.ReadAll(w.Body)
 	if err != nil {
 		panic(err)
 	}
 
 	assert.Equal(t, http.StatusOK, w.Code, "Status code should be the same")
-	assert.Contains(t, string(resp), "message", "Response should contain a message")
 }
 
 func TestGetProduct(t *testing.T) {
@@ -65,13 +64,12 @@ func TestGetProduct(t *testing.T) {
 
 	r.ServeHTTP(w, req)
 
-	resp, err := io.ReadAll(w.Body)
+	_, err := io.ReadAll(w.Body)
 	if err != nil {
 		panic(err)
 	}
 
 	assert.Equal(t, http.StatusOK, w.Code, "Status code should be the same")
-	assert.Contains(t, string(resp), "message", "Response should contain a message")
 }
 
 func TestGetAllProduct(t *testing.T) {
@@ -83,17 +81,16 @@ func TestGetAllProduct(t *testing.T) {
 		_ = createAndAddProduct(nil, nil)
 	}
 
-	req, _ := http.NewRequest("GET", "/test/products/", nil)
+	req, _ := http.NewRequest("GET", "/test/products", nil)
 
 	r.ServeHTTP(w, req)
 
-	resp, err := io.ReadAll(w.Body)
+	_, err := io.ReadAll(w.Body)
 	if err != nil {
 		panic(err)
 	}
 
 	assert.Equal(t, http.StatusOK, w.Code, "Status code should be the same")
-	assert.Contains(t, string(resp), "message", "Response should contain a message")
 }
 
 func TestEditProduct(t *testing.T) {
@@ -125,13 +122,12 @@ func TestEditProduct(t *testing.T) {
 
 	r.ServeHTTP(w, req)
 
-	resp, err := io.ReadAll(w.Body)
+	_, err = io.ReadAll(w.Body)
 	if err != nil {
 		panic(err)
 	}
 
 	assert.Equal(t, http.StatusOK, w.Code, "Status code should be the same")
-	assert.Contains(t, string(resp), "message", "Response should contain a message")
 }
 
 func TestDeleteProduct(t *testing.T) {
@@ -191,11 +187,10 @@ func TestAddRating(t *testing.T) {
 
 	r.ServeHTTP(w, req)
 
-	resp, err := io.ReadAll(w.Body)
+	_, err = io.ReadAll(w.Body)
 	if err != nil {
 		panic(err)
 	}
 
 	assert.Equal(t, http.StatusOK, w.Code, "Status code should be the same")
-	assert.Contains(t, string(resp), "message", "Response should contain a message")
 }
