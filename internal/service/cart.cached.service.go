@@ -14,7 +14,7 @@ type cachedCartService struct {
 
 // Clear implements CartService
 func (c *cachedCartService) Clear(userId string) *se.ServiceError {
-	key := fmt.Sprintf("/api/v1/carts/%s", userId)
+	key := fmt.Sprintf("carts:%s", userId)
 	c.cache.Delete(key)
 	return c.cartService.Clear(userId)
 }
@@ -23,7 +23,7 @@ func (c *cachedCartService) Clear(userId string) *se.ServiceError {
 func (c *cachedCartService) Get(userId string) (*models.Cart, *se.ServiceError) {
 	var cart *models.Cart
 
-	key := fmt.Sprintf("/api/v1/carts/%s", userId)
+	key := fmt.Sprintf("carts:%s", userId)
 	err := c.cache.Get(key, &cart)
 	if err == nil {
 		return cart, nil

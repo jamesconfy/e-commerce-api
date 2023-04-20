@@ -112,7 +112,6 @@ func Setup() {
 
 	// Check cache and implement it
 	if cache && redisClient != nil {
-		fmt.Println("I got into cache: ", cache)
 		authSrv = service.NewCachedAuthService(authSrv, cacheRepo)
 		userSrv = service.NewCachedUserService(userSrv, cacheRepo)
 		cartItemSrv = service.NewCachedCartItemService(cartItemSrv, cacheRepo)
@@ -124,11 +123,11 @@ func Setup() {
 	store := persistence.NewInMemoryStore(time.Second)
 
 	// Routes
-	route.HomeRoute(v1, homeSrv)
-	route.UserRoute(v1, userSrv, authSrv)
+	route.HomeRoute(v1, homeSrv, store)
+	route.UserRoute(v1, userSrv, authSrv, store)
 	route.ProductRoutes(v1, productSrv, authSrv, store)
 	route.CartRoute(v1, cartSrv, authSrv)
-	route.CartItemRoute(v1, cartItemSrv, authSrv)
+	route.CartItemRoute(v1, cartItemSrv, authSrv, store)
 	route.ErrorRoute(router)
 
 	s := gocron.NewScheduler(time.UTC)
@@ -138,7 +137,19 @@ func Setup() {
 
 	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	serverStart()
 	router.Run(":" + addr)
+}
+
+func serverStart() {
+	fmt.Print("Countdown: \t")
+	fmt.Print("3\t")
+	time.Sleep(time.Second * 1)
+	fmt.Print("2\t")
+	time.Sleep(time.Second * 1)
+	fmt.Print("1\n")
+	time.Sleep(time.Second * 1)
+	fmt.Println("Server is up and running")
 }
 
 func init() {

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	repo "e-commerce/internal/repository"
 	"errors"
 	"fmt"
@@ -84,11 +85,10 @@ func (t *authSrv) Validate(url string) (*Token, error) {
 
 	row, err := t.authRepo.Get(claims.Id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("outdated token")
+		}
 		return nil, err
-	}
-
-	if row.AccessToken != url {
-		return nil, fmt.Errorf("outdated token")
 	}
 
 	if row.ExpiresAt.Before(time.Now().Local()) {

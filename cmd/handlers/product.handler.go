@@ -99,7 +99,7 @@ func (p *productHanlder) GetAll(c *gin.Context) {
 // @Failure	500  {object}  response.ErrorMessage
 // @Router	/products/:productId [get]
 func (p *productHanlder) Get(c *gin.Context) {
-	productId := c.Param("product_id")
+	productId := c.Param("productId")
 
 	product, err := p.productSrv.Get(productId)
 	if err != nil {
@@ -131,7 +131,7 @@ func (p *productHanlder) Edit(c *gin.Context) {
 		return
 	}
 
-	productId := c.Param("product_id")
+	productId := c.Param("productId")
 	userId := c.GetString("userId")
 
 	product, err := p.productSrv.Edit(&req, productId, userId)
@@ -156,7 +156,7 @@ func (p *productHanlder) Edit(c *gin.Context) {
 // @Router	/products/:productId [delete]
 // @Security ApiKeyAuth
 func (p *productHanlder) Delete(c *gin.Context) {
-	productId := c.Param("product_id")
+	productId := c.Param("productId")
 	userId := c.GetString("userId")
 
 	err := p.productSrv.Delete(productId, userId)
@@ -189,7 +189,7 @@ func (p *productHanlder) AddRating(c *gin.Context) {
 		return
 	}
 
-	productId := c.Param("product_id")
+	productId := c.Param("productId")
 	userId := c.GetString("userId")
 
 	rating, err := p.productSrv.AddRating(&req, productId, userId)
