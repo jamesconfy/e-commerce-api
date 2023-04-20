@@ -19,12 +19,13 @@ func (c *cachedUserService) Validate(req any) error {
 
 // Add implements UserService
 func (c *cachedUserService) Add(req *forms.Signup) (*models.UserCart, *se.ServiceError) {
+	c.cache.DeleteByTag("users:all")
 	return c.userService.Add(req)
 }
 
 // Delete implements UserService
 func (c *cachedUserService) Delete(userId string) *se.ServiceError {
-	c.cache.DeleteByTag(userId)
+	c.cache.DeleteByTag("users:all", userId)
 	return c.userService.Delete(userId)
 }
 
@@ -38,10 +39,9 @@ func (c *cachedUserService) DeleteToken(userId string) *se.ServiceError {
 func (c *cachedUserService) Edit(req *forms.EditUser, userId string) (*models.User, *se.ServiceError) {
 	user, err := c.userService.Edit(req, userId)
 	if err == nil {
-		key := fmt.Sprintf("/api/v1/users/%s", userId)
+		key := fmt.Sprintf("users:%s", userId)
 
-		c.cache.Delete(key)
-		c.cache.DeleteByTag("/api/v1/users")
+		c.cache.DeleteByTag("users:all", key)
 	}
 
 	return user, err
@@ -51,7 +51,7 @@ func (c *cachedUserService) Edit(req *forms.EditUser, userId string) (*models.Us
 func (c *cachedUserService) GetAll(pageI int) ([]*models.User, *se.ServiceError) {
 	var users []*models.User
 
-	key := fmt.Sprintf("/api/v1/users?page=%d", pageI)
+	key := fmt.Sprintf("users:all:%d", pageI)
 	err := c.cache.Get(key, &users)
 	if err == nil {
 		return users, nil
@@ -62,7 +62,7 @@ func (c *cachedUserService) GetAll(pageI int) ([]*models.User, *se.ServiceError)
 		return nil, er
 	}
 
-	c.cache.AddByTag(key, users, "/api/v1/users")
+	c.cache.AddByTag(key, users, "users:all")
 	return users, nil
 }
 
@@ -70,7 +70,7 @@ func (c *cachedUserService) GetAll(pageI int) ([]*models.User, *se.ServiceError)
 func (c *cachedUserService) GetById(userId string) (*models.User, *se.ServiceError) {
 	var user *models.User
 
-	key := fmt.Sprintf("/api/v1/users/%s", userId)
+	key := fmt.Sprintf("users:%s", userId)
 	err := c.cache.Get(key, &user)
 	if err == nil {
 		return user, nil

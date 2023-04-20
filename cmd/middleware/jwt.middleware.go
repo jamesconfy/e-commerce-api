@@ -9,6 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type JWT interface {
+	CheckJWT() gin.HandlerFunc
+}
+
 type jwtMiddleWare struct {
 	tokenSrv service.AuthService
 }
@@ -17,13 +21,13 @@ func (j *jwtMiddleWare) CheckJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authToken := GetAuthorizationHeader(c)
 		if authToken == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid Authorization Token: Token cannot be empty"})
 			return
 		}
 
 		token, err := j.tokenSrv.Validate(authToken)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("invalid Token: %v", err))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, fmt.Sprintf("Invalid Authorization Token: %v", err))
 			return
 		}
 
@@ -51,6 +55,6 @@ func isBrowser(userAgent string) bool {
 	}
 }
 
-func Authentication(authSrv service.AuthService) *jwtMiddleWare {
+func Authentication(authSrv service.AuthService) JWT {
 	return &jwtMiddleWare{tokenSrv: authSrv}
 }
