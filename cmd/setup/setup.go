@@ -143,7 +143,9 @@ func Setup() {
 
 	go func() {
 		// start the server
-		router.Run(":" + addr)
+		if err := router.Run(":" + addr); err != nil {
+			fmt.Printf("Could not start server: %v", err)
+		}
 	}()
 
 	sigs := make(chan os.Signal, 1)
