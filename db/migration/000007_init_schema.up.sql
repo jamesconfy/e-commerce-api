@@ -9,6 +9,6 @@ CREATE TABLE IF NOT EXISTS auth (
     date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     date_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     
-    PRIMARY KEY(user_id),
+    PRIMARY KEY(user_id, access_token),
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );

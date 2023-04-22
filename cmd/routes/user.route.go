@@ -38,5 +38,6 @@ func UserRoute(router *gin.RouterGroup, userSrv service.UserService, authSrv ser
 		user1.PATCH("/profile", handler.Edit)
 		user1.DELETE("/profile", handler.Delete)
 		user1.POST("/logout", handler.Logout)
+		user1.DELETE("/profile/clear", handler.ClearAuth)
 	}
 }

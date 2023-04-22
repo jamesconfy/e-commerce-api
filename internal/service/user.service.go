@@ -19,7 +19,8 @@ type UserService interface {
 	GetAll(pageI int) ([]*models.User, *se.ServiceError)
 	Edit(req *forms.EditUser, userId string) (*models.User, *se.ServiceError)
 	Delete(userId string) *se.ServiceError
-	DeleteToken(userId string) *se.ServiceError
+	DeleteAuth(userId, accessToken string) *se.ServiceError
+	ClearAuth(userId, accessToken string) *se.ServiceError
 }
 
 var _ UserService = &userSrv{}
@@ -204,8 +205,17 @@ func (u *userSrv) Delete(userId string) *se.ServiceError {
 	return nil
 }
 
-func (u *userSrv) DeleteToken(userId string) *se.ServiceError {
-	err := u.authRepo.Delete(userId)
+func (u *userSrv) DeleteAuth(userId, accessToken string) *se.ServiceError {
+	err := u.authRepo.Delete(userId, accessToken)
+	if err != nil {
+		return se.Internal(err)
+	}
+
+	return nil
+}
+
+func (u *userSrv) ClearAuth(userId, accessToken string) *se.ServiceError {
+	err := u.authRepo.Clear(userId, accessToken)
 	if err != nil {
 		return se.Internal(err)
 	}

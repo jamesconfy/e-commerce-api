@@ -10,3 +10,4 @@ logs/*
 *mig*
 *test.log
 config.db
+.air.toml
