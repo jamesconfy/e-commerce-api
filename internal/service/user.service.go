@@ -7,8 +7,6 @@ import (
 	repo "e-commerce/internal/repository"
 	"e-commerce/internal/se"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type UserService interface {
@@ -59,6 +57,12 @@ func (u *userSrv) Add(req *forms.Signup) (*models.UserCart, *se.ServiceError) {
 		return nil, se.ConflictOrInternal(err, "User already exists")
 	}
 
+	ok, err = u.userRepo.ExistsPhone(req.PhoneNumber)
+	if ok {
+		u.loggerSrv.Error(u.message.CreateUserExists(req.Email))
+		return nil, se.ConflictOrInternal(err, "Phone number in use")
+	}
+
 	// Create a hash of the user password
 	password, err := u.cryptoSrv.HashPassword(req.Password)
 	if err != nil {
@@ -69,7 +73,6 @@ func (u *userSrv) Add(req *forms.Signup) (*models.UserCart, *se.ServiceError) {
 	// Creating User model
 	var user models.User
 
-	user.Id = uuid.New().String()
 	user.Email = req.Email
 	user.FirstName = req.FirstName
 	user.LastName = req.LastName
@@ -88,18 +91,17 @@ func (u *userSrv) Add(req *forms.Signup) (*models.UserCart, *se.ServiceError) {
 	// Create a Cart for the user
 	var cart models.Cart
 
-	cart.Id = uuid.New().String()
 	cart.UserId = resultUser.Id
 
 	// Add cart to the database
 	resultCart, err := u.cartRepo.Add(&cart)
 	if err != nil {
-		u.loggerSrv.Fatal(u.message.AddCartRepoError(&cart, err))
+		// u.loggerSrv.Fatal(u.message.AddCartRepoError(&cart, err))
 		return nil, se.NotFoundOrInternal(err)
 	}
 
 	// User created successfully return both user and user cart
-	u.loggerSrv.Info(u.message.CreateSuccess(&user))
+	// u.loggerSrv.Info(u.message.CreateSuccess(&user))
 	return &models.UserCart{
 		User: resultUser,
 		Cart: resultCart,
@@ -135,7 +137,6 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 	// Creating auth models
 	var auth models.Auth
 
-	auth.Id = uuid.New().String()
 	auth.UserId = user.Id
 
 	// Create access and refresh token

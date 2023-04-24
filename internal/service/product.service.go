@@ -74,7 +74,7 @@ func (p *productSrv) GetAll(page int) ([]*models.ProductRating, *se.ServiceError
 }
 
 func (p *productSrv) Get(productId string) (*models.ProductRating, *se.ServiceError) {
-	product, err := p.productRepo.GetId(productId)
+	product, err := p.productRepo.Get(productId)
 
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.GetProductRepoError(productId, err))
@@ -90,7 +90,7 @@ func (p *productSrv) Edit(req *forms.EditProduct, productId, userId string) (*mo
 		return nil, se.Validating(err)
 	}
 
-	product, err := p.productRepo.GetId(productId)
+	product, err := p.productRepo.Get(productId)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.GetProductRepoError(productId, err))
 		return nil, se.NotFoundOrInternal(err)
@@ -114,7 +114,7 @@ func (p *productSrv) Edit(req *forms.EditProduct, productId, userId string) (*mo
 }
 
 func (p *productSrv) Delete(productId, userId string) *se.ServiceError {
-	product, err := p.productRepo.GetId(productId)
+	product, err := p.productRepo.Get(productId)
 	if err != nil {
 		p.loggerSrv.Error(p.message.GetProductRepoError(productId, err))
 		return se.NotFoundOrInternal(err)
@@ -140,7 +140,7 @@ func (p *productSrv) AddRating(req *forms.Rating, productId, userId string) (*mo
 		return nil, se.Validating(err)
 	}
 
-	product, err := p.productRepo.GetId(productId)
+	product, err := p.productRepo.Get(productId)
 	if err != nil {
 		p.loggerSrv.Error(p.message.GetProductRepoError(productId, err))
 		return nil, se.NotFoundOrInternal(err)

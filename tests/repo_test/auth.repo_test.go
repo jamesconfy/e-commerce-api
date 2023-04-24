@@ -50,3 +50,49 @@ func TestGetAuth(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteAuth(t *testing.T) {
+	user := createAndAddUser(nil)
+	auth := createAndAddAuth(nil, user)
+
+	tests := []struct {
+		name        string
+		id          string
+		accessToken string
+		wantErr     bool
+	}{
+		// TODO: Add test cases.
+		{name: "Test with correct user id", id: user.Id, accessToken: auth.AccessToken, wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := a.Delete(tt.id, tt.accessToken)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("auth.DeleteAuth() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestClearAuth(t *testing.T) {
+	user := createAndAddUser(nil)
+	auth := createAndAddAuth(nil, user)
+
+	tests := []struct {
+		name        string
+		id          string
+		accessToken string
+		wantErr     bool
+	}{
+		// TODO: Add test cases.
+		{name: "Test with correct user id", id: user.Id, accessToken: auth.AccessToken, wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := a.Clear(tt.id, tt.accessToken)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("auth.ClearAuth() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -56,6 +56,32 @@ func TestGetItem(t *testing.T) {
 	}
 }
 
+func TestGetItems(t *testing.T) {
+	user := createAndAddUser(nil)
+	cart := createAndAddCart(user)
+	for i := 0; i < 10; i++ {
+		_ = createAndAddItem(cart, nil)
+	}
+
+	tests := []struct {
+		name    string
+		cart    *models.Cart
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{name: "Test with correct details", cart: cart, wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ci.GetItems(tt.cart)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("cartItemSql.GetItems() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestDeleteItem(t *testing.T) {
 	user := createAndAddUser(nil)
 	cart := createAndAddCart(user)

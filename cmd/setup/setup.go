@@ -187,7 +187,13 @@ func init() {
 	if mode == "development" {
 		gin.SetMode(gin.DebugMode)
 
-		dsn = utils.AppConfig.MYSQL_DEVELOPMENT_DATABASE
+		host := utils.AppConfig.DEVELOPMENT_POSTGRES_HOST
+		username := utils.AppConfig.DEVELOPMENT_POSTGRES_USERNAME
+		passwd := utils.AppConfig.DEVELOPMENT_POSTGRES_PASSWORD
+		dbname := utils.AppConfig.DEVELOPMENT_POSTGRES_DBNAME
+
+		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
+		fmt.Println(dsn)
 		if dsn == "" {
 			log.Println("DSN cannot be empty")
 		}

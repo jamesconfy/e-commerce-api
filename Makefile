@@ -1,8 +1,11 @@
-migrateup:
-	migrate -path db/migration -database "" -verbose up
+migrate_up:
+	migrate -path db/migration -database "postgres://mac:password@localhost:5432/e_commerce_api?sslmode=disable" -verbose up
 
-migratedown:
-	migrate -path db/migration -database "" -verbose down
+migrate_force:
+	migrate -path db/migration -database "postgres://mac:password@localhost:5432/e_commerce_api?sslmode=disable" force $(version)
+
+migrate_down:
+	migrate -path db/migration -database "postgres://mac:password@localhost:5432/e_commerce_api?sslmode=disable" -verbose down
 
 run:
 	go build e-commerce.go && ./e-commerce

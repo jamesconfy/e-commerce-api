@@ -69,6 +69,27 @@ func TestIdExists(t *testing.T) {
 	}
 }
 
+func TestPhoneExists(t *testing.T) {
+	user := createAndAddUser(nil)
+
+	tests := []struct {
+		name  string
+		phone string
+		want  bool
+	}{
+		{name: "Test with correct id", phone: user.PhoneNumber, want: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, _ := u.ExistsPhone(tt.phone)
+			if got != tt.want {
+				t.Errorf("userSql.ExistsPhone() got = %v, wantErr %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestGetByEmail(t *testing.T) {
 	user := createAndAddUser(nil)
 
@@ -111,45 +132,70 @@ func TestGetById(t *testing.T) {
 	}
 }
 
-// func TestUpdateToken(t *testing.T) {
-// 	auth1 := &models.Auth{
-// 		UserId:       "7d4b4910-9472-4003-8454-ba09d91ac4d7",
-// 		AccessToken:  "The latest access token",
-// 		RefreshToken: "The latest access token",
-// 		DateUpdated:  ti.CurrentTime(),
-// 	}
+func TestEditUser(t *testing.T) {
+	user := createAndAddUser(nil)
+	editUser := generateUser()
 
-// 	auth2 := &models.Auth{
-// 		UserId:       "7d4b4910-9472-4003",
-// 		AccessToken:  "The latest access token",
-// 		RefreshToken: "The latest access token",
-// 		DateUpdated:  ti.CurrentTime(),
-// 	}
+	tests := []struct {
+		name string
+		id   string
+		user *models.User
+		want bool
+	}{
+		{name: "Test with correct id", id: user.Id, user: editUser, want: false},
+	}
 
-// 	auth3 := &models.Auth{
-// 		UserId:       "",
-// 		AccessToken:  "The latest access token",
-// 		RefreshToken: "The latest access token",
-// 		DateUpdated:  ti.CurrentTime(),
-// 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := u.Edit(tt.user, tt.id)
+			if (err != nil) != tt.want {
+				t.Errorf("userSql.Edit() error = %v, wantErr %v", err, tt.want)
+			}
+		})
+	}
+}
 
-// 	tests := []struct {
-// 		name string
-// 		auth *models.Auth
-// 		want bool
-// 	}{
-// 		{name: "Test with empty auth details", auth: &models.Auth{}, want: false},
-// 		{name: "Test with correct details", auth: auth1, want: false},
-// 		{name: "Test with incorrect user id", auth: auth2, want: false},
-// 		{name: "Test with empty user id", auth: auth3, want: false},
-// 	}
+func TestGetAll(t *testing.T) {
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if err := u.Update(tt.auth); (err != nil) != tt.want {
-// 				t.Errorf("userSql.UpdateToken() err = %v, wantErr %v", err, tt.want)
-// 			}
-// 		})
-// 	}
+	for i := 0; i < 10; i++ {
+		_ = createAndAddUser(nil)
+	}
 
-// }
+	tests := []struct {
+		name string
+		page int
+		want bool
+	}{
+		{name: "Test with correct id", page: 1, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := u.GetAll(tt.page)
+			if (err != nil) != tt.want {
+				t.Errorf("userSql.GetAll() error = %v, wantErr %v", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	user := createAndAddUser(nil)
+
+	tests := []struct {
+		name string
+		id   string
+		want bool
+	}{
+		{name: "Test with correct id", id: user.Id, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := u.Delete(tt.id)
+			if (err != nil) != tt.want {
+				t.Errorf("userSql.Delete() error = %v, wantErr %v", err, tt.want)
+			}
+		})
+	}
+}

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"e-commerce/internal/models"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 type UserRepo interface {
@@ -29,7 +29,7 @@ type userSql struct {
 func (u *userSql) ExistsEmail(email string) (bool, error) {
 	var userId string
 
-	query := `SELECT id FROM users WHERE email = ?`
+	query := `SELECT id FROM users WHERE email = $1;`
 
 	err := u.conn.QueryRow(query, email).Scan(&userId)
 
@@ -49,7 +49,7 @@ func (u *userSql) ExistsEmail(email string) (bool, error) {
 func (u *userSql) ExistsId(userId string) bool {
 	var email string
 
-	query := `SELECT email FROM users WHERE id = ?`
+	query := `SELECT email FROM users WHERE id = $1;`
 
 	err := u.conn.QueryRow(query, userId).Scan(&email)
 
@@ -59,7 +59,7 @@ func (u *userSql) ExistsId(userId string) bool {
 func (u *userSql) ExistsPhone(phone string) (bool, error) {
 	var id string
 
-	query := `SELECT id FROM users WHERE phone_number = ?`
+	query := `SELECT id FROM users WHERE phone_number = $1`
 
 	err := u.conn.QueryRow(query, phone).Scan(&id)
 
@@ -76,34 +76,25 @@ func (u *userSql) ExistsPhone(phone string) (bool, error) {
 	return true, nil
 }
 
-func (u *userSql) Add(user *models.User) (*models.User, error) {
-	query := `INSERT INTO users(id, first_name, last_name, email, phone_number, password) 
-				VALUES(?, ?, ?, ?, ?, ?)`
+func (u *userSql) Add(user *models.User) (usr *models.User, err error) {
+	usr = new(models.User)
 
-	_, err := u.conn.Exec(query,
-		user.Id, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Password)
+	query := `INSERT INTO users(first_name, last_name, email, phone_number, password) VALUES($1, $2, $3, $4, $5) RETURNING id, first_name, last_name, email, phone_number, date_created, date_updated`
+
+	err = u.conn.QueryRow(query, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Password).Scan(&usr.Id, &usr.FirstName, &usr.LastName, &usr.Email, &usr.PhoneNumber, &usr.DateCreated, &usr.DateUpdated)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return u.GetById(user.Id)
+	return
 }
 
 func (u *userSql) GetByEmail(email string) (*models.User, error) {
 	var user models.User
 
-	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE email = ?`
+	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE email = $1`
 
-	err := u.conn.QueryRow(query, email).Scan(
-		&user.Id,
-		&user.Email,
-		&user.Password,
-		&user.FirstName,
-		&user.LastName,
-		&user.PhoneNumber,
-		&user.DateCreated,
-		&user.DateUpdated,
-	)
+	err := u.conn.QueryRow(query, email).Scan(&user.Id, &user.Email, &user.Password, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.DateCreated, &user.DateUpdated)
 
 	if err != nil {
 		return nil, err
@@ -114,18 +105,9 @@ func (u *userSql) GetByEmail(email string) (*models.User, error) {
 
 func (u *userSql) GetById(userId string) (*models.User, error) {
 	var user models.User
-	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE id = ?`
+	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated FROM users WHERE id = $1`
 
-	err := u.conn.QueryRow(query, userId).Scan(
-		&user.Id,
-		&user.Email,
-		&user.Password,
-		&user.FirstName,
-		&user.LastName,
-		&user.PhoneNumber,
-		&user.DateCreated,
-		&user.DateUpdated,
-	)
+	err := u.conn.QueryRow(query, userId).Scan(&user.Id, &user.Email, &user.Password, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.DateCreated, &user.DateUpdated)
 
 	if err != nil {
 		return nil, err
@@ -139,7 +121,7 @@ func (u *userSql) GetAll(page int) ([]*models.User, error) {
 	offset := limit * (page - 1)
 
 	query := `SELECT id, email, password, first_name, last_name, phone_number, date_created, date_updated
-			FROM users LIMIT ? OFFSET ?;`
+			FROM users LIMIT $1 OFFSET $2;`
 
 	rows, err := u.conn.Query(query, limit, offset)
 	if err != nil {
@@ -164,19 +146,21 @@ func (u *userSql) GetAll(page int) ([]*models.User, error) {
 	return users, nil
 }
 
-func (u *userSql) Edit(user *models.User, userId string) (*models.User, error) {
-	query := `UPDATE users SET email = ?, first_name = ?, last_name = ?, phone_number = ?, date_updated = CURRENT_TIMESTAMP() WHERE id = ?`
+func (u *userSql) Edit(user *models.User, userId string) (usr *models.User, err error) {
+	usr = new(models.User)
 
-	_, err := u.conn.Exec(query, user.Email, user.FirstName, user.LastName, user.PhoneNumber, userId)
+	query := `UPDATE users SET email = $1, first_name = $2, last_name = $3, phone_number = $4, date_updated = CURRENT_TIMESTAMP WHERE id = $5 RETURNING id, first_name, last_name, email, phone_number, date_created, date_updated`
+
+	err = u.conn.QueryRow(query, user.Email, user.FirstName, user.LastName, user.PhoneNumber, userId).Scan(&usr.Id, &usr.FirstName, &usr.LastName, &usr.Email, &usr.PhoneNumber, &usr.DateCreated, &usr.DateUpdated)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return u.GetById(userId)
+	return
 }
 
 func (u *userSql) Delete(userId string) error {
-	query := `DELETE FROM users WHERE id = ?`
+	query := `DELETE FROM users WHERE id = $1`
 
 	_, err := u.conn.Exec(query, userId)
 	if err != nil {
