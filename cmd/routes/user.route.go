@@ -1,13 +1,15 @@
 package route
 
 import (
+	"time"
+
 	handler "e-commerce/cmd/handlers"
 	"e-commerce/cmd/middleware"
 	"e-commerce/internal/service"
-	"time"
 
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
+
 	"github.com/gin-gonic/gin"
 )
 

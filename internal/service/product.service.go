@@ -74,8 +74,11 @@ func (p *productSrv) GetAll(page int) ([]*models.ProductRating, *se.ServiceError
 }
 
 func (p *productSrv) Get(productId string) (*models.ProductRating, *se.ServiceError) {
-	product, err := p.productRepo.Get(productId)
+	if _, er := uuid.Parse(productId); er != nil {
+		return nil, se.NotFound("product not found")
+	}
 
+	product, err := p.productRepo.Get(productId)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.GetProductRepoError(productId, err))
 		return nil, se.NotFoundOrInternal(err)

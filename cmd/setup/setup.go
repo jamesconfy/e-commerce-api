@@ -21,7 +21,6 @@ import (
 
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
-	"github.com/go-co-op/gocron"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -54,7 +53,6 @@ func Setup() {
 	defer redisClient.Close()
 
 	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
-	gin.DisableConsoleColor()
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -131,11 +129,6 @@ func Setup() {
 	route.CartRoute(v1, cartSrv, authSrv)
 	route.CartItemRoute(v1, cartItemSrv, authSrv, store)
 	route.ErrorRoute(router)
-
-	s := gocron.NewScheduler(time.UTC)
-	s.Every(1).Day().Do(func() {
-		mysqlDB.Ping()
-	})
 
 	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -216,8 +209,14 @@ func init() {
 
 	if mode == "production" {
 		gin.SetMode(gin.ReleaseMode)
+		gin.DisableConsoleColor()
 
-		dsn = utils.AppConfig.MYSQL_PRODUCTION_DATABASE
+		host := utils.AppConfig.PRODUCTION_POSTGRES_HOST
+		username := utils.AppConfig.PRODUCTION_POSTGRES_USERNAME
+		passwd := utils.AppConfig.PRODUCTION_POSTGRES_PASSWORD
+		dbname := utils.AppConfig.PRODUCTION_POSTGRES_DBNAME
+
+		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
 		if dsn == "" {
 			log.Println("DSN cannot be empty")
 		}

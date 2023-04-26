@@ -119,7 +119,7 @@ func (u *userHandler) Get(c *gin.Context) {
 // @Failure	400  {object}  response.ErrorMessage
 // @Failure	404  {object}  response.ErrorMessage
 // @Failure	500  {object}  response.ErrorMessage
-// @Router	/users/all [get]
+// @Router	/users [get]
 func (u *userHandler) GetAll(c *gin.Context) {
 	page, _ := c.GetQuery("page")
 	if page == "" {
@@ -238,6 +238,17 @@ func (u *userHandler) Logout(c *gin.Context) {
 	response.Success201(c, "Logged out successfully", nil)
 }
 
+// Clear Login Auth godoc
+// @Summary	Clear Login Auth route
+// @Description	Clear user auth
+// @Tags	User
+// @Produce	json
+// @Success	200  {string}	string	"Logged out from all other device successfully"
+// @Failure	400  {object}  response.ErrorMessage
+// @Failure	404  {object}  response.ErrorMessage
+// @Failure	500  {object}  response.ErrorMessage
+// @Router	/users/profile/clear [post]
+// @Security ApiKeyAuth
 func (u *userHandler) ClearAuth(c *gin.Context) {
 	err := u.userSrv.ClearAuth(c.GetString("userId"), getAuth(c))
 	if err != nil {

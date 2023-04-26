@@ -7,6 +7,8 @@ import (
 	repo "e-commerce/internal/repository"
 	"e-commerce/internal/se"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserService interface {
@@ -159,6 +161,10 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 }
 
 func (u *userSrv) GetById(userId string) (*models.User, *se.ServiceError) {
+	if _, er := uuid.Parse(userId); er != nil {
+		return nil, se.NotFound("user not found")
+	}
+
 	user, err := u.userRepo.GetById(userId)
 	if err != nil {
 		u.loggerSrv.Error(u.message.GetFetchUserError(userId, err))
@@ -170,7 +176,6 @@ func (u *userSrv) GetById(userId string) (*models.User, *se.ServiceError) {
 }
 
 func (u *userSrv) GetAll(pageI int) ([]*models.User, *se.ServiceError) {
-
 	users, err := u.userRepo.GetAll(pageI)
 	if err != nil {
 		return nil, se.NotFoundOrInternal(err, "Could not fetch users")

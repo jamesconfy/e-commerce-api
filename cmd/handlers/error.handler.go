@@ -6,11 +6,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Error404() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{
-			"description": "Page not found.",
-			"status":      http.StatusNotFound,
-		})
-	}
+type ErrorHandler interface {
+	Error404(c *gin.Context)
+	MethodNotAllowed(c *gin.Context)
+}
+
+type errorHandler struct {
+}
+
+func (e *errorHandler) Error404(c *gin.Context) {
+	c.JSON(http.StatusNotFound, gin.H{"description": "Page not found.", "status": http.StatusNotFound})
+}
+
+func (e *errorHandler) MethodNotAllowed(c *gin.Context) {
+	c.JSON(http.StatusMethodNotAllowed, gin.H{"description": "Method not allowed", "status": http.StatusMethodNotAllowed})
+}
+
+func NewErrorHandler() ErrorHandler {
+	return &errorHandler{}
 }
