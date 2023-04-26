@@ -22,6 +22,7 @@ type UserHandler interface {
 	Edit(c *gin.Context)
 	Delete(c *gin.Context)
 	Logout(c *gin.Context)
+	ClearAuth(c *gin.Context)
 }
 
 type userHandler struct {
@@ -227,13 +228,24 @@ func (u *userHandler) Delete(c *gin.Context) {
 // @Router	/users/logout [post]
 // @Security ApiKeyAuth
 func (u *userHandler) Logout(c *gin.Context) {
-	err := u.userSrv.DeleteToken(c.GetString("userId"))
+	err := u.userSrv.DeleteAuth(c.GetString("userId"), getAuth(c))
 	if err != nil {
 		response.Error(c, *err)
+		return
 	}
 
 	setCookie(c, "", -1)
 	response.Success201(c, "Logged out successfully", nil)
+}
+
+func (u *userHandler) ClearAuth(c *gin.Context) {
+	err := u.userSrv.ClearAuth(c.GetString("userId"), getAuth(c))
+	if err != nil {
+		response.Error(c, *err)
+		return
+	}
+
+	response.Success201(c, "Logged out from all other device successfully", nil)
 }
 
 func NewUserHandler(userSrv service.UserService) UserHandler {
@@ -243,4 +255,15 @@ func NewUserHandler(userSrv service.UserService) UserHandler {
 // Auxillary function
 func setCookie(c *gin.Context, value string, max_age int) {
 	c.SetCookie(defaultCookieName, value, 0, "/", "", false, true)
+}
+
+func getAuth(c *gin.Context) (auth string) {
+	auth, _ = c.Cookie("Authorization")
+
+	if auth != "" {
+		return
+	}
+
+	auth = c.GetHeader("Authorization")
+	return
 }

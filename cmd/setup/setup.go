@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"e-commerce/cmd/middleware"
@@ -138,7 +140,20 @@ func Setup() {
 	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	serverStart()
-	router.Run(":" + addr)
+
+	go func() {
+		// start the server
+		if err := router.Run(":" + addr); err != nil {
+			fmt.Printf("Could not start server: %v", err)
+		}
+	}()
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+
+	<-sigs
+
+	serverEnd()
 }
 
 func serverStart() {
@@ -150,6 +165,13 @@ func serverStart() {
 	fmt.Print("1\n")
 	time.Sleep(time.Second * 1)
 	fmt.Println("Server is up and running")
+}
+
+func serverEnd() {
+	time.Sleep(time.Second * 1)
+	fmt.Println("\nShutting down gracefully...........")
+	time.Sleep(time.Second * 1)
+	fmt.Println("Server exited")
 }
 
 func init() {
@@ -165,7 +187,13 @@ func init() {
 	if mode == "development" {
 		gin.SetMode(gin.DebugMode)
 
-		dsn = utils.AppConfig.MYSQL_DEVELOPMENT_DATABASE
+		host := utils.AppConfig.DEVELOPMENT_POSTGRES_HOST
+		username := utils.AppConfig.DEVELOPMENT_POSTGRES_USERNAME
+		passwd := utils.AppConfig.DEVELOPMENT_POSTGRES_PASSWORD
+		dbname := utils.AppConfig.DEVELOPMENT_POSTGRES_DBNAME
+
+		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
+		fmt.Println(dsn)
 		if dsn == "" {
 			log.Println("DSN cannot be empty")
 		}

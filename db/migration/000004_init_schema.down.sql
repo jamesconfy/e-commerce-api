@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS `rating`;
+DROP TABLE IF EXISTS rating;

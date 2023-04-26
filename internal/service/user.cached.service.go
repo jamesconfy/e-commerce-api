@@ -30,9 +30,14 @@ func (c *cachedUserService) Delete(userId string) *se.ServiceError {
 }
 
 // DeleteToken implements UserService
-func (c *cachedUserService) DeleteToken(userId string) *se.ServiceError {
+func (c *cachedUserService) DeleteAuth(userId, accessToken string) *se.ServiceError {
+	return c.userService.DeleteAuth(userId, accessToken)
+}
+
+// DeleteToken implements UserService
+func (c *cachedUserService) ClearAuth(userId, accessToken string) *se.ServiceError {
 	c.cache.DeleteByTag(userId)
-	return c.userService.DeleteToken(userId)
+	return c.userService.ClearAuth(userId, accessToken)
 }
 
 // Edit implements UserService

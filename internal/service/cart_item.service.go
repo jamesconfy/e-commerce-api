@@ -47,7 +47,7 @@ func (ci *cartItemSrv) Add(req *forms.CartItem, userId string) (*models.Item, *s
 		return nil, se.Internal(err)
 	}
 
-	product, err := ci.productRepo.GetId(req.ProductId)
+	product, err := ci.productRepo.Get(req.ProductId)
 	if err != nil {
 		ci.loggerSrv.Error(ci.message.GetProductRepoError(req.ProductId, err))
 		return nil, se.NotFoundOrInternal(err, "product not found")
@@ -82,7 +82,7 @@ func (ci *cartItemSrv) Get(productId, userId string) (*models.Item, *se.ServiceE
 		return nil, se.NotFoundOrInternal(err, "cart not found")
 	}
 
-	product, err := ci.productRepo.GetId(productId)
+	product, err := ci.productRepo.Get(productId)
 	if err != nil {
 		ci.loggerSrv.Error(ci.message.GetItemRepoError(productId, userId, err))
 		return nil, se.NotFoundOrInternal(err, "product not found")

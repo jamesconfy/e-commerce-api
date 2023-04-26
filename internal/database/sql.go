@@ -2,9 +2,10 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 type db struct {
@@ -32,10 +33,12 @@ func (m *db) Get() *sql.DB {
 }
 
 func New(connStr string) (*db, error) {
-	conn, err := sql.Open("mysql", connStr)
+	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("Ping: ", conn.Ping())
 
 	return &db{conn: conn}, nil
 }

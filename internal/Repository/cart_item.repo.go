@@ -3,6 +3,7 @@ package repo
 import (
 	"database/sql"
 	"e-commerce/internal/models"
+	"fmt"
 )
 
 type CartItemRepo interface {
@@ -16,32 +17,28 @@ type itemSql struct {
 	conn *sql.DB
 }
 
-func (c *itemSql) Add(cart *models.Cart, item *models.Item) (*models.Item, error) {
+func (c *itemSql) Add(cart *models.Cart, item *models.Item) (itm *models.Item, err error) {
 	// SQL – Add item to cart on conflict update item quantity
-	query := `INSERT INTO cart_item(cart_id, product_id, quantity)
-				VALUES (?, ?, ?)
-				ON DUPLICATE KEY UPDATE quantity = ?, date_updated = CURRENT_TIMESTAMP()`
+	itm = new(models.Item)
 
-	_, err := c.conn.Exec(query, cart.Id, item.ProductId, item.Quantity, item.Quantity)
+	fmt.Println(item.Quantity)
+	query := `INSERT INTO cart_item(cart_id, product_id, quantity) VALUES ($1, $2, $3) ON CONFLICT (cart_id, product_id)
+	DO UPDATE SET quantity = $3, date_updated = CURRENT_TIMESTAMP RETURNING product_id, quantity, date_created, date_updated`
+
+	err = c.conn.QueryRow(query, cart.Id, item.ProductId, item.Quantity).Scan(&itm.ProductId, &itm.Quantity, &itm.DateCreated, &itm.DateUpdated)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return c.Get(cart, item.ProductId)
+	return
 }
 
 func (c *itemSql) Get(cart *models.Cart, productId string) (*models.Item, error) {
 	var item models.Item
 
-	query := `SELECT product_id, quantity, date_created, date_updated FROM cart_item WHERE product_id = ? AND cart_id = ?`
+	query := `SELECT product_id, quantity, date_created, date_updated FROM cart_item WHERE product_id = $1 AND cart_id = $2`
 
-	err := c.conn.QueryRow(query, productId, cart.Id).Scan(
-		&item.ProductId,
-		&item.Quantity,
-		&item.DateCreated,
-		&item.DateUpdated,
-	)
-
+	err := c.conn.QueryRow(query, productId, cart.Id).Scan(&item.ProductId, &item.Quantity, &item.DateCreated, &item.DateUpdated)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +50,7 @@ func (i *itemSql) GetItems(cart *models.Cart) (*models.CartItem, error) {
 	var items []*models.Item
 	var cartItem models.CartItem
 
-	query := `SELECT ct.product_id, ct.quantity, ct.date_created, ct.date_updated, p.id "product_id", p.user_id, p.name, p.description, p.price, p.date_created "product_date_created", p.date_updated "product_date_updated", p.image FROM cart_item ct LEFT JOIN products p ON p.id=ct.product_id WHERE ct.cart_id = ?;`
+	query := `SELECT ct.product_id, ct.quantity, ct.date_created, ct.date_updated, p.id "product_id", p.user_id, p.name, p.description, p.price, p.date_created "product_date_created", p.date_updated "product_date_updated", p.image FROM cart_item ct LEFT JOIN products p ON p.id=ct.product_id WHERE ct.cart_id = $1;`
 
 	rows, err := i.conn.Query(query, cart.Id)
 	if err != nil {
@@ -80,7 +77,7 @@ func (i *itemSql) GetItems(cart *models.Cart) (*models.CartItem, error) {
 }
 
 func (c *itemSql) Delete(cart *models.Cart, productId string) error {
-	query := `DELETE FROM cart_item WHERE product_id = ? AND cart_id = ?`
+	query := `DELETE FROM cart_item WHERE product_id = $1 AND cart_id = $2`
 
 	_, err := c.conn.Exec(query, productId, cart.Id)
 	if err != nil {

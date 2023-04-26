@@ -8,30 +8,31 @@ import (
 type AuthRepo interface {
 	Add(auth *models.Auth) (*models.Auth, error)
 	Get(userId string) (*models.Auth, error)
-	Delete(userId string) error
+	Delete(userId, accessToken string) error
+	Clear(userId, accessToken string) error
 }
 
 type authSql struct {
 	conn *sql.DB
 }
 
-func (a *authSql) Add(auth *models.Auth) (*models.Auth, error) {
-	query := `INSERT INTO auth (id, user_id, access_token, refresh_token, expires_at) 
-	VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))
-	ON DUPLICATE KEY UPDATE access_token = ?, refresh_token = ?, expires_at = DATE_ADD(NOW(), INTERVAL 2 HOUR), date_updated = CURRENT_TIMESTAMP()`
+func (a *authSql) Add(auth *models.Auth) (auh *models.Auth, err error) {
+	auh = new(models.Auth)
 
-	_, err := a.conn.Exec(query, auth.Id, auth.UserId, auth.AccessToken, auth.RefreshToken, auth.AccessToken, auth.RefreshToken)
+	query := `INSERT INTO auth (user_id, access_token, refresh_token) VALUES ($1, $2, $3) RETURNING id, user_id, access_token, refresh_token, expires_at, date_created, date_updated`
+
+	err = a.conn.QueryRow(query, auth.UserId, auth.AccessToken, auth.RefreshToken).Scan(&auh.Id, &auh.UserId, &auh.AccessToken, &auh.RefreshToken, &auh.ExpiresAt, &auh.DateCreated, &auh.DateUpdated)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return a.Get(auth.UserId)
+	return
 }
 
 func (a *authSql) Get(userId string) (*models.Auth, error) {
 	var auth models.Auth
 
-	query := `SELECT id, user_id, access_token, refresh_token, expires_at, date_created, date_updated FROM auth WHERE user_id = ?`
+	query := `SELECT id, user_id, access_token, refresh_token, expires_at, date_created, date_updated FROM auth WHERE user_id = $1`
 
 	err := a.conn.QueryRow(query, userId).Scan(&auth.Id, &auth.UserId, &auth.AccessToken, &auth.RefreshToken, &auth.ExpiresAt, &auth.DateCreated, &auth.DateUpdated)
 
@@ -42,9 +43,19 @@ func (a *authSql) Get(userId string) (*models.Auth, error) {
 	return &auth, nil
 }
 
-func (a *authSql) Delete(userId string) error {
-	query := `DELETE FROM auth WHERE user_id = ?`
-	_, err := a.conn.Exec(query, userId)
+func (a *authSql) Delete(userId, accessToken string) error {
+	query := `DELETE FROM auth WHERE user_id = $1 and access_token = $2`
+	_, err := a.conn.Exec(query, userId, accessToken)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *authSql) Clear(userId, accessToken string) error {
+	query := `DELETE FROM auth WHERE user_id = $1 AND access_token != $2`
+	_, err := a.conn.Exec(query, userId, accessToken)
 	if err != nil {
 		return err
 	}
