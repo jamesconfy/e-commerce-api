@@ -189,6 +189,10 @@ func (u *userSrv) Edit(req *forms.EditUser, userId string) (*models.User, *se.Se
 		return nil, se.Validating(err)
 	}
 
+	if _, er := uuid.Parse(userId); er != nil {
+		return nil, se.NotFound("user not found")
+	}
+
 	editUser, err := u.editUser(req, userId)
 	if err != nil {
 		return nil, err
@@ -203,6 +207,10 @@ func (u *userSrv) Edit(req *forms.EditUser, userId string) (*models.User, *se.Se
 }
 
 func (u *userSrv) Delete(userId string) *se.ServiceError {
+	if _, er := uuid.Parse(userId); er != nil {
+		return se.NotFound("user not found")
+	}
+
 	err := u.userRepo.Delete(userId)
 	if err != nil {
 		return se.NotFoundOrInternal(err)
@@ -212,6 +220,10 @@ func (u *userSrv) Delete(userId string) *se.ServiceError {
 }
 
 func (u *userSrv) DeleteAuth(userId, accessToken string) *se.ServiceError {
+	if _, er := uuid.Parse(userId); er != nil {
+		return se.NotFound("user not found")
+	}
+
 	err := u.authRepo.Delete(userId, accessToken)
 	if err != nil {
 		return se.Internal(err)
@@ -221,6 +233,10 @@ func (u *userSrv) DeleteAuth(userId, accessToken string) *se.ServiceError {
 }
 
 func (u *userSrv) ClearAuth(userId, accessToken string) *se.ServiceError {
+	if _, er := uuid.Parse(userId); er != nil {
+		return se.NotFound("user not found")
+	}
+
 	err := u.authRepo.Clear(userId, accessToken)
 	if err != nil {
 		return se.Internal(err)

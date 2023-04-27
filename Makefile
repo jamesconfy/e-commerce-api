@@ -1,8 +1,8 @@
 migrate_up:
-	migrate -path db/migration -database "postgres://ojrgbwbb:lHIin4nHhnGhSsBi1zz4EzQT6RutIm_9@lallah.db.elephantsql.com/ojrgbwbb?sslmode=disable" -verbose up
+	migrate -path db/migration -database "" -verbose up
 
 migrate_force:
-	migrate -path db/migration -database "postgres://ojrgbwbb:lHIin4nHhnGhSsBi1zz4EzQT6RutIm_9@lallah.db.elephantsql.com/ojrgbwbb?sslmode=disable" force $(version)
+	migrate -path db/migration -database "" force $(version)
 
 migrate_down:
 	migrate -path db/migration -database "" -verbose down
@@ -42,6 +42,9 @@ test_service:
 
 test_handler:
 	go test ./tests/handler_test -v
+
+test_all:
+	go test ./tests/repo_test && go test ./tests/service_test && go test ./tests/handler_test
 
 add_commit:
 	git add . && git commit -m "$(message)"

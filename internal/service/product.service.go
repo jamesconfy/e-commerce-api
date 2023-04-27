@@ -93,6 +93,11 @@ func (p *productSrv) Edit(req *forms.EditProduct, productId, userId string) (*mo
 		return nil, se.Validating(err)
 	}
 
+	_, er := p.check(productId, userId)
+	if er != nil {
+		return nil, er
+	}
+
 	product, err := p.productRepo.Get(productId)
 	if err != nil {
 		p.loggerSrv.Fatal(p.message.GetProductRepoError(productId, err))
@@ -117,6 +122,11 @@ func (p *productSrv) Edit(req *forms.EditProduct, productId, userId string) (*mo
 }
 
 func (p *productSrv) Delete(productId, userId string) *se.ServiceError {
+	_, er := p.check(productId, userId)
+	if er != nil {
+		return er
+	}
+
 	product, err := p.productRepo.Get(productId)
 	if err != nil {
 		p.loggerSrv.Error(p.message.GetProductRepoError(productId, err))
@@ -141,6 +151,11 @@ func (p *productSrv) Delete(productId, userId string) *se.ServiceError {
 func (p *productSrv) AddRating(req *forms.Rating, productId, userId string) (*models.Rating, *se.ServiceError) {
 	if err := p.Validate(req); err != nil {
 		return nil, se.Validating(err)
+	}
+
+	_, er := p.check(productId, userId)
+	if er != nil {
+		return nil, er
 	}
 
 	product, err := p.productRepo.Get(productId)
@@ -203,4 +218,16 @@ func (p *productSrv) updateProduct(req *forms.EditProduct, product *models.Produ
 		Image:       product.Product.Image,
 		DateUpdated: product.Product.DateUpdated,
 	}
+}
+
+func (p *productSrv) check(productId, userId string) (*string, *se.ServiceError) {
+	if _, er := uuid.Parse(productId); er != nil {
+		return nil, se.NotFound("product not found")
+	}
+
+	if _, er := uuid.Parse(userId); er != nil {
+		return nil, se.NotFound("user not found")
+	}
+
+	return nil, nil
 }
