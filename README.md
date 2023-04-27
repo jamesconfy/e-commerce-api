@@ -14,7 +14,7 @@ Do a `go mod tidy` to download all the required packages or by doing `make gotid
 
 You will need to set up a mysql database as it was the database of choice in this code base (either locally or remotely). Get the username, password, host, port and database name as this will be needed before running the application.
 
-You then make a copy of the [app-sample.env](app-sample.env) into an [app.env](app.env) file and provide the required parameters.
+You then make a copy of the [\_sample.env](_sample.env) into an [.env](.env) file and provide the required parameters.
 
 - **`MYSQL_DATABASE`** is the database name in the format `username:password@tcp(host_network:host_port(usually 3306))/database_name(e_commerce_api can be used)?parseTime=true`. Either **_`DEVELOPMENT_DATABASE`_** or **_`PRODUCTION_DATABASE`_**
 - **`REDIS_DATABASE`** is the caching database used to increase performance. You have to provide the details seperately, not like what was done for the normal mysql database. Could be **DEVELOPMENT** or **PRODUCTION**. Parameters:
@@ -55,6 +55,3 @@ You can read more about the [makefile](Makefile) on what other commands you can 
 ### Live
 
 Project is live on [live](https://e-commerce-api.fly.dev/api/v1/swagger/index.html)
-
-
-

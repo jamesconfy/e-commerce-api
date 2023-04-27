@@ -1,4 +1,4 @@
-app.env
+.env*
 .vscode
 .dockerignore
 docker-compose.yml
