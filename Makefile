@@ -48,3 +48,6 @@ test_all:
 
 add_commit:
 	git add . && git commit -m "$(message)"
+
+locust:
+	locust -f tests/speed_test/locust_test.py

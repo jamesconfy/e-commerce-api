@@ -11,3 +11,5 @@ logs/*
 *test.log
 config.db
 .air.toml
+# .venv
+*__pycache__
