@@ -3,7 +3,8 @@ from locust import HttpUser, task, between
 class QuickstartUser(HttpUser):
     wait_time = between(1, 2)
 
-    host = "https://e-commerce-api.fly.dev/api/v1"
+    # host = "https://e-commerce-api.fly.dev/api/v1"
+    host = "127.0.0.1:8080/api/v1"
 
     @task
     def get_home(self):
