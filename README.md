@@ -63,4 +63,3 @@ You can read more about the [makefile](Makefile) on what other commands you can 
 ### Live
 
 Project is live on [live](https://e-commerce-api.fly.dev/api/v1/swagger/index.html)
-
