@@ -1,11 +1,11 @@
 migrate_up:
-	migrate -path db/migration -database "postgres://mac:password@localhost:5432/e_commerce_api?sslmode=disable" -verbose up
+	migrate -path db/migration -database "" -verbose up
 
 migrate_force:
-	migrate -path db/migration -database "postgres://mac:password@localhost:5432/e_commerce_api?sslmode=disable" force $(version)
+	migrate -path db/migration -database "" force $(version)
 
 migrate_down:
-	migrate -path db/migration -database "postgres://mac:password@localhost:5432/e_commerce_api?sslmode=disable" -verbose down
+	migrate -path db/migration -database "" -verbose down
 
 run:
 	go build e-commerce.go && ./e-commerce
@@ -43,5 +43,11 @@ test_service:
 test_handler:
 	go test ./tests/handler_test -v
 
+test_all:
+	go test ./tests/repo_test && go test ./tests/service_test && go test ./tests/handler_test
+
 add_commit:
 	git add . && git commit -m "$(message)"
+
+locust:
+	locust -f tests/speed_test/locust_test.py

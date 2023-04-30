@@ -14,7 +14,7 @@ Do a `go mod tidy` to download all the required packages or by doing `make gotid
 
 You will need to set up a mysql database as it was the database of choice in this code base (either locally or remotely). Get the username, password, host, port and database name as this will be needed before running the application.
 
-You then make a copy of the [app-sample.env](app-sample.env) into an [app.env](app.env) file and provide the required parameters.
+You then make a copy of the [\_sample.env](_sample.env) into an [.env](.env) file and provide the required parameters.
 
 - **`MYSQL_DATABASE`** is the database name in the format `username:password@tcp(host_network:host_port(usually 3306))/database_name(e_commerce_api can be used)?parseTime=true`. Either **_`DEVELOPMENT_DATABASE`_** or **_`PRODUCTION_DATABASE`_**
 - **`REDIS_DATABASE`** is the caching database used to increase performance. You have to provide the details seperately, not like what was done for the normal mysql database. Could be **DEVELOPMENT** or **PRODUCTION**. Parameters:
@@ -48,6 +48,14 @@ Three different package tests was done and you can see in the [tests](/tests/) f
 - **service_test:** This test deals on everything about the service aspect (user, product, cart and cart_item). Run the command `make test_service` to run this test.
 - **handler_test:** This is an integration test that test the whole application as one. It first of all starts a local server that it uses to test the application. to run this test, do a `make test_handler`.
 
+### Speed Testing
+
+This can be ran using python locust package in [python](https://python.org).
+
+You start by first having python installed on your local machine. And creating a virtual environment to not conflict with your global packages. You can use the command `python3 -m venv .venv` to create a virtual environment and use `source .venv/bin/activate` to activate the environment. You then install [locust](https://locust.io) using pip as so `pip install locust`. You can dey use the provided [Makefile](Makefile) command `make locust` to start the test and access the test on your local machine on [locust_test](http://0.0.0.0:8089).
+
+**N.B:** Make sure the application is running on port 8080 on your local machine before attempting to do this test.
+
 ### Others
 
 You can read more about the [makefile](Makefile) on what other commands you can carryout.
@@ -55,6 +63,3 @@ You can read more about the [makefile](Makefile) on what other commands you can 
 ### Live
 
 Project is live on [live](https://e-commerce-api.fly.dev/api/v1/swagger/index.html)
-
-
-

@@ -7,6 +7,8 @@ import (
 	repo "e-commerce/internal/repository"
 	"e-commerce/internal/se"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserService interface {
@@ -159,6 +161,10 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 }
 
 func (u *userSrv) GetById(userId string) (*models.User, *se.ServiceError) {
+	if _, er := uuid.Parse(userId); er != nil {
+		return nil, se.NotFound("user not found")
+	}
+
 	user, err := u.userRepo.GetById(userId)
 	if err != nil {
 		u.loggerSrv.Error(u.message.GetFetchUserError(userId, err))
@@ -170,7 +176,6 @@ func (u *userSrv) GetById(userId string) (*models.User, *se.ServiceError) {
 }
 
 func (u *userSrv) GetAll(pageI int) ([]*models.User, *se.ServiceError) {
-
 	users, err := u.userRepo.GetAll(pageI)
 	if err != nil {
 		return nil, se.NotFoundOrInternal(err, "Could not fetch users")
@@ -182,6 +187,10 @@ func (u *userSrv) GetAll(pageI int) ([]*models.User, *se.ServiceError) {
 func (u *userSrv) Edit(req *forms.EditUser, userId string) (*models.User, *se.ServiceError) {
 	if err := u.Validate(req); err != nil {
 		return nil, se.Validating(err)
+	}
+
+	if _, er := uuid.Parse(userId); er != nil {
+		return nil, se.NotFound("user not found")
 	}
 
 	editUser, err := u.editUser(req, userId)
@@ -198,6 +207,10 @@ func (u *userSrv) Edit(req *forms.EditUser, userId string) (*models.User, *se.Se
 }
 
 func (u *userSrv) Delete(userId string) *se.ServiceError {
+	if _, er := uuid.Parse(userId); er != nil {
+		return se.NotFound("user not found")
+	}
+
 	err := u.userRepo.Delete(userId)
 	if err != nil {
 		return se.NotFoundOrInternal(err)
@@ -207,6 +220,10 @@ func (u *userSrv) Delete(userId string) *se.ServiceError {
 }
 
 func (u *userSrv) DeleteAuth(userId, accessToken string) *se.ServiceError {
+	if _, er := uuid.Parse(userId); er != nil {
+		return se.NotFound("user not found")
+	}
+
 	err := u.authRepo.Delete(userId, accessToken)
 	if err != nil {
 		return se.Internal(err)
@@ -216,6 +233,10 @@ func (u *userSrv) DeleteAuth(userId, accessToken string) *se.ServiceError {
 }
 
 func (u *userSrv) ClearAuth(userId, accessToken string) *se.ServiceError {
+	if _, er := uuid.Parse(userId); er != nil {
+		return se.NotFound("user not found")
+	}
+
 	err := u.authRepo.Clear(userId, accessToken)
 	if err != nil {
 		return se.Internal(err)

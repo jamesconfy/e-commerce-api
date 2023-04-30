@@ -632,43 +632,7 @@ paths:
       summary: Add rating route
       tags:
       - Product
-  /users/:userId:
-    get:
-      description: Get user by id
-      parameters:
-      - description: User id
-        in: path
-        name: userId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessMessage'
-            - properties:
-                data:
-                  $ref: '#/definitions/models.User'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorMessage'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorMessage'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorMessage'
-      summary: Get user by id route
-      tags:
-      - User
-  /users/all:
+  /users:
     get:
       description: Get user by id
       parameters:
@@ -689,6 +653,42 @@ paths:
                   items:
                     $ref: '#/definitions/models.User'
                   type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      summary: Get user by id route
+      tags:
+      - User
+  /users/:userId:
+    get:
+      description: Get user by id
+      parameters:
+      - description: User id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessMessage'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
               type: object
         "400":
           description: Bad Request
@@ -857,6 +857,33 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Edit user route
+      tags:
+      - User
+  /users/profile/clear:
+    post:
+      description: Clear user auth
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logged out from all other device successfully
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorMessage'
+      security:
+      - ApiKeyAuth: []
+      summary: Clear Login Auth route
       tags:
       - User
   /users/signup:

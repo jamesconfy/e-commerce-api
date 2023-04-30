@@ -21,7 +21,6 @@ import (
 
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
-	"github.com/go-co-op/gocron"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -54,7 +53,6 @@ func Setup() {
 	defer redisClient.Close()
 
 	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
-	gin.DisableConsoleColor()
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -132,11 +130,6 @@ func Setup() {
 	route.CartItemRoute(v1, cartItemSrv, authSrv, store)
 	route.ErrorRoute(router)
 
-	s := gocron.NewScheduler(time.UTC)
-	s.Every(1).Day().Do(func() {
-		mysqlDB.Ping()
-	})
-
 	// Documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	serverStart()
@@ -184,62 +177,75 @@ func init() {
 		addr = "8000"
 	}
 
-	if mode == "development" {
-		gin.SetMode(gin.DebugMode)
-
-		host := utils.AppConfig.DEVELOPMENT_POSTGRES_HOST
-		username := utils.AppConfig.DEVELOPMENT_POSTGRES_USERNAME
-		passwd := utils.AppConfig.DEVELOPMENT_POSTGRES_PASSWORD
-		dbname := utils.AppConfig.DEVELOPMENT_POSTGRES_DBNAME
-
-		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
-		fmt.Println(dsn)
-		if dsn == "" {
-			log.Println("DSN cannot be empty")
-		}
-
-		redis_host = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_HOST
-		if redis_host == "" {
-			log.Println("REDIS ADDRESS cannot be empty")
-		}
-
-		redis_username = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_USERNAME
-		if redis_username == "" {
-			log.Println("REDIS USERNAME cannot be empty")
-		}
-
-		redis_password = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_PASSWORD
-		if redis_password == "" {
-			log.Println("REDIS ADDRESS cannot be empty")
-		}
-	}
-
-	if mode == "production" {
-		gin.SetMode(gin.ReleaseMode)
-
-		dsn = utils.AppConfig.MYSQL_PRODUCTION_DATABASE
-		if dsn == "" {
-			log.Println("DSN cannot be empty")
-		}
-
-		redis_host = utils.AppConfig.PRODUCTION_REDIS_DATABASE_HOST
-		if redis_host == "" {
-			log.Println("REDIS ADDRESS cannot be empty")
-		}
-
-		redis_username = utils.AppConfig.PRODUCTION_REDIS_DATABASE_USERNAME
-		if redis_username == "" {
-			log.Println("REDIS USERNAME cannot be empty")
-		}
-
-		redis_password = utils.AppConfig.PRODUCTION_REDIS_DATABASE_PASSWORD
-		if redis_password == "" {
-			log.Println("REDIS ADDRESS cannot be empty")
-		}
-	}
-
 	if secret == "" {
 		secret = "somerandomsecret"
 		log.Println("Please provide a secret key token")
+	}
+
+	if mode == "development" {
+		loadDev()
+	}
+
+	if mode == "production" {
+		loadProd()
+	}
+}
+
+func loadDev() {
+	gin.SetMode(gin.DebugMode)
+
+	host := utils.AppConfig.DEVELOPMENT_POSTGRES_HOST
+	username := utils.AppConfig.DEVELOPMENT_POSTGRES_USERNAME
+	passwd := utils.AppConfig.DEVELOPMENT_POSTGRES_PASSWORD
+	dbname := utils.AppConfig.DEVELOPMENT_POSTGRES_DBNAME
+
+	dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
+	if dsn == "" {
+		log.Println("DSN cannot be empty")
+	}
+
+	redis_host = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_HOST
+	if redis_host == "" {
+		log.Println("REDIS ADDRESS cannot be empty")
+	}
+
+	redis_username = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_USERNAME
+	if redis_username == "" {
+		log.Println("REDIS USERNAME cannot be empty")
+	}
+
+	redis_password = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_PASSWORD
+	if redis_password == "" {
+		log.Println("REDIS ADDRESS cannot be empty")
+	}
+}
+
+func loadProd() {
+	gin.SetMode(gin.ReleaseMode)
+	gin.DisableConsoleColor()
+
+	host := utils.AppConfig.PRODUCTION_POSTGRES_HOST
+	username := utils.AppConfig.PRODUCTION_POSTGRES_USERNAME
+	passwd := utils.AppConfig.PRODUCTION_POSTGRES_PASSWORD
+	dbname := utils.AppConfig.PRODUCTION_POSTGRES_DBNAME
+
+	dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
+	if dsn == "" {
+		log.Println("DSN cannot be empty")
+	}
+
+	redis_host = utils.AppConfig.PRODUCTION_REDIS_DATABASE_HOST
+	if redis_host == "" {
+		log.Println("REDIS ADDRESS cannot be empty")
+	}
+
+	redis_username = utils.AppConfig.PRODUCTION_REDIS_DATABASE_USERNAME
+	if redis_username == "" {
+		log.Println("REDIS USERNAME cannot be empty")
+	}
+
+	redis_password = utils.AppConfig.PRODUCTION_REDIS_DATABASE_PASSWORD
+	if redis_password == "" {
+		log.Println("REDIS ADDRESS cannot be empty")
 	}
 }
