@@ -6,7 +6,6 @@ migrate_force:
 
 migrate_down:
 	migrate -path db/migration -database "" -verbose down
-	
 
 run:
 	go build e-commerce.go && ./e-commerce
