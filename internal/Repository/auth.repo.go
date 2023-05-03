@@ -2,7 +2,17 @@ package repo
 
 import (
 	"database/sql"
+	"os"
+	"strconv"
+	"time"
+
 	"e-commerce/internal/models"
+
+	"github.com/joho/godotenv"
+)
+
+var (
+	expiresAt_key = "EXPIRES_AT"
 )
 
 type AuthRepo interface {
@@ -18,6 +28,18 @@ type authSql struct {
 
 func (a *authSql) Add(auth *models.Auth) (auh *models.Auth, err error) {
 	auh = new(models.Auth)
+
+	expires_at := os.Getenv(expiresAt_key)
+	if expires_at != "" {
+		query := `INSERT INTO auth (user_id, access_token, refresh_token, expires_at) VALUES ($1, $2, $3, $4) RETURNING id, user_id, access_token, refresh_token, expires_at, date_created, date_updated`
+
+		err = a.conn.QueryRow(query, auth.UserId, auth.AccessToken, auth.RefreshToken, a.getExpiry(expires_at)).Scan(&auh.Id, &auh.UserId, &auh.AccessToken, &auh.RefreshToken, &auh.ExpiresAt, &auh.DateCreated, &auh.DateUpdated)
+		if err != nil {
+			return
+		}
+
+		return
+	}
 
 	query := `INSERT INTO auth (user_id, access_token, refresh_token) VALUES ($1, $2, $3) RETURNING id, user_id, access_token, refresh_token, expires_at, date_created, date_updated`
 
@@ -64,5 +86,12 @@ func (a *authSql) Clear(userId, accessToken string) error {
 }
 
 func NewAuthRepo(conn *sql.DB) AuthRepo {
+	godotenv.Load(".env")
+
 	return &authSql{conn: conn}
+}
+
+func (a *authSql) getExpiry(expires_at string) time.Time {
+	expiryString, _ := strconv.Atoi(expires_at)
+	return time.Now().Add(time.Hour * time.Duration(expiryString))
 }
