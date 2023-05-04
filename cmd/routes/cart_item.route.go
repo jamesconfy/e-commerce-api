@@ -19,9 +19,7 @@ func CartItemRoute(router *gin.RouterGroup, cartItemSrv service.CartItemService,
 	item.Use(auth.CheckJWT())
 	{
 		item.POST("", func(ctx *gin.Context) {
-			defer func() {
-				store.Delete("/api/v1/items")
-			}()
+			store.Delete(cache.CreateKey("/api/v1/items"))
 			handler.Add(ctx)
 		})
 		item.GET("", cache.CachePage(store, time.Duration(time.Hour*1), func(ctx *gin.Context) {
@@ -33,7 +31,7 @@ func CartItemRoute(router *gin.RouterGroup, cartItemSrv service.CartItemService,
 		item.DELETE("/:productId", func(ctx *gin.Context) {
 			defer func() {
 				store.Delete(cache.CreateKey(ctx.Request.RequestURI))
-				store.Delete("/api/v1/items")
+				store.Delete(cache.CreateKey("/api/v1/items"))
 			}()
 			handler.Delete(ctx)
 		})

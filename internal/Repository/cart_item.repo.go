@@ -3,7 +3,6 @@ package repo
 import (
 	"database/sql"
 	"e-commerce/internal/models"
-	"fmt"
 )
 
 type CartItemRepo interface {
@@ -21,7 +20,6 @@ func (c *itemSql) Add(cart *models.Cart, item *models.Item) (itm *models.Item, e
 	// SQL – Add item to cart on conflict update item quantity
 	itm = new(models.Item)
 
-	fmt.Println(item.Quantity)
 	query := `INSERT INTO cart_item(cart_id, product_id, quantity) VALUES ($1, $2, $3) ON CONFLICT (cart_id, product_id)
 	DO UPDATE SET quantity = $3, date_updated = CURRENT_TIMESTAMP RETURNING product_id, quantity, date_created, date_updated`
 

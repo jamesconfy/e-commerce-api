@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"e-commerce/internal/models"
-
-	"github.com/joho/godotenv"
 )
 
 var (
@@ -86,12 +84,10 @@ func (a *authSql) Clear(userId, accessToken string) error {
 }
 
 func NewAuthRepo(conn *sql.DB) AuthRepo {
-	godotenv.Load(".env")
-
 	return &authSql{conn: conn}
 }
 
 func (a *authSql) getExpiry(expires_at string) time.Time {
-	expiryString, _ := strconv.Atoi(expires_at)
-	return time.Now().Add(time.Hour * time.Duration(expiryString))
+	expiryInt, _ := strconv.Atoi(expires_at)
+	return time.Now().Add(time.Hour * time.Duration(expiryInt))
 }
