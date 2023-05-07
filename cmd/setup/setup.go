@@ -21,6 +21,7 @@ import (
 
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -37,6 +38,8 @@ var (
 )
 
 func Setup() {
+	godotenv.Load(".env")
+
 	mysqlDB, err := db.New(dsn)
 	if err != nil {
 		log.Println("Error Connecting to DB: ", err)
@@ -126,7 +129,7 @@ func Setup() {
 	route.HomeRoute(v1, homeSrv, store)
 	route.UserRoute(v1, userSrv, authSrv, store)
 	route.ProductRoutes(v1, productSrv, authSrv, store)
-	route.CartRoute(v1, cartSrv, authSrv)
+	route.CartRoute(v1, cartSrv, authSrv, store)
 	route.CartItemRoute(v1, cartItemSrv, authSrv, store)
 	route.ErrorRoute(router)
 
