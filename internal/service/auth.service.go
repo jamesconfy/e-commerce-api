@@ -27,7 +27,7 @@ type authSrv struct {
 	logSrv    LogSrv
 }
 
-func (t *authSrv) Create(id, email string) (string, string, error) {
+func (t *authSrv) Create(id, email string) (accessToken, refreshToken string, err error) {
 	accessTokenDetails := &Token{
 		Email: email,
 		Id:    id,
@@ -44,17 +44,17 @@ func (t *authSrv) Create(id, email string) (string, string, error) {
 		},
 	}
 
-	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenDetails).SignedString([]byte(t.SecretKey))
+	accessToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenDetails).SignedString([]byte(t.SecretKey))
 	if err != nil {
-		return "", "", err
+		return
 	}
 
-	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenDetails).SignedString([]byte(t.SecretKey))
+	refreshToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenDetails).SignedString([]byte(t.SecretKey))
 	if err != nil {
-		return "", "", err
+		return
 	}
 
-	return accessToken, refreshToken, err
+	return
 }
 
 func (t *authSrv) Validate(url string) (*Token, error) {

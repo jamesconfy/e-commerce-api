@@ -2,8 +2,6 @@ package utils
 
 import "github.com/spf13/viper"
 
-// import "github.com/spf13/viper"
-
 type Config struct {
 	// Default settings
 	ADDR             string `mapstructure:"ADDR"`

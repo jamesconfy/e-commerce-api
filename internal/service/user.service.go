@@ -6,7 +6,6 @@ import (
 	"e-commerce/internal/models"
 	repo "e-commerce/internal/repository"
 	"e-commerce/internal/se"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -81,7 +80,6 @@ func (u *userSrv) Add(req *forms.Signup) (*models.UserCart, *se.ServiceError) {
 	user.Password = req.Password
 	user.PhoneNumber = req.PhoneNumber
 	user.Password = password
-	user.DateCreated = time.Now().Local()
 
 	// Register user
 	resultUser, err := u.userRepo.Add(&user)
@@ -115,13 +113,6 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 		return nil, se.Validating(err)
 	}
 
-	// Check if provided email exists in the database
-	ok, _ := u.userRepo.ExistsEmail(req.Email)
-	if !ok {
-		u.loggerSrv.Error(u.message.LoginEmailExists(req.Email))
-		return nil, se.NotFound("User does not exist")
-	}
-
 	// Get user by email
 	user, err := u.userRepo.GetByEmail(req.Email)
 	if err != nil {
@@ -130,7 +121,7 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 	}
 
 	// Compare provided password and database password
-	ok = u.cryptoSrv.ComparePassword(user.Password, req.Password)
+	ok := u.cryptoSrv.ComparePassword(user.Password, req.Password)
 	if !ok {
 		// u.loggerSrv.Error(u.message.LoginPasswordError(req, user.Id))
 		return nil, se.BadRequest("Passwords do not match")
@@ -148,14 +139,14 @@ func (u *userSrv) Login(req *forms.Login) (*models.Auth, *se.ServiceError) {
 		return nil, se.Internal(err, "Error when creating tokens")
 	}
 
-	// Create/Update auth table
+	// Create auth row
 	resultAuth, err := u.authRepo.Add(&auth)
 	if err != nil {
 		// u.loggerSrv.Error(u.message.CreateTokenRepoError(resultAuth))
 		return nil, se.Internal(err, "Error when adding/updating user token")
 	}
 
-	// User logged in successfully return user recently updated auth
+	// User logged in successfully return user recently created auth
 	// u.loggerSrv.Info(u.message.LoginSuccess(resultAuth))
 	return resultAuth, nil
 }

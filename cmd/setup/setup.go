@@ -38,8 +38,6 @@ var (
 )
 
 func Setup() {
-	godotenv.Load(".env")
-
 	mysqlDB, err := db.New(dsn)
 	if err != nil {
 		log.Println("Error Connecting to DB: ", err)
@@ -171,6 +169,8 @@ func serverEnd() {
 }
 
 func init() {
+	godotenv.Load(".env")
+
 	addr = utils.AppConfig.ADDR
 	mode = utils.AppConfig.MODE
 	secret = utils.AppConfig.SECRET_KEY_TOKEN
