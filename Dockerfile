@@ -28,6 +28,4 @@ LABEL Name="e-commerce" Version=1.0
 
 EXPOSE  8080
 
-EXPOSE  8000
-
-CMD [ "./e-commerce" ]
+CMD [ "./e-commerce", "--migrate=true" ]

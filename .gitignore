@@ -1,4 +1,6 @@
 .env*
+docker.env
+prod.env
 .vscode
 .dockerignore
 docker-compose.yml
@@ -7,7 +9,7 @@ __debug_bin
 .DS_Store
 logs/*
 *init*
-*mig*
+*mig
 *test.log
 config.db
 .air.toml

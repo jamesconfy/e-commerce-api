@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -21,10 +22,11 @@ import (
 
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+var migrate = flag.String("migrate", "false", "for migrations")
 
 var (
 	addr           string
@@ -169,7 +171,7 @@ func serverEnd() {
 }
 
 func init() {
-	godotenv.Load(".env")
+	flag.Parse()
 
 	addr = utils.AppConfig.ADDR
 	mode = utils.AppConfig.MODE
@@ -185,12 +187,20 @@ func init() {
 		log.Println("Please provide a secret key token")
 	}
 
-	if mode == "development" {
+	switch mode {
+	case "production":
+		loadProd()
+	case "docker":
+		loadDocker()
+	default:
 		loadDev()
 	}
 
-	if mode == "production" {
-		loadProd()
+	fmt.Println("DSN: ", dsn)
+	if *migrate == "true" {
+		if err := utils.Migration(dsn); err != nil {
+			log.Println(err)
+		}
 	}
 }
 
@@ -250,5 +260,35 @@ func loadProd() {
 	redis_password = utils.AppConfig.PRODUCTION_REDIS_DATABASE_PASSWORD
 	if redis_password == "" {
 		log.Println("REDIS ADDRESS cannot be empty")
+	}
+}
+
+func loadDocker() {
+	gin.SetMode(gin.DebugMode)
+	gin.DisableConsoleColor()
+
+	host := utils.AppConfig.POSTGRES_HOST
+	username := utils.AppConfig.POSTGRES_USERNAME
+	passwd := utils.AppConfig.POSTGRES_PASSWORD
+	dbname := utils.AppConfig.POSTGRES_DBNAME
+
+	dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
+	if dsn == "" {
+		log.Println("DSN cannot be empty")
+	}
+
+	redis_host = utils.AppConfig.REDIS_DATABASE_HOST
+	if redis_host == "" {
+		log.Println("REDIS ADDRESS cannot be empty")
+	}
+
+	redis_username = utils.AppConfig.REDIS_DATABASE_USERNAME
+	if redis_username == "" {
+		log.Println("REDIS USERNAME cannot be empty")
+	}
+
+	redis_password = utils.AppConfig.REDIS_DATABASE_PASSWORD
+	if redis_password == "" {
+		log.Println("REDIS PASSWORD cannot be empty")
 	}
 }

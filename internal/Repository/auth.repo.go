@@ -2,15 +2,11 @@ package repo
 
 import (
 	"database/sql"
-	"os"
 	"strconv"
 	"time"
 
 	"e-commerce/internal/models"
-)
-
-var (
-	expiresAt_key = "EXPIRES_AT"
+	"e-commerce/utils"
 )
 
 type AuthRepo interface {
@@ -27,7 +23,7 @@ type authSql struct {
 func (a *authSql) Add(auth *models.Auth) (auh *models.Auth, err error) {
 	auh = new(models.Auth)
 
-	expires_at := os.Getenv(expiresAt_key)
+	expires_at := utils.AppConfig.EXPIRES_AT
 	if expires_at != "" {
 		query := `INSERT INTO auth (user_id, access_token, refresh_token, expires_at) VALUES ($1, $2, $3, $4) RETURNING id, user_id, access_token, refresh_token, expires_at, date_created, date_updated`
 

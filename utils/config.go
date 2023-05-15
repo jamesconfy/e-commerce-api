@@ -8,6 +8,7 @@ type Config struct {
 	SECRET_KEY_TOKEN string `mapstructure:"SECRET_KEY_TOKEN"`
 	MODE             string `mapstructure:"MODE"`
 	ENABLE_CACHE     bool   `mapstructure:"ENABLE_CACHE"`
+	EXPIRES_AT       string `mapstructure:"EXPIRES_AT"`
 
 	// Development Postgres Database
 	DEVELOPMENT_POSTGRES_HOST     string `mapstructure:"DEVELOPMENT_POSTGRES_HOST"`
@@ -19,6 +20,17 @@ type Config struct {
 	DEVELOPMENT_REDIS_DATABASE_USERNAME string `mapstructure:"DEVELOPMENT_REDIS_DATABASE_USERNAME"`
 	DEVELOPMENT_REDIS_DATABASE_HOST     string `mapstructure:"DEVELOPMENT_REDIS_DATABASE_HOST"`
 	DEVELOPMENT_REDIS_DATABASE_PASSWORD string `mapstructure:"DEVELOPMENT_REDIS_DATABASE_PASSWORD"`
+
+	// Docker Postgres Database
+	POSTGRES_HOST     string `mapstructure:"POSTGRES_HOST"`
+	POSTGRES_USERNAME string `mapstructure:"POSTGRES_USERNAME"`
+	POSTGRES_PASSWORD string `mapstructure:"POSTGRES_PASSWORD"`
+	POSTGRES_DBNAME   string `mapstructure:"POSTGRES_DBNAME"`
+
+	// Docker Redis Database
+	REDIS_DATABASE_USERNAME string `mapstructure:"REDIS_DATABASE_USERNAME"`
+	REDIS_DATABASE_HOST     string `mapstructure:"REDIS_DATABASE_HOST"`
+	REDIS_DATABASE_PASSWORD string `mapstructure:"REDIS_DATABASE_PASSWORD"`
 
 	// Production Postgres Database
 	PRODUCTION_POSTGRES_HOST     string `mapstructure:"PRODUCTION_POSTGRES_HOST"`
@@ -33,21 +45,41 @@ type Config struct {
 	MYSQL_PRODUCTION_DATABASE          string `mapstructure:"MYSQL_PRODUCTION_DATABASE"`
 }
 
-var AppConfig Config
+var AppConfig *Config
 
 func init() {
-	viper.AddConfigPath(".")
-	viper.SetConfigFile(".env")
-
 	viper.AutomaticEnv()
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
+	AppConfig = &Config{
+		ADDR:             viper.GetString("ADDR"),
+		SECRET_KEY_TOKEN: viper.GetString("SECRET_KEY_TOKEN"),
+		MODE:             viper.GetString("MODE"),
+		ENABLE_CACHE:     viper.GetBool("ENABLE_CACHE"),
+		EXPIRES_AT:       viper.GetString("EXPIRES_AT"),
 
-	err = viper.Unmarshal(&AppConfig)
-	if err != nil {
-		panic(err)
+		DEVELOPMENT_POSTGRES_HOST:           viper.GetString("DEVELOPMENT_POSTGRES_HOST"),
+		DEVELOPMENT_POSTGRES_USERNAME:       viper.GetString("DEVELOPMENT_POSTGRES_USERNAME"),
+		DEVELOPMENT_POSTGRES_PASSWORD:       viper.GetString("DEVELOPMENT_POSTGRES_PASSWORD"),
+		DEVELOPMENT_POSTGRES_DBNAME:         viper.GetString("DEVELOPMENT_POSTGRES_DBNAME"),
+		DEVELOPMENT_REDIS_DATABASE_USERNAME: viper.GetString("DEVELOPMENT_REDIS_DATABASE_USERNAME"),
+		DEVELOPMENT_REDIS_DATABASE_HOST:     viper.GetString("DEVELOPMENT_REDIS_DATABASE_HOST"),
+		DEVELOPMENT_REDIS_DATABASE_PASSWORD: viper.GetString("DEVELOPMENT_REDIS_DATABASE_PASSWORD"),
+
+		// Docker Postgres Database
+		POSTGRES_HOST:           viper.GetString("POSTGRES_HOST"),
+		POSTGRES_USERNAME:       viper.GetString("POSTGRES_USERNAME"),
+		POSTGRES_PASSWORD:       viper.GetString("POSTGRES_PASSWORD"),
+		POSTGRES_DBNAME:         viper.GetString("POSTGRES_DBNAME"),
+		REDIS_DATABASE_USERNAME: viper.GetString("REDIS_DATABASE_USERNAME"),
+		REDIS_DATABASE_HOST:     viper.GetString("REDIS_DATABASE_HOST"),
+		REDIS_DATABASE_PASSWORD: viper.GetString("REDIS_DATABASE_PASSWORD"),
+
+		PRODUCTION_POSTGRES_HOST:           viper.GetString("PRODUCTION_POSTGRES_HOST"),
+		PRODUCTION_POSTGRES_USERNAME:       viper.GetString("PRODUCTION_POSTGRES_USERNAME"),
+		PRODUCTION_POSTGRES_PASSWORD:       viper.GetString("PRODUCTION_POSTGRES_PASSWORD"),
+		PRODUCTION_POSTGRES_DBNAME:         viper.GetString("PRODUCTION_POSTGRES_DBNAME"),
+		PRODUCTION_REDIS_DATABASE_HOST:     viper.GetString("PRODUCTION_REDIS_DATABASE_HOST"),
+		PRODUCTION_REDIS_DATABASE_USERNAME: viper.GetString("PRODUCTION_REDIS_DATABASE_USERNAME"),
+		PRODUCTION_REDIS_DATABASE_PASSWORD: viper.GetString("PRODUCTION_REDIS_DATABASE_PASSWORD"),
 	}
 }
