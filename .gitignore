@@ -1,6 +1,5 @@
 .env*
-docker.env
-prod.env
+deploy.sh
 .vscode
 .dockerignore
 docker-compose.yml

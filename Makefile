@@ -7,13 +7,9 @@ migrate_force:
 migrate_down:
 	migrate -path db/migration -database "" -verbose down
 
-include .env
-export
 run:	
 	go build e-commerce.go && ./e-commerce --migrate=false
 
-include .env
-export
 run_migrate:
 	go build e-commerce.go && ./e-commerce --migrate=true
 

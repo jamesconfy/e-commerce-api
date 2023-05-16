@@ -190,8 +190,6 @@ func init() {
 	switch mode {
 	case "production":
 		loadProd()
-	case "docker":
-		loadDocker()
 	default:
 		loadDev()
 	}
@@ -207,87 +205,38 @@ func init() {
 func loadDev() {
 	gin.SetMode(gin.DebugMode)
 
-	host := utils.AppConfig.DEVELOPMENT_POSTGRES_HOST
-	username := utils.AppConfig.DEVELOPMENT_POSTGRES_USERNAME
-	passwd := utils.AppConfig.DEVELOPMENT_POSTGRES_PASSWORD
-	dbname := utils.AppConfig.DEVELOPMENT_POSTGRES_DBNAME
-
-	dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
-	if dsn == "" {
-		log.Println("DSN cannot be empty")
-	}
-
-	redis_host = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_HOST
-	if redis_host == "" {
-		log.Println("REDIS ADDRESS cannot be empty")
-	}
-
-	redis_username = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_USERNAME
-	if redis_username == "" {
-		log.Println("REDIS USERNAME cannot be empty")
-	}
-
-	redis_password = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_PASSWORD
-	if redis_password == "" {
-		log.Println("REDIS ADDRESS cannot be empty")
-	}
+	load()
 }
 
 func loadProd() {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableConsoleColor()
 
-	host := utils.AppConfig.PRODUCTION_POSTGRES_HOST
-	username := utils.AppConfig.PRODUCTION_POSTGRES_USERNAME
-	passwd := utils.AppConfig.PRODUCTION_POSTGRES_PASSWORD
-	dbname := utils.AppConfig.PRODUCTION_POSTGRES_DBNAME
-
-	dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
-	if dsn == "" {
-		log.Println("DSN cannot be empty")
-	}
-
-	redis_host = utils.AppConfig.PRODUCTION_REDIS_DATABASE_HOST
-	if redis_host == "" {
-		log.Println("REDIS ADDRESS cannot be empty")
-	}
-
-	redis_username = utils.AppConfig.PRODUCTION_REDIS_DATABASE_USERNAME
-	if redis_username == "" {
-		log.Println("REDIS USERNAME cannot be empty")
-	}
-
-	redis_password = utils.AppConfig.PRODUCTION_REDIS_DATABASE_PASSWORD
-	if redis_password == "" {
-		log.Println("REDIS ADDRESS cannot be empty")
-	}
+	load()
 }
 
-func loadDocker() {
-	gin.SetMode(gin.DebugMode)
-	gin.DisableConsoleColor()
-
+func load() {
 	host := utils.AppConfig.POSTGRES_HOST
-	username := utils.AppConfig.POSTGRES_USERNAME
+	username := utils.AppConfig.POSTGRES_USER
 	passwd := utils.AppConfig.POSTGRES_PASSWORD
-	dbname := utils.AppConfig.POSTGRES_DBNAME
+	dbname := utils.AppConfig.POSTGRES_DB
 
 	dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
 	if dsn == "" {
 		log.Println("DSN cannot be empty")
 	}
 
-	redis_host = utils.AppConfig.REDIS_DATABASE_HOST
+	redis_host = utils.AppConfig.REDIS_HOST
 	if redis_host == "" {
 		log.Println("REDIS ADDRESS cannot be empty")
 	}
 
-	redis_username = utils.AppConfig.REDIS_DATABASE_USERNAME
+	redis_username = utils.AppConfig.REDIS_USERNAME
 	if redis_username == "" {
 		log.Println("REDIS USERNAME cannot be empty")
 	}
 
-	redis_password = utils.AppConfig.REDIS_DATABASE_PASSWORD
+	redis_password = utils.AppConfig.REDIS_PASSWORD
 	if redis_password == "" {
 		log.Println("REDIS PASSWORD cannot be empty")
 	}
