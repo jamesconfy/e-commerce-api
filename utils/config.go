@@ -8,7 +8,7 @@ type Config struct {
 	SECRET_KEY_TOKEN string `mapstructure:"SECRET_KEY_TOKEN"`
 	MODE             string `mapstructure:"MODE"`
 	ENABLE_CACHE     bool   `mapstructure:"ENABLE_CACHE"`
-	EXPIRES_AT       string `mapstructure:"EXPIRES_AT"`
+	EXPIRES_AT       int    `mapstructure:"EXPIRES_AT"`
 
 	// Postgres Database
 	POSTGRES_HOST     string `mapstructure:"POSTGRES_HOST"`
@@ -32,7 +32,7 @@ func init() {
 		SECRET_KEY_TOKEN: viper.GetString("SECRET_KEY_TOKEN"),
 		MODE:             viper.GetString("MODE"),
 		ENABLE_CACHE:     viper.GetBool("ENABLE_CACHE"),
-		EXPIRES_AT:       viper.GetString("EXPIRES_AT"),
+		EXPIRES_AT:       viper.GetInt("EXPIRES_AT"),
 
 		// Docker Postgres Database
 		POSTGRES_HOST:     viper.GetString("POSTGRES_HOST"),

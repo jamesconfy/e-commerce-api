@@ -27,7 +27,7 @@ type authSrv struct {
 	logSrv    LogSrv
 }
 
-func (t *authSrv) Create(id, email string) (accessToken, refreshToken string, err error) {
+func (a *authSrv) Create(id, email string) (accessToken, refreshToken string, err error) {
 	accessTokenDetails := &Token{
 		Email: email,
 		Id:    id,
@@ -44,12 +44,12 @@ func (t *authSrv) Create(id, email string) (accessToken, refreshToken string, er
 		},
 	}
 
-	accessToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenDetails).SignedString([]byte(t.SecretKey))
+	accessToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenDetails).SignedString([]byte(a.SecretKey))
 	if err != nil {
 		return
 	}
 
-	refreshToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenDetails).SignedString([]byte(t.SecretKey))
+	refreshToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenDetails).SignedString([]byte(a.SecretKey))
 	if err != nil {
 		return
 	}
@@ -57,12 +57,12 @@ func (t *authSrv) Create(id, email string) (accessToken, refreshToken string, er
 	return
 }
 
-func (t *authSrv) Validate(url string) (*Token, error) {
+func (a *authSrv) Validate(url string) (*Token, error) {
 	token, err := jwt.ParseWithClaims(
 		url,
 		&Token{},
 		func(token *jwt.Token) (interface{}, error) {
-			return []byte(t.SecretKey), nil
+			return []byte(a.SecretKey), nil
 		},
 	)
 
@@ -75,6 +75,14 @@ func (t *authSrv) Validate(url string) (*Token, error) {
 		return nil, err
 	}
 
+	return a.check(claims, url)
+}
+
+func NewAuthService(repo repo.AuthRepo, secret string, logSrv LogSrv) AuthService {
+	return &authSrv{authRepo: repo, SecretKey: secret, logSrv: logSrv}
+}
+
+func (a *authSrv) check(claims *Token, url string) (*Token, error) {
 	if err := claims.Valid(); err != nil {
 		return nil, err
 	}
@@ -83,11 +91,12 @@ func (t *authSrv) Validate(url string) (*Token, error) {
 		return nil, fmt.Errorf("expired token, please login again || expired time: %s", claims.ExpiresAt.Time)
 	}
 
-	row, err := t.authRepo.Get(claims.Id)
+	row, err := a.authRepo.Get(claims.Id, url)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("outdated token")
 		}
+
 		return nil, err
 	}
 
@@ -96,8 +105,4 @@ func (t *authSrv) Validate(url string) (*Token, error) {
 	}
 
 	return claims, err
-}
-
-func NewAuthService(repo repo.AuthRepo, secret string, logSrv LogSrv) AuthService {
-	return &authSrv{authRepo: repo, SecretKey: secret, logSrv: logSrv}
 }

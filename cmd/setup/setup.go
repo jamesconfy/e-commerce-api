@@ -48,12 +48,13 @@ func Setup() {
 	defer mysqlDB.Close()
 	conn := mysqlDB.Get()
 
-	redisClient := db.NewRedisDB(redis_username, redis_password, redis_host)
-	if redisClient == nil {
+	rdb := db.NewRedisDB(redis_username, redis_password, redis_host)
+	if rdb == nil {
 		log.Println("Error when connecting to Redis")
 		return
 	}
-	defer redisClient.Close()
+	fmt.Println("Redis Ping: ", rdb.Ping(rdb.Context()))
+	defer rdb.Close()
 
 	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
 
@@ -66,7 +67,7 @@ func Setup() {
 	router.Use(middleware.CORS())
 
 	// Redis Repository
-	cacheRepo := repo.NewRedisCache(redisClient)
+	cacheRepo := repo.NewRedisCache(rdb)
 
 	// User Repository
 	userRepo := repo.NewUserRepo(conn)
@@ -114,7 +115,7 @@ func Setup() {
 	cartItemSrv := service.NewCartItemService(cartItemRepo, cartRepo, userRepo, productRepo, loggerSrv, validatorSrv)
 
 	// Check cache and implement it
-	if cache && redisClient != nil {
+	if cache && rdb != nil {
 		authSrv = service.NewCachedAuthService(authSrv, cacheRepo)
 		userSrv = service.NewCachedUserService(userSrv, cacheRepo)
 		cartItemSrv = service.NewCachedCartItemService(cartItemSrv, cacheRepo)

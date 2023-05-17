@@ -1,11 +1,10 @@
 package route
 
 import (
-	"time"
-
 	handler "e-commerce/cmd/handlers"
 	"e-commerce/cmd/middleware"
 	"e-commerce/internal/service"
+	"time"
 
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
@@ -15,15 +14,21 @@ import (
 
 func UserRoute(router *gin.RouterGroup, userSrv service.UserService, authSrv service.AuthService, store *persistence.InMemoryStore) {
 	handler := handler.NewUserHandler(userSrv)
-	user := router.Group("/users")
+	jwt := middleware.Authentication(authSrv)
+
+	auth := router.Group("/auth")
 	{
-		user.POST("/signup", func(ctx *gin.Context) {
+		auth.POST("/signup", func(ctx *gin.Context) {
 			defer func() {
 				store.Delete(cache.CreateKey("/api/v1/users"))
 			}()
 			handler.Create(ctx)
 		})
-		user.POST("/login", handler.Login)
+		auth.POST("/login", handler.Login)
+	}
+
+	user := router.Group("/users")
+	{
 		user.GET("/:userId", cache.CachePage(store, time.Duration(time.Hour*1), func(ctx *gin.Context) {
 			handler.GetById(ctx)
 		}))
@@ -32,14 +37,18 @@ func UserRoute(router *gin.RouterGroup, userSrv service.UserService, authSrv ser
 		}))
 	}
 
-	user1 := router.Group("/users")
-	jwt := middleware.Authentication(authSrv)
-	user1.Use(jwt.CheckJWT())
+	authJWT := router.Group("/auth")
+	authJWT.Use(jwt.CheckJWT())
 	{
-		user1.GET("/profile", handler.Get)
-		user1.PATCH("/profile", handler.Edit)
-		user1.DELETE("/profile", handler.Delete)
-		user1.POST("/logout", handler.Logout)
-		user1.DELETE("/profile/clear", handler.ClearAuth)
+		authJWT.POST("/logout", handler.Logout)
+		authJWT.DELETE("/clear", handler.ClearAuth)
+	}
+
+	userJWT := router.Group("/users")
+	userJWT.Use(jwt.CheckJWT())
+	{
+		userJWT.GET("/profile", handler.Get)
+		userJWT.PATCH("/profile", handler.Edit)
+		userJWT.DELETE("/profile", handler.Delete)
 	}
 }

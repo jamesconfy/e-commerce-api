@@ -106,7 +106,7 @@ func (u *userHandler) Get(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "User gotten successfully", user, 1)
+	response.Success(c, "User gotten successfully", user)
 }
 
 // Get User godoc
