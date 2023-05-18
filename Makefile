@@ -7,8 +7,11 @@ migrate_force:
 migrate_down:
 	migrate -path db/migration -database "" -verbose down
 
-run:
-	go build e-commerce.go && ./e-commerce
+run:	
+	go build e-commerce.go && ./e-commerce --migrate=false
+
+run_migrate:
+	go build e-commerce.go && ./e-commerce --migrate=true
 
 gotidy:
 	go mod tidy

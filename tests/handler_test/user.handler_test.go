@@ -23,7 +23,7 @@ func TestCreateUser(t *testing.T) {
 		panic(err)
 	}
 
-	req, _ := http.NewRequest("POST", "/test/users/signup", bytes.NewReader(obj))
+	req, _ := http.NewRequest("POST", "/test/auth/signup", bytes.NewReader(obj))
 	req.Header.Set("Content-type", "application/json")
 
 	r.ServeHTTP(w, req)
@@ -49,7 +49,7 @@ func TestLoginUser(t *testing.T) {
 		panic(err)
 	}
 
-	req, _ := http.NewRequest("POST", "/test/users/login", bytes.NewReader(obj))
+	req, _ := http.NewRequest("POST", "/test/auth/login", bytes.NewReader(obj))
 	req.Header.Set("Content-type", "application/json")
 
 	r.ServeHTTP(w, req)

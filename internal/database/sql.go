@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -37,8 +36,6 @@ func New(connStr string) (*db, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("Ping: ", conn.Ping())
 
 	return &db{conn: conn}, nil
 }

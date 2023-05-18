@@ -42,7 +42,7 @@ func TestGetAuth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := a.Get(auth.UserId)
+			_, err := a.Get(auth.UserId, auth.AccessToken)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("auth.GetAuth() error = %v, wantErr %v", err, tt.wantErr)

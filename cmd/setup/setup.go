@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -21,10 +22,11 @@ import (
 
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+var migrate = flag.String("migrate", "false", "for migrations")
 
 var (
 	addr           string
@@ -46,12 +48,13 @@ func Setup() {
 	defer mysqlDB.Close()
 	conn := mysqlDB.Get()
 
-	redisClient := db.NewRedisDB(redis_username, redis_password, redis_host)
-	if redisClient == nil {
+	rdb := db.NewRedisDB(redis_username, redis_password, redis_host)
+	if rdb == nil {
 		log.Println("Error when connecting to Redis")
 		return
 	}
-	defer redisClient.Close()
+	fmt.Println("Redis Ping: ", rdb.Ping(rdb.Context()))
+	defer rdb.Close()
 
 	gin.DefaultWriter = io.MultiWriter(os.Stdout, logger.New())
 
@@ -64,7 +67,7 @@ func Setup() {
 	router.Use(middleware.CORS())
 
 	// Redis Repository
-	cacheRepo := repo.NewRedisCache(redisClient)
+	cacheRepo := repo.NewRedisCache(rdb)
 
 	// User Repository
 	userRepo := repo.NewUserRepo(conn)
@@ -112,7 +115,7 @@ func Setup() {
 	cartItemSrv := service.NewCartItemService(cartItemRepo, cartRepo, userRepo, productRepo, loggerSrv, validatorSrv)
 
 	// Check cache and implement it
-	if cache && redisClient != nil {
+	if cache && rdb != nil {
 		authSrv = service.NewCachedAuthService(authSrv, cacheRepo)
 		userSrv = service.NewCachedUserService(userSrv, cacheRepo)
 		cartItemSrv = service.NewCachedCartItemService(cartItemSrv, cacheRepo)
@@ -169,7 +172,7 @@ func serverEnd() {
 }
 
 func init() {
-	godotenv.Load(".env")
+	flag.Parse()
 
 	addr = utils.AppConfig.ADDR
 	mode = utils.AppConfig.MODE
@@ -185,70 +188,57 @@ func init() {
 		log.Println("Please provide a secret key token")
 	}
 
-	if mode == "development" {
+	switch mode {
+	case "production":
+		loadProd()
+	default:
 		loadDev()
 	}
 
-	if mode == "production" {
-		loadProd()
+	fmt.Println("DSN: ", dsn)
+	if *migrate == "true" {
+		if err := utils.Migration(dsn); err != nil {
+			log.Println(err)
+		}
 	}
 }
 
 func loadDev() {
 	gin.SetMode(gin.DebugMode)
 
-	host := utils.AppConfig.DEVELOPMENT_POSTGRES_HOST
-	username := utils.AppConfig.DEVELOPMENT_POSTGRES_USERNAME
-	passwd := utils.AppConfig.DEVELOPMENT_POSTGRES_PASSWORD
-	dbname := utils.AppConfig.DEVELOPMENT_POSTGRES_DBNAME
-
-	dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
-	if dsn == "" {
-		log.Println("DSN cannot be empty")
-	}
-
-	redis_host = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_HOST
-	if redis_host == "" {
-		log.Println("REDIS ADDRESS cannot be empty")
-	}
-
-	redis_username = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_USERNAME
-	if redis_username == "" {
-		log.Println("REDIS USERNAME cannot be empty")
-	}
-
-	redis_password = utils.AppConfig.DEVELOPMENT_REDIS_DATABASE_PASSWORD
-	if redis_password == "" {
-		log.Println("REDIS ADDRESS cannot be empty")
-	}
+	load()
 }
 
 func loadProd() {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableConsoleColor()
 
-	host := utils.AppConfig.PRODUCTION_POSTGRES_HOST
-	username := utils.AppConfig.PRODUCTION_POSTGRES_USERNAME
-	passwd := utils.AppConfig.PRODUCTION_POSTGRES_PASSWORD
-	dbname := utils.AppConfig.PRODUCTION_POSTGRES_DBNAME
+	load()
+}
+
+func load() {
+	host := utils.AppConfig.POSTGRES_HOST
+	username := utils.AppConfig.POSTGRES_USER
+	passwd := utils.AppConfig.POSTGRES_PASSWORD
+	dbname := utils.AppConfig.POSTGRES_DB
 
 	dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, username, passwd, dbname)
 	if dsn == "" {
 		log.Println("DSN cannot be empty")
 	}
 
-	redis_host = utils.AppConfig.PRODUCTION_REDIS_DATABASE_HOST
+	redis_host = utils.AppConfig.REDIS_HOST
 	if redis_host == "" {
 		log.Println("REDIS ADDRESS cannot be empty")
 	}
 
-	redis_username = utils.AppConfig.PRODUCTION_REDIS_DATABASE_USERNAME
+	redis_username = utils.AppConfig.REDIS_USERNAME
 	if redis_username == "" {
 		log.Println("REDIS USERNAME cannot be empty")
 	}
 
-	redis_password = utils.AppConfig.PRODUCTION_REDIS_DATABASE_PASSWORD
+	redis_password = utils.AppConfig.REDIS_PASSWORD
 	if redis_password == "" {
-		log.Println("REDIS ADDRESS cannot be empty")
+		log.Println("REDIS PASSWORD cannot be empty")
 	}
 }
