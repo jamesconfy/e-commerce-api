@@ -11,7 +11,7 @@ type cryptoSrv struct {
 }
 
 func (c cryptoSrv) HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
 		return "", err
 	}
